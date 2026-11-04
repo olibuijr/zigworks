@@ -258,11 +258,26 @@ fn code(w: *Writer) Writer.Error!void {
 }
 
 fn table(w: *Writer) Writer.Error!void {
-    try ui.table(.{ .head = &.{ "Method", "Path", "Handler" }, .rows = &.{
-        &.{ "GET", "/", "index" },
-        &.{ "POST", "/todos", "create" },
-        &.{ "DELETE", "/todos/:id", "remove" },
-    } }).render(w);
+    try zw.view("<div class=\"zw-stack\" style=\"width:100%;min-width:0\">{a}{b}{c}</div>", .{
+        .a = ui.table(.{ .head = &.{ "Method", "Path", "Handler" }, .rows = &.{
+            &.{ "GET", "/", "index" },
+            &.{ "POST", "/todos", "create" },
+            &.{ "DELETE", "/todos/:id", "remove" },
+        } }),
+        .b = ui.table(.{
+            .caption = "Disk usage",
+            .head = &.{ "Volume", "Used", "Free" },
+            .aligns = &.{ .left, .right, .right },
+            .rows = &.{
+                &.{ "System", "41.2 GB", "22.8 GB" },
+                &.{ "Backups", "310 GB", "190 GB" },
+                &.{ "Photos", "88.6 GB", "11.4 GB" },
+            },
+            .striped = true,
+            .row_header = true,
+        }),
+        .c = ui.table(.{ .head = &.{ "Name", "Role" }, .rows = &.{}, .empty = "No members yet", .compact = true }),
+    }).render(w);
 }
 
 fn island(w: *Writer) Writer.Error!void {
