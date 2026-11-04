@@ -381,7 +381,12 @@ fn empty(w: *Writer) Writer.Error!void {
 }
 
 fn skeleton(w: *Writer) Writer.Error!void {
-    try ui.card(.{ .body = ui.skeleton(.{ .lines = 3 }) }).render(w);
+    try zw.view("<div class=\"zw-stack\" style=\"width:100%\">{a}{b}{c}{d}</div>", .{
+        .a = ui.card(.{ .body = ui.skeleton(.{ .lines = 3 }) }),
+        .b = ui.card(.{ .body = ui.skeleton(.{ .shape = .media, .lines = 2, .size = 44 }) }),
+        .c = ui.card(.{ .body = ui.skeleton(.{ .shape = .block, .height = "96px", .label = "Loading photo" }) }),
+        .d = ui.card(.{ .body = ui.skeleton(.{ .lines = 2, .last_width = 40, .shimmer = false }) }),
+    }).render(w);
 }
 
 fn kbd(w: *Writer) Writer.Error!void {
