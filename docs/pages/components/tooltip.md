@@ -33,7 +33,7 @@ tooltip-sides
 
 ## Text, shortcut, detail and delay
 
-`text` is a few words, with no period. `shortcut` adds a key hint after it and `detail` a second line in secondary color. Pass `id` and the trigger's `describedby` when the tip holds more than the trigger's own name, so screen readers read it.
+`text` is a few words, with no period. `shortcut` adds a key hint after it and `detail` a second line in secondary color. The tip itself is hidden from screen readers, so a button that already has the same name is not read twice. Pass `id` and the trigger's `describedby` only when the tip adds something (a `detail`, or a reason for a disabled control); then screen readers read it as the description.
 
 `delay` is how long the pointer or focus must rest before the tip shows. The default is 500 ms, as on macOS; use `0` for controls people scan quickly.
 
@@ -60,10 +60,9 @@ tooltip-live
 ```zig
 fn star(on: bool, url: []const u8) ui.Tooltip(ui.Button) {
     return ui.tooltip(.{
-        .id = "star-tip",
         .text = if (on) "Remove from Favorites" else "Add to Favorites",
         .body = ui.button(.{
-            .label = "Favorite", .variant = .plain, .icon = star_icon, .icon_only = true, .describedby = "star-tip",
+            .label = "Favorite", .variant = .plain, .icon = star_icon, .icon_only = true,
             .z = .{ .post = url, .target = "closest .zw-tip", .swap = .outer },
         }),
     });
@@ -72,7 +71,7 @@ fn star(on: bool, url: []const u8) ui.Tooltip(ui.Button) {
 
 ## In context
 
-Tooltips go on the quiet controls of a card header and on avatars, where the tip carries a name and a role. A button that opens a menu can have a tip too. Avatars are not focusable, so wrap each in an element with `tabindex="0"` to let keyboard users reach the tip.
+Tooltips go on the quiet controls of a card header and on avatars, where the tip carries a name and a role. A button that opens a menu can have a tip too. Avatars are not focusable, so set `focusable = true`: the tooltip's own wrapper becomes a tab stop and shows the tip on focus. Give it an `id` so screen readers get the detail as a description.
 
 ```demo
 tooltip-compose
@@ -88,7 +87,8 @@ tooltip-compose
 | `delay` | `u16` | `500` | milliseconds the pointer or focus rests before the tip shows; `0` shows it at once |
 | `detail` | string | `""` | second line in secondary color, for a short explanation |
 | `shortcut` | string | `""` | key hint after the text, such as `⌘S`; display only |
-| `id` | string | `""` | id of the tip; pass the same string as the trigger's `describedby` (`ui.button`) so screen readers read it |
+| `id` | string | `""` | id of the tip; pass the same string as the trigger's `describedby` (`ui.button`) so screen readers read it. With `focusable`, the wrapper gets `aria-describedby` automatically |
+| `focusable` | bool | `false` | makes the wrapper a tab stop, for bodies that cannot take focus (avatar, badge, plain text) |
 
 Tooltips explain; they must not hold the only copy of important information, since touch screens never show them.
 
@@ -96,6 +96,7 @@ Tooltips explain; they must not hold the only copy of important information, sin
 
 - Keyboard focus (Tab) shows the tip; a mouse click does not, so it never sticks after pressing a button.
 - Hover tips only appear on devices with a real pointer; touch screens never show them.
-- `.left` and `.right` tips are at most half the viewport wide, but do not place them against the window edge.
+- Escape dismisses a tip: it blurs a focused trigger, and a hovered tip stays hidden until the pointer leaves. The pointer can move onto a tip without it closing, so its text can be selected.
+- Tips are hidden from the accessibility tree; only the trigger's `describedby` (or `focusable` with an `id`) exposes one.
+- Tips do not detect the window edge. `.left` and `.right` tips are at most half the viewport wide, but do not place those triggers against the edge; `.above` and `.below` tips are centered on the trigger, so keep short text on triggers near an edge.
 - A tip is positioned inside its trigger's wrapper, so a parent with `overflow: hidden` clips it. Keep tooltips out of lists and flush cards, or put them on controls in the card header.
-- Tips are not interactive: the pointer passes through them, so people cannot move onto a tip to select its text.
