@@ -193,8 +193,7 @@ A `sidebar` passed to `layout` makes a two-column app; on narrow screens it slid
 `button(.{ .opens = "id" })` toggles a `menu` or `sheet` (Popover API + CSS anchor positioning, no JS).
 `id`s used with `opens` must be valid CSS identifiers.
 
-**Add a component:** create `src/ui/<name>.zig` with `pub const css` and a constructor that returns a
-named `View` type, then import, export and list it in `src/ui.zig`. Add it to the gallery and to `tests/e2e.mjs`.
+**Add a component:** follow the checklist in [docs/pages/agents.md](docs/pages/agents.md#add-a-component).
 
 ## z.js
 
@@ -286,8 +285,8 @@ any console error.
 
 Issues and pull requests are welcome. Keep changes small and in the style of the code around them:
 
-- One component per file in `src/ui/`, with its own CSS, a docs page in `docs/pages/components/`
-  and a demo in `docs/demos.zig`.
+- One component per file in `src/ui/`, with its own CSS. A new component touches several files;
+  the [checklist](docs/pages/agents.md#add-a-component) lists them all.
 - `zig build test` and `zig build e2e` must pass. Add a test for new behaviour.
 - Note user-facing changes in [CHANGELOG.md](CHANGELOG.md) ([Keep a Changelog](https://keepachangelog.com), [SemVer](https://semver.org)).
 

@@ -25,11 +25,18 @@ Add a tuple to `app.routes` and write `fn (c: *zw.Ctx) !void`. Read input with `
 
 ## Add a component
 
-1. Create `src/ui/<name>.zig` with `pub const css`, a `Props` struct and a constructor returning a named type (`pub const Name = zv.View(src, Props)`).
-2. Use only design tokens in the CSS (`var(--accent)`, `var(--radius-control)`): never literal colors.
-3. Import, export and list it in `src/ui.zig`.
-4. Add a demo in `docs/demos.zig`, a page in `docs/pages/components/`, and an entry in `docs/pages.zig`.
-5. Run `zig build test e2e` and look at the screenshots.
+This is the one checklist; the README links here. A new component touches all of these:
+
+1. `src/ui/<name>.zig`: `pub const css`, a `Props` struct and a constructor returning a named type (`pub const Name = zv.View(src, Props)`). Use only design tokens in the CSS (`var(--accent)`, `var(--radius-control)`), never literal colors, and reuse the shared base CSS (focus ring, `.zw-input`, `.zw-sr`) instead of copying it.
+2. `src/ui.zig`: import it, export it and add it to `all`.
+3. `docs/demos.zig`: a demo function and a row in the demo table.
+4. `docs/pages/components/<name>.md`: its docs page, listing every prop.
+5. `docs/pages.zig`: a sidebar entry.
+6. `tests/e2e.mjs`: a test of its behaviour.
+7. `CHANGELOG.md`: a line under `[Unreleased]`.
+8. Optional: a spot in the gallery (`examples/gallery`).
+
+Then run `zig build test e2e` and look at the screenshots.
 
 ## Gotchas
 
