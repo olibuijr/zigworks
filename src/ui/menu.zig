@@ -9,27 +9,25 @@ const Z = @import("z.zig").Z;
 pub const css =
     \\.zw-menu{position-area:bottom span-right;position-try-fallbacks:flip-block,flip-inline;margin:6px 0;min-width:190px;max-width:min(320px,calc(100vw - 16px));padding:6px;border:0;border-radius:var(--radius);
     \\color:var(--label);--glass:var(--glass-thick);transform-origin:top center;overflow:visible;
-    \\transition:opacity 180ms ease,scale var(--dur-bouncy) var(--spring-bouncy),translate var(--dur) var(--spring),display 300ms allow-discrete,overlay 300ms allow-discrete}
+    \\transition:opacity 180ms ease,scale var(--dur-bouncy) var(--spring-bouncy),translate var(--dur) var(--spring),display 300ms allow-discrete,overlay 300ms allow-discrete;
+    \\&:not(:popover-open){opacity:0;scale:.9;translate:0 -6px;transition-duration:150ms}
+    \\& :is(button,a,label){all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:26px;padding:0 10px;border-radius:8px;font:var(--body);cursor:default;
+    \\transition:background-color 80ms,color 80ms;
+    \\&:is(:hover,:focus-visible,:has(:focus-visible)){background:var(--accent);color:var(--on-accent)}
+    \\&:active{background:color-mix(in srgb,var(--accent) 85%,#000)}
+    \\&:is(:hover,:focus-visible) :is(.zw-menu-icon,.zw-menu-kbd){color:inherit;opacity:.85}
+    \\@media (pointer:coarse){height:44px}}
+    \\.is-destructive{color:var(--red);&:is(:hover,:focus-visible){background:var(--red);color:#fff}}
+    \\& :is(button,a)[disabled],& a[aria-disabled=true]{color:var(--tertiary);pointer-events:none}
+    \\& hr{border:0;border-top:1px solid var(--separator);margin:5px 10px}}
     \\.zw-menu--end{position-area:bottom span-left}
-    \\.zw-menu:not(:popover-open){opacity:0;scale:.9;translate:0 -6px;transition-duration:150ms}
     \\@starting-style{.zw-menu:popover-open{opacity:0;scale:.84;translate:0 -10px}}
-    \\.zw-menu button,.zw-menu a,.zw-menu label{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:26px;padding:0 10px;border-radius:8px;font:var(--body);cursor:default;
-    \\transition:background-color 80ms,color 80ms}
-    \\.zw-menu button:hover,.zw-menu button:focus-visible,.zw-menu a:hover,.zw-menu a:focus-visible,.zw-menu label:hover,.zw-menu label:has(:focus-visible){background:var(--accent);color:var(--on-accent)}
-    \\.zw-menu button:active,.zw-menu a:active,.zw-menu label:active{background:color-mix(in srgb,var(--accent) 85%,#000)}
-    \\.zw-menu .is-destructive{color:var(--red)}
-    \\.zw-menu .is-destructive:hover,.zw-menu .is-destructive:focus-visible{background:var(--red);color:#fff}
-    \\.zw-menu :is(button,a)[disabled],.zw-menu a[aria-disabled=true]{color:var(--tertiary);pointer-events:none}
     \\.zw-menu-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    \\.zw-menu-icon{display:inline-flex;flex:none;width:16px;justify-content:center;color:var(--secondary)}
-    \\.zw-menu-icon svg{width:16px;height:16px}
+    \\.zw-menu-icon{display:inline-flex;flex:none;width:16px;justify-content:center;color:var(--secondary);& svg{width:16px;height:16px}}
     \\.zw-menu-mark{flex:none;width:12px;margin-left:-4px;font-size:12px;font-weight:600;visibility:hidden}
     \\[aria-checked=true]>.zw-menu-mark{visibility:visible}
     \\.zw-menu-kbd{flex:none;margin-left:16px;font-feature-settings:"tnum";color:var(--secondary)}
-    \\.zw-menu :is(button,a):is(:hover,:focus-visible) :is(.zw-menu-icon,.zw-menu-kbd){color:inherit;opacity:.85}
-    \\.zw-menu-head{padding:8px 10px 3px;font:var(--footnote);font-weight:600;color:var(--secondary)}
-    \\.zw-menu hr{border:0;border-top:1px solid var(--separator);margin:5px 10px}
-    \\@media (pointer:coarse){.zw-menu button,.zw-menu a,.zw-menu label{height:44px}.zw-menu-head{padding-top:12px}}
+    \\.zw-menu-head{padding:8px 10px 3px;font:var(--footnote);font-weight:600;color:var(--secondary);@media (pointer:coarse){padding-top:12px}}
     \\
 ;
 
