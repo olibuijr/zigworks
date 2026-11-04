@@ -34,7 +34,7 @@ pub const css =
     \\background:repeating-linear-gradient(90deg,var(--tertiary) 0 1px,transparent 1px calc((100% - 1px) / var(--ticks)))}
     \\.zw-slider-end,.zw-slider-value{flex:none;color:var(--secondary)}
     \\.zw-slider-end{font:var(--callout);white-space:nowrap}
-    \\.zw-slider-value{min-width:3ch;text-align:end;font:var(--body);font-variant-numeric:tabular-nums}
+    \\.zw-slider-value{min-width:var(--zw-vw,3ch);text-align:end;font:var(--body);font-variant-numeric:tabular-nums}
     \\.zw-slider.is-disabled{opacity:.4}
     \\@media (pointer:coarse){.zw-slider,.zw-slider-track{min-height:44px}.zw-slider input{height:44px}}
     \\
@@ -68,14 +68,14 @@ const src = "<label class=\"zw-slider{#if p.disabled} is-disabled{/if}\"><span c
     "<span class=\"zw-slider-track\" style=\"--zw-f:calc({pm} / 1000)\"><input type=\"range\" name=\"{p.name}\" min=\"{p.min}\" max=\"{p.max}\" step=\"{p.step}\" value=\"{p.value}\" style=\"--zw-fill:calc({pm} * .1%)\"{#if p.disabled} disabled{/if}{p.z}>" ++
     "<span class=\"zw-slider-knob\" aria-hidden=\"true\"></span>{#if p.ticks}<span class=\"zw-slider-ticks\" aria-hidden=\"true\" style=\"--ticks:{p.ticks}\"></span>{/if}</span>" ++
     "{#if p.max_label}<span class=\"zw-slider-end\" aria-hidden=\"true\">{p.max_label}</span>{/if}" ++
-    "{#if p.show_value}<output class=\"zw-slider-value\" aria-hidden=\"true\" data-unit=\"{p.unit}\">{p.value}{p.unit}</output>{/if}</label>";
+    "{#if p.show_value}<output class=\"zw-slider-value\" aria-hidden=\"true\" data-unit=\"{p.unit}\" style=\"--zw-vw:{vw}ch\">{p.value}{p.unit}</output>{/if}</label>";
 
-const Data = struct { p: Props, pm: i64 };
+const Data = struct { p: Props, pm: i64, vw: usize };
 
 pub const Slider = zv.View(src, Data);
 
 pub fn slider(p: Props) Slider {
-    return .{ .data = .{ .p = p, .pm = permille(p) } };
+    return .{ .data = .{ .p = p, .pm = permille(p), .vw = readoutChars(p) } };
 }
 
 /// Where the value sits between min and max, 0 to 1000 (the starting fill, before z.js runs).
@@ -85,6 +85,14 @@ fn permille(p: Props) i64 {
     return @intCast(@divTrunc((@as(i128, v) - p.min) * 1000, @as(i128, p.max) - p.min));
 }
 
+/// Characters the readout can need (widest of min and max, plus the unit), so its width stays put while dragging.
+fn readoutChars(p: Props) usize {
+    var buf: [24]u8 = undefined;
+    const lo = std.fmt.printInt(&buf, p.min, 10, .lower, .{});
+    const hi = std.fmt.printInt(&buf, p.max, 10, .lower, .{});
+    return @max(lo, hi) + p.unit.len;
+}
+
 test "slider fill, ticks, labels and value" {
     try std.testing.expectEqual(@as(i64, 250), permille(.{ .name = "a", .label = "a", .min = 0, .max = 8, .value = 2 }));
     try std.testing.expectEqual(@as(i64, 1000), permille(.{ .name = "a", .label = "a", .value = 500 }));
@@ -92,7 +100,9 @@ test "slider fill, ticks, labels and value" {
     var w: std.Io.Writer = .fixed(&buf);
     try slider(.{ .name = "v", .label = "Volume", .ticks = 4, .min_label = "Quiet", .max_label = "Loud", .show_value = true, .unit = "%", .disabled = true }).render(&w);
     const out = w.buffered();
-    for ([_][]const u8{ "zw-slider is-disabled", "--ticks:4", ">Quiet<", ">Loud<", ">50%</output>", " disabled", "--zw-fill:calc(500 * .1%)" }) |needle| {
+    try std.testing.expectEqual(@as(usize, 3), readoutChars(.{ .name = "a", .label = "a", .min = -50, .max = 50, .unit = "" }));
+    try std.testing.expectEqual(@as(usize, 4), readoutChars(.{ .name = "a", .label = "a", .unit = "%" }));
+    for ([_][]const u8{ "zw-slider is-disabled", "--ticks:4", ">Quiet<", ">Loud<", ">50%</output>", " disabled", "--zw-fill:calc(500 * .1%)", "--zw-vw:4ch" }) |needle| {
         try std.testing.expect(std.mem.find(u8, out, needle) != null);
     }
 }
