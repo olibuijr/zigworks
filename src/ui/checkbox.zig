@@ -1,6 +1,7 @@
 //! macOS checkbox: a rounded square with a visible label, for options in forms and settings.
 //! (`ui.check` is the round Reminders-style check for list items.) The mark pops on a spring.
-//! Optional description line, mixed (dash) state, disabled and invalid states.
+//! Optional description line, mixed (dash) state, disabled and invalid states, an error message
+//! and an `id`/`oob` pair so a z.js response can replace one box.
 const std = @import("std");
 const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
@@ -18,6 +19,8 @@ pub const css =
     \\&[aria-invalid=true]:focus-visible{outline-color:color-mix(in srgb,var(--red) 50%,transparent)}}}
     \\.zw-checkbox__txt{display:flex;flex-direction:column;min-width:0}
     \\.zw-checkbox__desc{font:var(--callout);color:var(--secondary)}
+    \\.zw-checkbox__err{font:var(--callout);color:var(--red)}
+    \\.zw-checkbox:has(input:checked) .zw-checkbox__err{display:none}
     \\.zw-checkbox--disabled{opacity:.4;pointer-events:none}
     \\@media (pointer:coarse){.zw-checkbox{min-height:44px;padding:14px 0}}
     \\
@@ -38,12 +41,19 @@ pub const Props = struct {
     disabled: bool = false,
     /// Marks the box red (`aria-invalid`), e.g. an unaccepted required checkbox.
     invalid: bool = false,
+    /// Message in red under the label (and the description); also sets `invalid` and hides once the box is checked.
+    /// Announced (`role="alert"`) when a response puts it on the page.
+    message: []const u8 = "",
+    /// Id of the `<label>`, so a z.js response can replace this one box.
+    id: []const u8 = "",
+    /// Out-of-band: in a z.js response, replaces the element with the same `id`. Needs `id`.
+    oob: bool = false,
     z: Z = .{},
 };
 
-const src = "<label class=\"zw-checkbox{#if disabled} zw-checkbox--disabled{/if}\"><input type=\"checkbox\" name=\"{name}\" value=\"{value}\"" ++
+const src = "<label{#if id} id=\"{id}\"{/if}{#if oob} z-oob{/if} class=\"zw-checkbox{#if disabled} zw-checkbox--disabled{/if}\"><input type=\"checkbox\" name=\"{name}\" value=\"{value}\"" ++
     "{#if on} checked{/if}{#if mixed} aria-checked=\"mixed\" data-mixed{/if}{#if invalid} aria-invalid=\"true\"{/if}{#if disabled} disabled{/if}{z}>" ++
-    "<span class=\"zw-checkbox__txt\"><span>{label}</span>{#if description}<span class=\"zw-checkbox__desc\">{description}</span>{/if}</span></label>";
+    "<span class=\"zw-checkbox__txt\"><span>{label}</span>{#if description}<span class=\"zw-checkbox__desc\">{description}</span>{/if}{#if message}<span class=\"zw-checkbox__err\" role=\"alert\">{message}</span>{/if}</span></label>";
 
 pub const Checkbox = zv.View(src, Props);
 
@@ -51,6 +61,7 @@ pub const Checkbox = zv.View(src, Props);
 pub fn checkbox(p: Props) Checkbox {
     var q = p;
     if (q.mixed) q.on = false;
+    if (q.message.len > 0) q.invalid = true;
     return .{ .data = q };
 }
 
@@ -63,4 +74,14 @@ test "checkbox mixed overrides on; description and disabled render" {
     try std.testing.expect(std.mem.find(u8, s, "aria-checked=\"mixed\" data-mixed") != null);
     try std.testing.expect(std.mem.find(u8, s, "zw-checkbox__desc\">Some selected") != null);
     try std.testing.expect(std.mem.find(u8, s, "zw-checkbox--disabled") != null);
+}
+
+test "checkbox error marks invalid; id and oob go on the label" {
+    var buf: [1024]u8 = undefined;
+    var w: std.Io.Writer = .fixed(&buf);
+    try checkbox(.{ .name = "t", .label = "Terms", .message = "Required", .id = "terms-box", .oob = true }).render(&w);
+    const s = w.buffered();
+    try std.testing.expect(std.mem.startsWith(u8, s, "<label id=\"terms-box\" z-oob class=\"zw-checkbox\""));
+    try std.testing.expect(std.mem.find(u8, s, "aria-invalid=\"true\"") != null);
+    try std.testing.expect(std.mem.find(u8, s, "zw-checkbox__err\" role=\"alert\">Required") != null);
 }

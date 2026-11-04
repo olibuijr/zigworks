@@ -51,7 +51,7 @@ fn states(w: *Writer) Writer.Error!void {
         \\<code>.description</code>{d}
         \\<code>.disabled = true</code>{e}
         \\<code>.disabled, .on</code>{f}
-        \\<code>.invalid = true</code>{g}
+        \\<code>.message</code>{g}
         \\</div>
     , .{
         .a = ui.checkbox(.{ .name = "s-off", .label = "Show message previews", .z = d.save }),
@@ -60,7 +60,7 @@ fn states(w: *Writer) Writer.Error!void {
         .d = ui.checkbox(.{ .name = "s-desc", .label = "Badge the app icon", .description = "Shows the number of unread messages.", .on = true, .z = d.save }),
         .e = ui.checkbox(.{ .name = "s-disabled", .label = "Sync with iCloud", .description = "Turned off by your administrator.", .disabled = true }),
         .f = ui.checkbox(.{ .name = "s-locked", .label = "Require a password", .description = "Turned on by your administrator.", .on = true, .disabled = true }),
-        .g = ui.checkbox(.{ .name = "s-invalid", .label = "I accept the terms of use", .invalid = true, .z = d.save }),
+        .g = ui.checkbox(.{ .name = "s-invalid", .label = "I accept the terms of use", .message = "Required to continue.", .z = d.save }),
     }) }).render(w);
 }
 
@@ -109,18 +109,18 @@ const Rows = struct {
     }
 };
 
-const Head = zw.View("<div id=\"demo-checkbox-all\"{#if oob} z-oob{/if}>{box}</div>", struct { oob: bool, box: ui.Checkbox });
-
 /// The parent checkbox: checked when every row is, mixed when only some are.
-fn head(mask: u8, oob: bool) Head {
+fn head(mask: u8, oob: bool) ui.Checkbox {
     const n = @popCount(mask);
-    return .{ .data = .{ .oob = oob, .box = ui.checkbox(.{
+    return ui.checkbox(.{
         .name = "all",
+        .id = "demo-checkbox-all",
+        .oob = oob,
         .label = "Select all",
         .on = n == inbox.len,
         .mixed = n > 0 and n < inbox.len,
         .z = .{ .post = "/demo/checkbox/all", .target = "#demo-checkbox-rows", .swap = .inner },
-    }) } };
+    });
 }
 
 fn count(mask: u8, oob: bool) ui.Badge {
@@ -173,7 +173,7 @@ const Order = struct {
             .z = ui.Z{ .post = "/demo/checkbox/order", .swap = .outer },
             .gift = ui.checkbox(.{ .name = "gift", .label = "This order is a gift", .description = "The price stays off the receipt.", .on = self.gift }),
             .news = ui.checkbox(.{ .name = "news", .label = "Email me about new arrivals", .on = self.news }),
-            .terms = ui.checkbox(.{ .name = "terms", .label = "I accept the terms of sale", .on = self.terms, .invalid = self.invalid }),
+            .terms = ui.checkbox(.{ .name = "terms", .label = "I accept the terms of sale", .on = self.terms, .invalid = self.invalid, .message = if (self.invalid) "Accept the terms to place your order." else "" }),
             .buy = ui.button(.{ .label = "Place order", .variant = .primary, .type = .submit }),
         }).render(w);
     }
