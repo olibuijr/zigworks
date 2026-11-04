@@ -20,7 +20,6 @@ pub const css =
     \\@media (pointer:coarse){.zw-check::before{content:"";position:absolute;inset:calc((var(--zw-d) - 44px)/2)}}
     \\.zw-swapped .zw-check[aria-checked=true],.zw-check.zw-swapped[aria-checked=true]{animation:zw-pop var(--dur-bouncy) var(--spring-bouncy)}
     \\.zw-swapped .zw-check[aria-checked=true]::after{animation:zw-tick var(--dur) var(--spring-bouncy)}
-    \\@keyframes zw-pop{from{scale:.55}}
     \\@keyframes zw-tick{from{scale:.2;opacity:0}}
     \\
 ;

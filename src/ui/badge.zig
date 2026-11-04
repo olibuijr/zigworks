@@ -12,7 +12,7 @@ pub const css =
     \\box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--tone) 28%,transparent)}
     \\.zw-badge--solid,.zw-badge--solid:is(.zw-badge--accent,.zw-badge--red,.zw-badge--green,.zw-badge--orange){color:#fff;background:var(--tone);box-shadow:inset 0 .5px 0 rgba(255,255,255,.35),0 0 0 .5px rgba(0,0,0,.08)}
     \\.zw-badge--small{min-width:16px;padding:1px 6px;font:var(--footnote);font-weight:600}
-    \\.zw-badge.zw-badge--dot{display:inline-block;vertical-align:middle;min-width:0;width:8px;height:8px;padding:0;background:var(--tone);box-shadow:0 0 0 .5px rgba(0,0,0,.1)}
+    \\.zw-badge.zw-badge--dot{vertical-align:middle;min-width:0;width:8px;height:8px;padding:0;background:var(--tone);box-shadow:0 0 0 .5px rgba(0,0,0,.1)}
     \\.zw-badge.zw-badge--dot.zw-badge--small{width:6px;height:6px}
     \\.zw-badge[hidden]{display:none}
     \\.zw-badge[z-oob]{animation:zw-pop var(--dur-bouncy) var(--spring-bouncy)}

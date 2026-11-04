@@ -35,7 +35,6 @@ pub const css =
     \\.zw-shell>.zw-main,.zw-shell>.zw-footer{grid-column:2}
     \\.zw-shell:has(>.zw-footer)>.zw-sidebar{grid-row:1/3}
     \\.zw-shell>.zw-footer{align-self:start}}
-    \\.zw-sidebar-toggle svg{width:18px;height:18px}
     \\@media (pointer:coarse){.zw-sidebar-toggle{min-width:44px;height:44px}}
     \\.zw-skip{position:fixed;top:calc(8px + env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));z-index:100;display:inline-flex;align-items:center;height:var(--control-h);padding:0 16px;
     \\border-radius:999px;font:var(--body);font-weight:500;color:var(--label);text-decoration:none;white-space:nowrap;
@@ -47,14 +46,14 @@ pub const css =
 
 const src =
     \\<!doctype html>
-    \\<html lang="{lang}"><head><meta charset="utf-8">
+    \\<html lang="{p.lang}"><head><meta charset="utf-8">
     \\<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-    \\<title>{title}</title><link rel="icon" href="data:,">
-    \\<link rel="stylesheet" href="/_zw/zw.css"><script src="/_zw/z.js" defer></script>{@html head}
-    \\</head><body{#if has_sidebar} class="zw-app"{/if}>{#if skip_link}<a class="zw-skip zw-glass" href="#zw-main">{skip_label}</a>{/if}<header class="zw-bar zw-bar--{title_align}">
-    \\{#if has_sidebar}<button type="button" class="zw-btn zw-btn--secondary zw-glass zw-press zw-sidebar-toggle" popovertarget="zw-sidebar" aria-controls="zw-sidebar" aria-label="Show sidebar"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.75" y="2.75" width="14.5" height="12.5" rx="2.5"/><path d="M6.5 3v12"/></svg></button>{/if}
-    \\<h1>{#if brand}<a href="/">{brand}</a>{:else}{title}{/if}</h1>{#if centered}<div class="zw-bar-end">{toolbar}</div>{:else}{toolbar}{/if}</header>
-    \\{#if has_sidebar}<div class="zw-shell">{sidebar}<main class="zw-main" id="zw-main" tabindex="-1">{body}</main>{#if has_footer}<footer class="zw-footer">{footer}</footer>{/if}</div>{:else}<main class="zw-main" id="zw-main" tabindex="-1">{body}</main>{#if has_footer}<footer class="zw-footer">{footer}</footer>{/if}{/if}<div class="zw-toasts" id="zw-toasts" aria-live="polite"></div></body></html>
+    \\<title>{p.title}</title><link rel="icon" href="data:,">
+    \\<link rel="stylesheet" href="/_zw/zw.css"><script src="/_zw/z.js" defer></script>{@html p.head}
+    \\</head><body{#if p.sidebar} class="zw-app"{/if}>{#if p.skip_link}<a class="zw-skip zw-glass" href="#zw-main">{p.skip_label}</a>{/if}<header class="zw-bar zw-bar--{p.title_align}">
+    \\{#if p.sidebar}<button type="button" class="zw-btn zw-btn--secondary zw-glass zw-press zw-sidebar-toggle" popovertarget="zw-sidebar" aria-controls="zw-sidebar" aria-label="Show sidebar"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.75" y="2.75" width="14.5" height="12.5" rx="2.5"/><path d="M6.5 3v12"/></svg></button>{/if}
+    \\<h1>{#if p.brand}<a href="/">{p.brand}</a>{:else}{p.title}{/if}</h1>{#if centered}<div class="zw-bar-end">{p.toolbar}</div>{:else}{p.toolbar}{/if}</header>
+    \\{#if p.sidebar}<div class="zw-shell">{p.sidebar}<main class="zw-main" id="zw-main" tabindex="-1">{p.body}</main>{#if p.footer}<footer class="zw-footer">{p.footer}</footer>{/if}</div>{:else}<main class="zw-main" id="zw-main" tabindex="-1">{p.body}</main>{#if p.footer}<footer class="zw-footer">{p.footer}</footer>{/if}{/if}<div class="zw-toasts" id="zw-toasts" aria-live="polite"></div></body></html>
 ;
 
 pub const TitleAlign = enum { leading, center };
@@ -68,58 +67,30 @@ pub fn PropsWith(comptime Toolbar: type, comptime Sidebar: type, comptime Body: 
         title_align: TitleAlign = .leading,
         skip_link: bool = true,
         skip_label: []const u8 = "Skip to content",
-        toolbar: Toolbar,
-        sidebar: Sidebar,
-        has_sidebar: bool,
-        footer: Footer,
-        has_footer: bool,
-        centered: bool,
+        toolbar: ?Toolbar = null,
+        sidebar: ?Sidebar = null,
+        footer: ?Footer = null,
         body: Body,
     };
 }
 
-pub fn Props(comptime Toolbar: type, comptime Sidebar: type, comptime Body: type) type {
-    return PropsWith(Toolbar, Sidebar, Body, []const u8);
+fn Data(comptime Toolbar: type, comptime Sidebar: type, comptime Body: type, comptime Footer: type) type {
+    return struct { p: PropsWith(Toolbar, Sidebar, Body, Footer), centered: bool };
 }
 
 pub fn LayoutWith(comptime Toolbar: type, comptime Sidebar: type, comptime Body: type, comptime Footer: type) type {
-    return zv.View(src, PropsWith(Toolbar, Sidebar, Body, Footer));
+    return zv.View(src, Data(Toolbar, Sidebar, Body, Footer));
 }
 
 pub fn Layout(comptime Toolbar: type, comptime Sidebar: type, comptime Body: type) type {
     return LayoutWith(Toolbar, Sidebar, Body, []const u8);
 }
 
-fn Slot(comptime P: type, comptime name: []const u8) type {
-    return if (@hasField(P, name)) @FieldType(P, name) else []const u8;
-}
-
 /// `layout(.{ .title = "App", .body = ..., .toolbar = ..., .sidebar = ui.sidebar(...), .footer = "© 2026", .title_align = .center })`
-pub fn layout(p: anytype) LayoutWith(Slot(@TypeOf(p), "toolbar"), Slot(@TypeOf(p), "sidebar"), @FieldType(@TypeOf(p), "body"), Slot(@TypeOf(p), "footer")) {
+pub fn layout(p: anytype) LayoutWith(zv.Slot(@TypeOf(p), "toolbar"), zv.Slot(@TypeOf(p), "sidebar"), @FieldType(@TypeOf(p), "body"), zv.Slot(@TypeOf(p), "footer")) {
     const P = @TypeOf(p);
-    inline for (@typeInfo(P).@"struct".field_names) |n| {
-        const known = [_][]const u8{ "title", "brand", "head", "lang", "title_align", "skip_link", "skip_label", "toolbar", "sidebar", "footer", "body" };
-        comptime var ok = false;
-        inline for (known) |k| ok = ok or comptime std.mem.eql(u8, k, n);
-        if (!ok) @compileError("unknown prop '" ++ n ++ "' for layout");
-    }
-    const align_: TitleAlign = if (@hasField(P, "title_align")) p.title_align else .leading;
-    return .{ .data = .{
-        .title = p.title,
-        .brand = if (@hasField(P, "brand")) p.brand else "",
-        .head = if (@hasField(P, "head")) p.head else "",
-        .lang = if (@hasField(P, "lang")) p.lang else "en",
-        .title_align = align_,
-        .skip_link = if (@hasField(P, "skip_link")) p.skip_link else true,
-        .skip_label = if (@hasField(P, "skip_label")) p.skip_label else "Skip to content",
-        .toolbar = if (@hasField(P, "toolbar")) p.toolbar else "",
-        .sidebar = if (@hasField(P, "sidebar")) p.sidebar else "",
-        .has_sidebar = @hasField(P, "sidebar"),
-        .footer = if (@hasField(P, "footer")) p.footer else "",
-        .has_footer = @hasField(P, "footer"),
-        .centered = align_ == .center,
-        .body = p.body,
-    } };
+    const q = zv.props(PropsWith(zv.Slot(P, "toolbar"), zv.Slot(P, "sidebar"), @FieldType(P, "body"), zv.Slot(P, "footer")), p);
+    return .{ .data = .{ .p = q, .centered = q.title_align == .center } };
 }
 
 fn renderToString(buf: []u8, l: anytype) ![]const u8 {

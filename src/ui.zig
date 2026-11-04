@@ -3,6 +3,7 @@
 //!
 //! Containers take a body and are generic over it: `ui.Card(Body)`. Leaf components have a fixed
 //! type: `ui.Button`. To add a component: create src/ui/<name>.zig, import it, export it, list it in `all`.
+const std = @import("std");
 const Layout_ = @import("ui/layout.zig");
 const Card_ = @import("ui/card.zig");
 const List_ = @import("ui/list.zig");
@@ -139,42 +140,6 @@ pub const css = blk: {
 };
 
 test {
-    _ = @import("ui/z.zig");
-    _ = Layout_;
-    _ = Card_;
-    _ = List_;
-    _ = Sheet_;
-    _ = Setting_;
-    _ = Button_;
-    _ = Field_;
-    _ = Check_;
-    _ = Toggle_;
-    _ = Segmented_;
-    _ = Slider_;
-    _ = Picker_;
-    _ = Menu_;
-    _ = Badge_;
-    _ = Island_;
-    _ = Sidebar_;
-    _ = Code_;
-    _ = Callout_;
-    _ = Table_;
-    _ = Progress_;
-    _ = Search_;
-    _ = Prose_;
-    _ = Tabs_;
-    _ = Textarea_;
-    _ = Stepper_;
-    _ = Checkbox_;
-    _ = Radio_;
-    _ = Disclosure_;
-    _ = Tooltip_;
-    _ = Toast_;
-    _ = Avatar_;
-    _ = Tag_;
-    _ = Empty_;
-    _ = Skeleton_;
-    _ = Kbd_;
-    _ = Path_;
-    _ = Glass_;
+    std.testing.refAllDecls(@import("ui/z.zig"));
+    inline for (all) |f| std.testing.refAllDecls(f);
 }

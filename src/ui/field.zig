@@ -8,11 +8,9 @@ const Z = @import("z.zig").Z;
 
 pub const css =
     \\.zw-field{flex:1;min-width:0;display:block}
-    \\.zw-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-    \\.zw-field-box{display:flex;align-items:center;gap:6px;width:100%;height:var(--control-h);padding:0 11px;color:var(--label);background:var(--content);
-    \\border-radius:var(--radius-control);box-shadow:var(--shadow);transition:box-shadow var(--dur) var(--spring)}
+    \\.zw-field-box{display:flex;align-items:center;gap:6px;width:100%;height:var(--control-h);padding:0 11px}
     \\.zw-field-box:focus-within{box-shadow:0 0 0 .5px var(--accent),0 0 0 4px color-mix(in srgb,var(--accent) 40%,transparent)}
-    \\.zw-field input{appearance:none;flex:1;min-width:0;width:100%;height:100%;padding:0;border:0;outline:none;background:transparent;font:var(--body);letter-spacing:-.08px;color:inherit}
+    \\.zw-field input{appearance:none;flex:1;min-width:0;width:100%;height:100%;padding:0;border:0;outline:none;background:transparent;font:inherit;letter-spacing:inherit;color:inherit}
     \\.zw-field input::placeholder{color:var(--secondary);opacity:.75}
     \\.zw-field input[type=number]{appearance:textfield}
     \\.zw-field input::-webkit-inner-spin-button,.zw-field input::-webkit-outer-spin-button{appearance:none;margin:0}
@@ -63,7 +61,7 @@ pub const Props = struct {
     z: Z = .{},
 };
 
-const src = "<div class=\"zw-field\"><label class=\"zw-field-box\"><span class=\"zw-sr\">{p.label}</span>" ++
+const src = "<div class=\"zw-field\"><label class=\"zw-field-box zw-input\"><span class=\"zw-sr\">{p.label}</span>" ++
     "{#if p.prefix}<span class=\"zw-affix\">{p.prefix}</span>{/if}" ++
     "<input name=\"{p.name}\" type=\"{p.type}\" value=\"{p.value}\" placeholder=\"{p.placeholder}\" autocomplete=\"{p.autocomplete}\"" ++
     "{#if p.inputmode} inputmode=\"{p.inputmode}\"{/if}{#if p.pattern} pattern=\"{p.pattern}\"{/if}{#if p.maxlength} maxlength=\"{p.maxlength}\"{/if}" ++

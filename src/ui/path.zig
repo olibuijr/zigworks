@@ -14,7 +14,6 @@ pub const css =
     \\.zw-path a{color:var(--secondary);text-decoration:none;transition:background-color var(--speed),color var(--speed)}
     \\.zw-path a:hover{background:var(--fill);color:var(--label)}
     \\.zw-path a:active{background:color-mix(in srgb,var(--fill) 70%,var(--separator))}
-    \\.zw-path a:focus-visible,.zw-path-more>summary:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 50%,transparent)}
     \\.zw-path-text{color:var(--secondary)}
     \\.zw-path [aria-current]{color:var(--label);font-weight:600}
     \\.zw-path-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
