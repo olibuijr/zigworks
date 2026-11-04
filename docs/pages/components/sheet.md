@@ -24,7 +24,7 @@ zw.view("{open}{sheet}", .{
 })
 ```
 
-Put the buttons in `<div class="zw-sheet-actions">` inside the form so they line up on the trailing edge, with the default action last. For buttons that are not part of a form, pass them as `footer`.
+Put the buttons in `<div class="zw-sheet-actions">` inside the form so they line up on the trailing edge, with the default action last. For buttons that are not part of a form, pass them as `footer`; for two or more, join them with a view such as `zw.view("{cancel}{ok}", .{ ... })`.
 
 ## Sizes
 
@@ -78,4 +78,6 @@ sheet-invite
 - A tall sheet scrolls inside itself instead of running off the screen.
 - Several sheets can live on one page; give each its own `id`.
 - Close a sheet from any button with `opens = id` (it toggles) or `popovertarget="id" popovertargetaction="hide"`.
-- z.js closes the sheet after any successful request from inside it, including a footer button's `z`. A failed request leaves it open. To show validation errors, use the browser's own validation (`required`, `type`, `pattern`) so an invalid form is never sent.
+- z.js closes the sheet after any successful request from inside it, including a footer button's `z`. A failed request leaves it open. To show validation errors, use the browser's own validation (`required`, `type`, `pattern`) so an invalid form is never sent. Even a 2xx response with an error message closes the sheet, and a non-2xx response leaves it open but swaps nothing, so server-side validation errors cannot be shown inside the sheet yet.
+- A sheet has no busy state of its own. While a request from a form or button inside it runs, z.js dims that element (`zw-busy`) and ignores clicks on it; use `loading` on the submit button for a spinner.
+- The sheet positions itself with `margin`, which a parent's own sibling-spacing rule cannot override.
