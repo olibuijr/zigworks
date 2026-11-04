@@ -212,7 +212,8 @@ const test_app = .{
 
 fn expectResponse(res: []const u8, status_line: []const u8, body: []const u8) !void {
     try std.testing.expectStringStartsWith(res, status_line);
-    try std.testing.expectStringEndsWith(res, "\r\n\r\n" ++ body);
+    try std.testing.expectStringEndsWith(res, body);
+    try std.testing.expectStringEndsWith(res[0 .. res.len - body.len], "\r\n\r\n");
 }
 
 test "404, route params, pass, 500, 204" {

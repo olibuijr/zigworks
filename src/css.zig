@@ -183,6 +183,7 @@ fn vars(comptime p: Palette) []const u8 {
 }
 
 fn decl(comptime name: []const u8, comptime value: []const u8) []const u8 {
+    @setEvalBranchQuota(100_000);
     var n: [name.len]u8 = name[0..name.len].*;
     std.mem.replaceScalar(u8, &n, '_', '-');
     const final = n;
