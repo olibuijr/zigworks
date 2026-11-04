@@ -15,7 +15,7 @@ pub const css =
     \\.zw-seg--small label{padding:0 10px;font:var(--callout);font-weight:500}
     \\.zw-seg--large label{padding:0 18px;font:var(--title3);font-weight:500}
     \\.zw-seg input{position:absolute;inset:0;opacity:0;margin:0}
-    \\.zw-seg label:has(:focus-visible){outline:3px solid color-mix(in srgb,var(--accent) 50%,transparent);outline-offset:-1px}
+    \\.zw-seg label:has(:focus-visible){outline:var(--focus-ring);outline-offset:-1px}
     \\.zw-seg-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     \\.zw-seg-icon{display:inline-flex;flex:none;width:16px;height:16px}
     \\.zw-seg-icon svg{width:100%;height:100%;fill:currentColor}

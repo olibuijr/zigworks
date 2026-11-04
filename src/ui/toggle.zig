@@ -21,7 +21,7 @@ pub const css =
     \\.zw-toggle:active input::after{top:calc((var(--zw-h) - var(--zw-kh) - 8px)/2);left:-3px;width:calc(var(--zw-kw) + 10px);height:calc(var(--zw-kh) + 8px);border-radius:calc(var(--zw-kh)/2 + 4px);background:var(--glass-clear);box-shadow:var(--glass-rim),0 0 0 .5px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.18);
     \\-webkit-backdrop-filter:var(--glass-filter-clear);backdrop-filter:var(--glass-filter-clear);transition-duration:var(--dur-snappy);transition-timing-function:var(--spring-snappy)}
     \\.zw-refract .zw-toggle:active input::after{backdrop-filter:url(#zw-lens-knob) var(--glass-filter-clear)}
-    \\.zw-toggle input:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 50%,transparent);outline-offset:2px}
+    \\.zw-toggle input:focus-visible{outline-offset:2px}
     \\.zw-toggle__txt{display:flex;flex-direction:column;flex:1 1 0;min-width:0}
     \\.zw-toggle__desc{font:var(--callout);color:var(--secondary)}
     \\.zw-toggle.zw-toggle--trailing{justify-content:flex-start;gap:6px 10px}

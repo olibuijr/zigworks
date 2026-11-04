@@ -15,7 +15,6 @@ pub const css =
     \\.zw-radio input:checked{background:linear-gradient(color-mix(in srgb,var(--accent) 80%,#fff),var(--accent));box-shadow:inset 0 .5px 0 rgba(255,255,255,.4),0 0 0 .5px color-mix(in srgb,var(--accent) 70%,#000)}
     \\.zw-radio input:checked::after{scale:1}
     \\.zw-radio label:active input{scale:.85;transition-duration:var(--dur-snappy)}
-    \\.zw-radio input:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 50%,transparent);outline-offset:1px}
     \\.zw-radio__txt{display:flex;flex-direction:column;min-width:0}
     \\.zw-radio__desc{font:var(--callout);color:var(--secondary)}
     \\.zw-radio__opt--disabled,.zw-radio:disabled .zw-radio__opt{opacity:.4;pointer-events:none}
