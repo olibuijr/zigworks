@@ -255,11 +255,21 @@ fn button(w: *Writer) Writer.Error!void {
 }
 
 fn field(w: *Writer) Writer.Error!void {
-    try ui.field(.{ .name = "email", .label = "Email", .placeholder = "name@example.com", .type = "email" }).render(w);
+    try zw.view("{a}{b}{c}{d}{e}", .{
+        .a = ui.field(.{ .name = "email", .label = "Email", .placeholder = "name@example.com", .type = "email", .autocomplete = "email", .help = "We only use it to send the receipt." }),
+        .b = ui.field(.{ .name = "weight", .label = "Weight", .type = "number", .value = "72", .suffix = "kg", .inputmode = "decimal" }),
+        .c = ui.field(.{ .name = "price", .label = "Price", .placeholder = "0.00", .prefix = "$", .inputmode = "decimal", .pattern = "[0-9]+(\\.[0-9]{2})?" }),
+        .d = ui.field(.{ .name = "username", .label = "Username", .value = "ab", .invalid = "Use at least 3 characters.", .maxlength = 20 }),
+        .e = ui.field(.{ .name = "id", .label = "Account ID", .value = "ZW-1042", .readonly = true, .help = "Read only." }),
+    }).render(w);
 }
 
 fn search(w: *Writer) Writer.Error!void {
-    try ui.search(.{ .action = "/search", .id = "demo-results", .label = "Search docs", .placeholder = "Try “button”" }).render(w);
+    try zw.view("{a}{b}{c}", .{
+        .a = ui.search(.{ .action = "/search", .id = "demo-results", .label = "Search docs", .placeholder = "Try “button”", .shortcut = "k" }),
+        .b = ui.search(.{ .action = "/search", .id = "demo-results-small", .label = "Search docs (small)", .placeholder = "Small", .size = .small }),
+        .c = ui.search(.{ .action = "/search", .id = "demo-results-large", .label = "Search docs (large)", .placeholder = "Large, no clear button", .size = .large, .clear = false }),
+    }).render(w);
 }
 
 fn check(w: *Writer) Writer.Error!void {
@@ -357,7 +367,11 @@ fn tabs(w: *Writer) Writer.Error!void {
 }
 
 fn textarea(w: *Writer) Writer.Error!void {
-    try ui.textarea(.{ .name = "notes", .label = "Notes", .placeholder = "Add notes. The field grows as you type." }).render(w);
+    try zw.view("{a}{b}{c}", .{
+        .a = ui.textarea(.{ .name = "notes", .label = "Notes", .placeholder = "Add notes. The field grows as you type." }),
+        .b = ui.textarea(.{ .name = "bio", .label = "Bio", .value = "Zig and glass.", .maxlength = 140, .help = "Shown on your profile.", .rows = 2, .grow = false, .resize = .vertical }),
+        .c = ui.textarea(.{ .name = "reason", .label = "Reason", .rows = 2, .invalid = "Tell us why.", .required = true }),
+    }).render(w);
 }
 
 fn stepper(w: *Writer) Writer.Error!void {
