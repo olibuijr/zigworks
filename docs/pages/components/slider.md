@@ -117,5 +117,10 @@ Wrap the card in `<form{z}>` with `ui.Z{ .post = "/estimate", .trigger = "change
 - The starting fill is written by the server, so the track is right on first paint and without JavaScript.
 - Tick marks, end labels and the readout are decorative: screen readers get the slider's name and value, not the extras.
 - On touch screens the slider is 44px tall, so the thumb is easy to grab.
+- The readout is as wide as the longest value plus the unit, so the track does not shift while you drag.
 - The readout updates while dragging only with the client script (z.js); without it, it shows the starting value.
+- A slider has one size, like the macOS control, and no loading, error or mixed state. Use `disabled` to lock it.
+- Dragging fires native `input` events that bubble to a form. A `z` with `.trigger = "input"` on a form is debounced by z.js (a short pause), so it does not send on every tick.
+- A form that posts is reset by z.js after a successful reply. Set `.keep = true` on its `z` or the slider snaps back to its starting value.
+- Replacing a slider from the server (an `oob` swap) re-creates the element, which drops focus and any drag in progress. Swap its surrounding row when a slider must change live, and not while the user holds it.
 - Inside a `ui.setting` row the slider is at most 240px wide and wraps under the label on narrow screens.
