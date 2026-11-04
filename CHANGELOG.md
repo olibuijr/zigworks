@@ -2,6 +2,15 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [SemVer](https://semver.org/).
 
+## [0.4.1] - 2026-11-04
+
+### Fixed
+- The sidebar scrolled away with the page on wide screens (a later `inset:auto` reset its sticky `top`).
+- Scrolling glass (the sidebar) no longer gets a refraction lens or a sheen layer that the links scroll under; it keeps plain blur with the sheen in its background.
+
+### Added
+- MIT license, security policy, CI workflow, GitHub-style README.
+
 ## [0.4.0] - 2026-11-04
 
 ### Added

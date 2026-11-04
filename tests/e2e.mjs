@@ -382,6 +382,22 @@ await test('docs: live search, copy button, pager', async () => {
   await p.close();
 });
 
+await test('docs: sidebar stays in view while the page scrolls', async () => {
+  for (const dark of [false, true]) {
+    const p = await open(`${docs}/templates`, { dark, width: 1200, height: 800 });
+    const top = `document.getElementById('zw-sidebar').getBoundingClientRect().top`;
+    const before = await p.eval(top);
+    await p.eval(`scrollTo(0, document.body.scrollHeight)`);
+    await sleep(300);
+    eq(Math.round(await p.eval(top)), Math.round(before), 'sidebar sticky');
+    eq(await p.eval(`getComputedStyle(document.getElementById('zw-sidebar')).backdropFilter.includes('url(')`), false, 'no lens on scrolling glass');
+    await p.eval(`document.getElementById('zw-sidebar').scrollTop = 99999`);
+    await p.shot(`docs-scrolled-${dark ? 'dark' : 'light'}`);
+    noErrors(p);
+    await p.close();
+  }
+});
+
 await test('docs: no zoom-on-focus on touch screens (text fields >= 16px)', async () => {
   const p = await open(docs, { width: 390, height: 800 });
   eq(await p.eval(`matchMedia('(pointer: coarse)').matches`), true, 'touch emulated');

@@ -1,4 +1,6 @@
 //! Source-list sidebar (macOS). Pass it as `layout(.{ .sidebar = ... })`.
+//! It scrolls, so its glass has no refraction lens and its sheen is part of its background:
+//! a lens or a sheen layer would stay put or move while the links scroll under them.
 //! Wide screens: sticky glass column. Narrow screens: a popover opened by the title bar's
 //! sidebar button (Popover API, no JS). Items are grouped under section headings.
 const std = @import("std");
@@ -6,7 +8,10 @@ const Writer = std.Io.Writer;
 const writeEscaped = @import("../view.zig").writeEscaped;
 
 pub const css =
-    \\.zw-sidebar{margin:0;padding:12px 10px 24px;border:0;color:var(--label);--glass:var(--glass-thick);overscroll-behavior:contain;scrollbar-width:none}
+    \\.zw-sidebar{margin:0;padding:12px 10px 24px;border:0;color:var(--label);--glass:var(--glass-thick);overscroll-behavior:contain;scrollbar-width:none;
+    \\background:var(--glass-sheen),var(--glass)}
+    \\.zw-sidebar::before{display:none}
+    \\.zw-refract .zw-sidebar{backdrop-filter:var(--glass-filter)}
     \\.zw-sidebar h3{font:var(--callout);font-weight:600;color:var(--tertiary);padding:12px 10px 4px;margin:0}
     \\.zw-sidebar h3:first-child{padding-top:2px}
     \\.zw-sidebar ul{list-style:none;padding:0;margin:0}
@@ -16,7 +21,7 @@ pub const css =
     \\.zw-sidebar a:active{scale:.97;transition-duration:var(--dur-snappy)}
     \\.zw-sidebar a[aria-current=page]{background:var(--fill-strong);font-weight:600}
     \\.zw-sidebar-toggle{display:none}
-    \\@media (min-width:800px){.zw-sidebar:not(:popover-open){display:block;position:sticky;top:60px;align-self:start;height:calc(100vh - 70px);margin:0 0 10px 10px;overflow-y:auto;inset:auto;width:auto;
+    \\@media (min-width:800px){.zw-sidebar:not(:popover-open){display:block;inset:auto;position:sticky;top:60px;align-self:start;height:calc(100vh - 70px);margin:0 0 10px 10px;overflow-y:auto;width:auto;
     \\border-radius:var(--radius-panel)}}
     \\@media (max-width:799px){.zw-sidebar-toggle{display:inline-flex}
     \\.zw-sidebar[popover]{inset:60px auto 10px 10px;width:min(290px,calc(100vw - 20px));height:auto;overflow-y:auto;border-radius:var(--radius-panel);

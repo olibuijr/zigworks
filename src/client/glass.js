@@ -80,8 +80,10 @@
 
   function fit(el) {
     const w = Math.round(el.offsetWidth), h = Math.round(el.offsetHeight);
-    if (!w || !h || w * h > maxArea) return el.style.removeProperty('--zw-lens');
-    const r = Math.round(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0);
+    // Scroll containers keep plain blur: content moving under a fixed lens looks broken.
+    const cs = getComputedStyle(el);
+    if (!w || !h || w * h > maxArea || /auto|scroll/.test(cs.overflowY)) return el.style.removeProperty('--zw-lens');
+    const r = Math.round(parseFloat(cs.borderTopLeftRadius) || 0);
     el.style.setProperty('--zw-lens', `url(#${lens(w, h, r)})`);
   }
 

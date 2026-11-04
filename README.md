@@ -44,7 +44,7 @@ Apps listen on every interface (`0.0.0.0`) so they are reachable on your LAN. Se
 ### Use it in your project
 
 ```sh
-zig fetch --save git+https://github.com/olibuijr/zigworks#v0.4.0
+zig fetch --save git+https://github.com/olibuijr/zigworks#v0.4.1
 ```
 
 ```zig
