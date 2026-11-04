@@ -10,14 +10,14 @@
 
 pub const css =
     \\.zw-glass{position:relative;isolation:isolate;background:var(--glass);-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);
-    \\box-shadow:var(--glass-rim),var(--glass-shadow);transition:--zw-glow var(--speed)}
+    \\box-shadow:var(--glass-rim),var(--glass-shadow);transition:--zw-glow var(--speed);
+    \\&::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;
+    \\background:radial-gradient(circle at var(--mx,50%) var(--my,-30%),color-mix(in srgb,var(--glass-glow) calc(var(--zw-glow) * 100%),transparent),transparent 70%),var(--glass-sheen)}}
     \\.zw-refract .zw-glass{backdrop-filter:var(--zw-lens,) var(--glass-filter)}
     \\.zw-glass--clear{background:var(--glass-clear);--glass-filter:var(--glass-filter-clear)}
-    \\.zw-glass::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;
-    \\background:radial-gradient(circle at var(--mx,50%) var(--my,-30%),color-mix(in srgb,var(--glass-glow) calc(var(--zw-glow) * 100%),transparent),transparent 70%),var(--glass-sheen)}
     \\.zw-press{transition:translate var(--dur-bouncy) var(--spring-bouncy),scale var(--dur-bouncy) var(--spring-bouncy),
-    \\background-color var(--speed),box-shadow var(--speed),color var(--speed),--zw-glow var(--speed)}
-    \\.zw-press:active,.zw-press[data-press]{translate:var(--dx,0) var(--dy,0);scale:calc(1.05 + var(--sx,0)) calc(1.05 + var(--sy,0));--zw-glow:1;
-    \\transition-duration:var(--dur-snappy);transition-timing-function:var(--spring-snappy)}
+    \\background-color var(--speed),box-shadow var(--speed),color var(--speed),--zw-glow var(--speed);
+    \\&:is(:active,[data-press]){translate:var(--dx,0) var(--dy,0);scale:calc(1.05 + var(--sx,0)) calc(1.05 + var(--sy,0));--zw-glow:1;
+    \\transition-duration:var(--dur-snappy);transition-timing-function:var(--spring-snappy)}}
     \\
 ;
