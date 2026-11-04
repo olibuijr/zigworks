@@ -204,7 +204,7 @@ await test('gallery: controls, menu, picker, sheet', () => modes(async (dark, mo
   // menu opens anchored under its button
   await p.click('[popovertarget=more]');
   await p.waitFor(`document.getElementById('more').matches(':popover-open')`);
-  await sleep(800); // let the open spring settle
+  await p.waitFor(`!document.getElementById('more').getAnimations().length`); // let the open spring settle
   const below = await p.eval(`document.getElementById('more').getBoundingClientRect().top >= document.querySelector('[popovertarget=more]').getBoundingClientRect().bottom - 1`);
   eq(below, true, 'menu anchored below button');
   await p.shot(`gallery-menu-${mode}`);
@@ -267,8 +267,7 @@ await test('gallery: tabs, stepper, disclosure, tooltip, tags, toast, skeleton',
   await p.waitFor(`!document.querySelector('#zw-toasts .zw-toast')`, 7000);
   // tooltip shows after hovering (500 ms delay)
   await p.hover('.zw-tip .zw-btn');
-  await sleep(1100);
-  eq(await p.eval(`getComputedStyle(document.querySelector('.zw-tip-text')).opacity`), '1', 'tooltip visible');
+  await p.waitFor(`getComputedStyle(document.querySelector('.zw-tip-text')).opacity === '1'`, 3000);
   await p.shot('gallery-tooltip');
   await done(p);
 });
@@ -296,7 +295,7 @@ await test('glass: refraction lenses, pressed knobs, springs', () => modes(async
   await sleep(2000); // headless Chromium applies :active to ancestors late
   await p.shot(`glass-seg-pressed-${mode}`);
   await p.release();
-  await sleep(800);
+  await p.waitFor(`!document.querySelector('.zw-seg-pill').getAnimations().length`);
   const pill = await p.eval(`getComputedStyle(document.querySelector('.zw-seg-pill')).translate`);
   eq(['0px', '0%', 'none', '0px 0px', '0% 0px'].includes(pill), true, `pill slid to the first segment (${pill})`);
   await done(p);
@@ -380,7 +379,7 @@ await test('docs: sidebar stays in view while the page scrolls', () => modes(asy
   const top = `document.getElementById('zw-sidebar').getBoundingClientRect().top`;
   const before = await p.eval(top);
   await p.eval(`scrollTo(0, document.body.scrollHeight)`);
-  await sleep(300);
+  await p.waitFor(`scrollY > 0`);
   eq(Math.round(await p.eval(top)), Math.round(before), 'sidebar sticky');
   eq(await p.eval(`getComputedStyle(document.getElementById('zw-sidebar')).backdropFilter.includes('url(')`), false, 'no lens on scrolling glass');
   await p.eval(`document.getElementById('zw-sidebar').scrollTop = 99999`);
