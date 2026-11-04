@@ -140,6 +140,8 @@ pub const Tokens = struct {
     radius_control: []const u8 = "8px",
     radius_panel: []const u8 = "20px",
     space: []const u8 = "16px",
+    /// Keyboard focus outline, shared by the global :focus-visible rule and components.
+    focus_ring: []const u8 = "3px solid color-mix(in srgb,var(--accent) 50%,transparent)",
     /// backdrop-filter of regular and clear glass. Chromium adds a refraction lens in front (glass.js).
     glass_filter: []const u8 = "blur(14px) saturate(190%) brightness(1.03)",
     glass_filter_clear: []const u8 = "blur(1.5px) saturate(170%) brightness(1.08)",
@@ -198,13 +200,17 @@ const base =
     \\::selection{background:color-mix(in srgb,var(--accent) 30%,transparent)}
     \\h1{font:var(--large-title);letter-spacing:.22px}h2{font:var(--title2);font-weight:700;letter-spacing:-.43px}h3{font:var(--title3);font-weight:600;letter-spacing:-.23px}
     \\a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
-    \\:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 50%,transparent);outline-offset:1px}
+    \\:focus-visible{outline:var(--focus-ring);outline-offset:1px}
     \\code{font-family:var(--mono);font-size:12px}
     \\.zw-stack{display:flex;flex-direction:column;gap:var(--space)}
     \\.zw-row{display:flex;align-items:center;gap:8px}
     \\.zw-grow{flex:1;min-width:0}
     \\.zw-secondary{color:var(--secondary)}
     \\.zw-callout{font:var(--callout)}
+    \\.zw-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+    \\.zw-input{appearance:none;font:var(--body);letter-spacing:-.08px;color:var(--label);background:var(--content);border:0;border-radius:var(--radius-control);outline:none;box-shadow:var(--shadow);transition:box-shadow var(--dur) var(--spring)}
+    \\.zw-input::placeholder{color:var(--secondary);opacity:.75}
+    \\.zw-input:focus{box-shadow:0 0 0 .5px var(--accent),0 0 0 4px color-mix(in srgb,var(--accent) 40%,transparent)}
     \\@media (pointer:coarse){:root{--control-h:34px}input:not([type=checkbox],[type=radio],[type=range]),textarea,select{font-size:max(16px,1em)!important}}
     \\@property --zw-glow{syntax:"<number>";inherits:true;initial-value:0}
     \\@supports not (transition-timing-function:linear(0,1)){:root{--spring:cubic-bezier(.25,1.1,.4,1);--spring-bouncy:cubic-bezier(.3,1.5,.5,1);--spring-snappy:cubic-bezier(.2,1,.3,1)}}
@@ -220,6 +226,8 @@ test "tokens become css variables" {
     try std.testing.expect(std.mem.find(u8, s, "--on-accent:#ffffff;") != null);
     try std.testing.expect(std.mem.find(u8, s, "--radius-control:8px;") != null);
     try std.testing.expect(std.mem.find(u8, s, "--spring-bouncy:linear(") != null);
+    try std.testing.expect(std.mem.find(u8, s, "--focus-ring:3px solid ") != null);
+    try std.testing.expect(std.mem.find(u8, s, ":focus-visible{outline:var(--focus-ring);") != null);
 }
 
 test "README token override compiles" {

@@ -6,6 +6,7 @@ pub const css =
     \\.zw-busy{opacity:.55;pointer-events:none;transition:opacity var(--speed)}
     \\.zw-enter{animation:zw-enter var(--dur-bouncy) var(--spring-bouncy) both}
     \\@keyframes zw-enter{from{opacity:0;translate:0 -10px;scale:.96}}
+    \\@keyframes zw-pop{from{scale:.55}}
     \\.zw-leave{opacity:0;scale:.97;transition:height var(--dur) var(--spring),opacity 200ms ease,scale 300ms ease}
     \\.zw-dialog{margin:auto;border:0;border-radius:var(--radius-panel);padding:22px 20px 20px;width:280px;color:var(--label);text-align:center;--glass:var(--glass-thick);
     \\transition:opacity 180ms ease,scale var(--dur-bouncy) var(--spring-bouncy),display 250ms allow-discrete,overlay 250ms allow-discrete}
