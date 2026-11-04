@@ -92,19 +92,21 @@ fn states(w: *Writer) Writer.Error!void {
     try ui.list(.{
         .id = "demo-badge-counts",
         .header = "Counts",
-        .footer = "A badge has no disabled or loading state: hide it, or leave it out.",
+        .footer = "A badge is read-only: no disabled or loading state. An empty one hides itself.",
         .body = zw.view(
             "<li><code class=\"demo-badge-key\">count = 7</code>{a}</li>" ++
                 "<li><code class=\"demo-badge-key\">count = 128</code>{b}</li>" ++
                 "<li><code class=\"demo-badge-key\">count = 25, max = 9</code>{c}</li>" ++
                 "<li><code class=\"demo-badge-key\">count = 0</code>{e}</li>" ++
-                "<li><code class=\"demo-badge-key\">count = 0, hide_zero</code>{f}<span class=\"zw-secondary\">Hidden, but still in the page</span></li>",
+                "<li><code class=\"demo-badge-key\">count = 0, hide_zero</code>{f}<span class=\"zw-secondary\">Hidden, but still in the page</span></li>" ++
+                "<li><code class=\"demo-badge-key\">text = \"\"</code>{g}<span class=\"zw-secondary\">Empty, so hidden</span></li>",
             .{
                 .a = ui.badge(.{ .count = 7 }),
                 .b = ui.badge(.{ .count = 128, .tone = .red, .solid = true }),
                 .c = ui.badge(.{ .count = 25, .max = 9, .tone = .accent }),
                 .e = ui.badge(.{ .count = 0 }),
                 .f = ui.badge(.{ .count = 0, .hide_zero = true }),
+                .g = ui.badge(.{ .tone = .accent }),
             },
         ),
     }).render(w);

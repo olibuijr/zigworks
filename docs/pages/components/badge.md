@@ -16,7 +16,7 @@ badge-variants
 
 ## Counts and status
 
-Give `count` a number and the badge keeps it tidy: above `max` it reads `99+`, and `hide_zero` hides it at 0. A `dot` with `text` is named for screen readers; one without is decorative. A badge has no disabled or loading state: hide it or leave it out.
+Give `count` a number and the badge keeps it tidy: above `max` it reads `99+`, and `hide_zero` hides it at 0. A `dot` with `text` is named for screen readers; one without is decorative. A badge is a read-only label, so it has no disabled or loading state: hide it or leave it out. With no `text` and no `count` it renders `hidden`, so an empty badge never shows as a blank pill but can still be filled in by `oob`.
 
 ```demo
 badge-states
@@ -73,7 +73,7 @@ ui.badge(.{ .count = 25, .max = 9, .tone = .accent, .size = .small })
 
 | Prop | Type | Default | Notes |
 |---|---|---|---|
-| `text` | string | `""` | label; the accessible name of a `dot` |
+| `text` | string | `""` | label; the accessible name of a `dot`. Empty with no `count` renders the badge `hidden` |
 | `id` | string | `""` | needed for `oob` |
 | `oob` | bool | `false` | replace the element with the same `id` |
 | `tone` | `.gray` `.accent` `.red` `.green` `.orange` | `.gray` | system color of the tint (or of the fill with `solid`) |
@@ -89,3 +89,4 @@ ui.badge(.{ .count = 25, .max = 9, .tone = .accent, .size = .small })
 - A `dot` with no `text` is decorative and hidden from assistive technology; give it `text` when the color carries meaning, and never rely on color alone.
 - `solid` uses white text on the system color. Prefer `.red` or `.accent` for small text; on `.green` and `.orange` keep the badge `.regular` or larger.
 - Tints, fills and the Increase Contrast outline follow the light and dark appearance automatically.
+- Sidebar and tabs badges are plain strings owned by those components; they are not `ui.badge` and can't be tinted or updated out of band. Use `ui.badge` inline where you need that.
