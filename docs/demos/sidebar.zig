@@ -72,6 +72,8 @@ const Mail = struct {
         var ua: [96]u8 = undefined;
         var ub: [96]u8 = undefined;
         var uc: [96]u8 = undefined;
+        var inbox_url: [96]u8 = undefined;
+        var drafts_url: [96]u8 = undefined;
         const inbox_badge: []const u8 = if (m.inbox == 0) "" else std.fmt.bufPrint(&inbox_buf, "{d}", .{m.inbox}) catch "";
         const drafts_badge: []const u8 = if (m.drafts == 0) "" else std.fmt.bufPrint(&drafts_buf, "{d}", .{m.drafts}) catch "";
 
@@ -87,8 +89,8 @@ const Mail = struct {
             .footer = "<span class=\"zw-secondary\">ada@example.com</span>",
             .sections = &.{
                 .{ .title = "Mailboxes", .links = &.{
-                    .{ .label = "Inbox", .href = "#inbox", .icon = inbox_icon, .badge = inbox_badge },
-                    .{ .label = "Drafts", .href = "#drafts", .icon = draft_icon, .badge = drafts_badge },
+                    .{ .label = "Inbox", .href = "#inbox", .icon = inbox_icon, .badge = inbox_badge, .z = .{ .post = m.url(&inbox_url, "inbox"), .target = "#demo-sidebar-mail" } },
+                    .{ .label = "Drafts", .href = "#drafts", .icon = draft_icon, .badge = drafts_badge, .z = .{ .post = m.url(&drafts_url, "drafts"), .target = "#demo-sidebar-mail" } },
                     .{ .label = "Sent", .href = "#sent", .icon = sent_icon },
                     .{ .label = "Trash", .href = "#trash", .icon = trash_icon },
                 } },
@@ -152,6 +154,8 @@ fn mailRoute(c: *zw.Ctx) !void {
         msg = "Drafts sent";
     } else if (std.mem.eql(u8, act, "inbox")) {
         m.box = .inbox;
+    } else if (std.mem.eql(u8, act, "drafts")) {
+        m.box = .drafts;
     }
     if (msg.len == 0) return c.page(m);
     try c.page(zw.view("{m}{t}", .{ .m = m, .t = ui.toast(.{ .text = msg, .kind = .success }) }));
@@ -252,7 +256,7 @@ fn filterRoute(c: *zw.Ctx) !void {
         for (sec.links) |l| {
             if (q.len == 0 or std.ascii.findIgnoreCase(l.label, q) != null) try links.append(c.arena, l);
         }
-        if (links.items.len == 0) continue;
+        if (links.items.len == 0) continue; // the sidebar skips empty sections itself; this is for the empty state below
         var hit = sec;
         hit.links = links.items;
         hit.open = hit.open or q.len > 0;
