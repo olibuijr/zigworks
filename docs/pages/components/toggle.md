@@ -12,6 +12,12 @@ toggle
 ui.toggle(.{ .name = "wifi", .label = "Wi-Fi", .on = true, .z = .{ .post = "/settings", .swap = .none } })
 ```
 
+Smaller, with a description and the switch before the label:
+
+```zig
+ui.toggle(.{ .name = "bt", .label = "Bluetooth", .description = "Discoverable as Studio", .size = .small, .label_side = .trailing })
+```
+
 ## Props
 
 | Prop | Type | Default | Notes |
@@ -19,6 +25,10 @@ ui.toggle(.{ .name = "wifi", .label = "Wi-Fi", .on = true, .z = .{ .post = "/set
 | `name` | string | required | sends `name=on`; nothing when off |
 | `label` | string | required | |
 | `on` | bool | `false` | |
+| `description` | string | none | secondary line under the label |
+| `size` | `.mini` `.small` `.regular` | `.regular` | switch is 30x18, 38x22 or 46x26 |
+| `label_side` | `.leading` `.trailing` | `.leading` | `.trailing` puts the switch first, like a checkbox |
+| `disabled` | bool | `false` | dimmed, not interactive, not submitted |
 | `z` | `ui.Z` | none | sent on `change` |
 
-Use a check for items in a list and a toggle for settings.
+Rows get at least 44px of height on touch screens. Use a check for items in a list and a toggle for settings.

@@ -15,11 +15,25 @@ ui.radio(.{ .name = "open", .label = "New windows open with", .options = &.{
 } })
 ```
 
+Horizontal, with descriptions and a disabled option:
+
+```zig
+ui.radio(.{ .name = "plan", .label = "Plan", .layout = .horizontal, .options = &.{
+    .{ .value = "free", .label = "Free", .description = "1 project", .selected = true },
+    .{ .value = "team", .label = "Team", .description = "Unlimited" },
+    .{ .value = "ent", .label = "Enterprise", .disabled = true },
+} })
+```
+
 ## Props
 
 | Prop | Type | Default | Notes |
 |---|---|---|---|
 | `name` | string | required | |
 | `label` | string | required | accessible group name |
-| `options` | `[]const ui.RadioOption` | required | value, label, `selected` |
+| `options` | `[]const ui.RadioOption` | required | `value`, `label`, `selected`, plus `description` (secondary line, default none) and `disabled` (default `false`) |
+| `layout` | `.vertical` `.horizontal` | `.vertical` | `.horizontal` wraps onto new lines on narrow screens |
+| `disabled` | bool | `false` | disables the whole group |
 | `z` | `ui.Z` | none | sent on `change` |
+
+Arrow keys move between options and each row is at least 44px tall on touch screens.

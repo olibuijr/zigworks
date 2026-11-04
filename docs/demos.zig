@@ -273,11 +273,25 @@ fn search(w: *Writer) Writer.Error!void {
 }
 
 fn check(w: *Writer) Writer.Error!void {
-    try zw.view("{a}{b}", .{ .a = ui.check(.{ .on = false, .label = "Not done" }), .b = ui.check(.{ .on = true, .label = "Done" }) }).render(w);
+    try zw.view("{a}{b}{c}{d}{e}{f}{g}", .{
+        .a = ui.check(.{ .on = false, .label = "Not done" }),
+        .b = ui.check(.{ .on = true, .label = "Done" }),
+        .c = ui.check(.{ .on = true, .label = "Small", .size = .small }),
+        .d = ui.check(.{ .on = true, .label = "Large", .size = .large }),
+        .e = ui.check(.{ .on = true, .label = "Flagged", .tint = .orange }),
+        .f = ui.check(.{ .on = true, .label = "Urgent", .tint = .red }),
+        .g = ui.check(.{ .on = true, .label = "Locked", .disabled = true }),
+    }).render(w);
 }
 
 fn toggle(w: *Writer) Writer.Error!void {
-    try zw.view("{a}{b}", .{ .a = ui.toggle(.{ .name = "wifi", .label = "Wi-Fi", .on = true, .z = save }), .b = ui.toggle(.{ .name = "bt", .label = "Bluetooth", .z = save }) }).render(w);
+    try zw.view("{a}{b}{c}{d}{e}", .{
+        .a = ui.toggle(.{ .name = "wifi", .label = "Wi-Fi", .description = "Join known networks automatically", .on = true, .z = save }),
+        .b = ui.toggle(.{ .name = "bt", .label = "Bluetooth", .z = save }),
+        .c = ui.toggle(.{ .name = "small", .label = "Small switch", .size = .small, .on = true, .z = save }),
+        .d = ui.toggle(.{ .name = "mini", .label = "Mini switch, label after", .size = .mini, .label_side = .trailing, .on = true, .z = save }),
+        .e = ui.toggle(.{ .name = "lock", .label = "Managed by your administrator", .disabled = true, .on = true }),
+    }).render(w);
 }
 
 fn segmented(w: *Writer) Writer.Error!void {
@@ -379,10 +393,13 @@ fn stepper(w: *Writer) Writer.Error!void {
 }
 
 fn checkbox(w: *Writer) Writer.Error!void {
-    try zw.view("<div class=\"zw-stack\" style=\"gap:6px\">{a}{b}{c}</div>", .{
+    try zw.view("<div class=\"zw-stack\" style=\"gap:6px\">{a}{b}{c}{d}{e}{f}</div>", .{
         .a = ui.checkbox(.{ .name = "spell", .label = "Check spelling while typing", .on = true, .z = save }),
         .b = ui.checkbox(.{ .name = "grammar", .label = "Check grammar with spelling", .z = save }),
         .c = ui.checkbox(.{ .name = "caps", .label = "Capitalize words automatically", .on = true, .z = save }),
+        .d = ui.checkbox(.{ .name = "all", .label = "Select all", .mixed = true, .description = "2 of 5 selected", .z = save }),
+        .e = ui.checkbox(.{ .name = "beta", .label = "Beta features", .description = "Managed by your administrator", .disabled = true }),
+        .f = ui.checkbox(.{ .name = "terms", .label = "I agree to the terms", .invalid = true, .z = save }),
     }).render(w);
 }
 
@@ -390,7 +407,8 @@ fn radio(w: *Writer) Writer.Error!void {
     try ui.radio(.{ .name = "open", .label = "New windows open with", .z = save, .options = &.{
         .{ .value = "recent", .label = "Recents", .selected = true },
         .{ .value = "home", .label = "Home folder" },
-        .{ .value = "desktop", .label = "Desktop" },
+        .{ .value = "desktop", .label = "Desktop", .description = "The folder on your desktop" },
+        .{ .value = "icloud", .label = "iCloud Drive", .disabled = true },
     } }).render(w);
 }
 
