@@ -20,7 +20,7 @@ htmx-style interactivity, and a Liquid Glass component library with a macOS look
 
 - **Pure Zig, zero dependencies.** Standard library only: HTTP/1.1 with keep-alive and a memory arena per request.
 - **Checked at compile time.** Routes like `"GET /todos/:id"` and templates are parsed when you build, so typos fail the build, not a request.
-- **Server-rendered, works without JS.** z.js (~6 KB) adds htmx-style requests and swaps with a few HTML attributes.
+- **Server-rendered, works without JS.** z.js (about 18 KB with the glass runtime, ~7 KB gzipped) adds htmx-style requests and swaps with a few HTML attributes.
 - **35 components.** macOS HIG defaults, Liquid Glass on controls (real refraction in Chromium), spring motion, light and dark mode.
 - **Accessible by default.** Honours Reduce Motion, Reduce Transparency and Increase Contrast, uses no stock browser popups, and never zooms into fields on phones.
 - **Islands for client JS.** Mount three.js or any ES module where you need it.
