@@ -120,7 +120,7 @@
     if (frame) return;
     frame = requestAnimationFrame(() => {
       frame = 0;
-      const el = last.target.closest?.('.zw-glass,.zw-btn');
+      const el = last.target.closest?.('.zw-glass');
       if (lit && lit !== el) lit.style.removeProperty('--zw-glow');
       lit = el;
       if (!el) return;
