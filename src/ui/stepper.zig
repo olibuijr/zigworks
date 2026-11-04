@@ -8,9 +8,7 @@ const Z = @import("z.zig").Z;
 
 pub const css =
     \\.zw-stepper{display:inline-flex;align-items:center;gap:6px}
-    \\.zw-stepper input{appearance:none;-moz-appearance:textfield;width:56px;height:var(--control-h);padding:0 8px;border:0;border-radius:var(--radius-control);text-align:center;
-    \\font:var(--body);font-variant-numeric:tabular-nums;color:var(--label);background:var(--content);box-shadow:var(--shadow);outline:none;transition:box-shadow var(--dur) var(--spring)}
-    \\.zw-stepper input:focus{box-shadow:0 0 0 .5px var(--accent),0 0 0 4px color-mix(in srgb,var(--accent) 40%,transparent)}
+    \\.zw-stepper input{-moz-appearance:textfield;width:56px;height:var(--control-h);padding:0 8px;text-align:center;font-variant-numeric:tabular-nums}
     \\.zw-stepper input::-webkit-inner-spin-button,.zw-stepper input::-webkit-outer-spin-button{appearance:none;margin:0}
     \\.zw-stepper-btns{display:inline-flex;height:var(--control-h);border-radius:999px;padding:0}
     \\.zw-stepper-btns button{appearance:none;width:34px;height:100%;border:0;background:transparent;color:var(--label);font:500 16px/1 var(--font);cursor:default;
@@ -49,7 +47,7 @@ pub const Props = struct {
 // With an editable field the arrow keys already step it, so the buttons stay out of the Tab order.
 const Data = struct { p: Props, skip_tab: bool };
 
-const src = "<span class=\"zw-stepper{#if p.disabled} is-disabled{/if}\"><input type=\"number\" inputmode=\"numeric\" name=\"{p.name}\" aria-label=\"{p.label}\" value=\"{p.value}\" min=\"{p.min}\" max=\"{p.max}\" step=\"{p.step}\"" ++
+const src = "<span class=\"zw-stepper{#if p.disabled} is-disabled{/if}\"><input class=\"zw-input\" type=\"number\" inputmode=\"numeric\" name=\"{p.name}\" aria-label=\"{p.label}\" value=\"{p.value}\" min=\"{p.min}\" max=\"{p.max}\" step=\"{p.step}\"" ++
     "{#if !p.editable} readonly{/if}{#if p.disabled} disabled{/if}{#if p.wrap} data-wrap{/if}{p.z}>" ++
     "{#if p.unit}<span class=\"zw-stepper-unit\">{p.unit}</span>{/if}" ++
     "<span class=\"zw-stepper-btns zw-glass\"><button type=\"button\" data-step=\"-1\" aria-label=\"Decrease {p.label}\"{#if skip_tab} tabindex=\"-1\"{/if}{#if p.disabled} disabled{/if}>−</button>" ++
