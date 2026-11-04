@@ -28,29 +28,9 @@ pub const routes = .{
     .{ "GET /demo/island/orbit", orbitRoute },
 };
 
-// Island modules. /orbit.js is a real file in docs/public. The two below are tiny ES modules
-// inlined as data: URLs so the demos need no extra files (no `?`, `#` or `%` inside).
-
-/// Bar chart: `props` = {"values":[...]}; the last bar is the highlighted one. Redraws on resize
-/// and skips drawing while hidden (a closed tab or sheet has no size).
-const chart_js = "data:text/javascript," ++
-    "export default function(el,p){" ++
-    "const c=document.createElement('canvas'),g=c.getContext('2d'),s=getComputedStyle(el)," ++
-    "ac=s.getPropertyValue('--accent').trim()||'#007aff',ln=s.getPropertyValue('--separator').trim()||'rgba(0,0,0,.1)';" ++
-    "el.append(c);" ++
-    "const draw=()=>{const r=el.getBoundingClientRect(),k=devicePixelRatio,n=p.values.length,max=Math.max(...p.values),bw=r.width/n;" ++
-    "if(r.width<1||r.height<1)return;" ++
-    "c.width=r.width*k;c.height=r.height*k;g.setTransform(k,0,0,k,0,0);" ++
-    "g.strokeStyle=ln;g.lineWidth=1;g.beginPath();g.moveTo(0,r.height-.5);g.lineTo(r.width,r.height-.5);g.stroke();" ++
-    "p.values.forEach((v,i)=>{const h=(r.height-24)*v/max;g.fillStyle=ac;g.globalAlpha=[.45,1][+(i==n-1)];" ++
-    "g.beginPath();g.roundRect(i*bw+bw*.18,r.height-h-1,bw*.64,h,[5,5,0,0]);g.fill()});g.globalAlpha=1};" ++
-    "const ro=new ResizeObserver(draw);ro.observe(el);" ++
-    "return () => {ro.disconnect();c.remove()}}";
-
-/// A module that takes 2.5 s to draw, to show the placeholder. `props` = {"text":"..."}.
-const slow_js = "data:text/javascript," ++
-    "export default function(el,p){const t=setTimeout(()=>{const d=document.createElement('div');" ++
-    "d.className='demo-island-ready';d.textContent=p.text;el.append(d)},2500);return () => clearTimeout(t)}";
+// Island modules are real files in docs/public: /orbit.js (three.js), /chart.js, /slow.js.
+const chart_js = "/chart.js";
+const slow_js = "/slow.js";
 
 const Range = struct { key: []const u8, props: []const u8, total: []const u8, label: []const u8 };
 const ranges = [_]Range{

@@ -56,13 +56,15 @@ const MailRow = zw.View(
 , struct { m: Mail, av: ui.Avatar, dot: ?ui.Badge, del: ui.Button });
 
 fn mailRow(m: Mail) MailRow {
-    return .{ .data = .{
-        .m = m,
-        .av = ui.avatar(.{ .name = m.from }),
-        .dot = if (m.unread) ui.badge(.{ .dot = true, .text = "Unread", .tone = .accent }) else null,
-        // An empty 200 lets z.js remove the row (see DELETE /demo/todo in main.zig).
-        .del = ui.button(.{ .label = "Delete", .variant = .destructive, .size = .small, .z = .{ .delete = "/demo/todo", .target = "closest li", .swap = .delete } }),
-    } };
+    return .{
+        .data = .{
+            .m = m,
+            .av = ui.avatar(.{ .name = m.from }),
+            .dot = if (m.unread) ui.badge(.{ .dot = true, .text = "Unread", .tone = .accent }) else null,
+            // An empty 200 lets z.js remove the row (see DELETE /demo/todo in main.zig).
+            .del = ui.button(.{ .label = "Delete", .variant = .destructive, .size = .small, .z = .{ .delete = "/demo/todo", .target = "closest li", .swap = .delete } }),
+        },
+    };
 }
 
 fn hero(w: *Writer) Writer.Error!void {

@@ -128,13 +128,13 @@ const Alarm = zw.View(
     struct { time: []const u8, on: bool },
 );
 
-fn alarmText(buf: *[5]u8, hour: i64, minute: i64, on: bool) Alarm {
-    const time = std.fmt.bufPrint(buf, "{d:0>2}:{d:0>2}", .{ hour, minute }) catch unreachable;
+fn alarmText(buf: *[8]u8, hour: i64, minute: i64, on: bool) Alarm {
+    const time = std.fmt.bufPrint(buf, "{d:0>2}:{d:0>2}", .{ @as(u8, @intCast(hour)), @as(u8, @intCast(minute)) }) catch unreachable;
     return .{ .data = .{ .time = time, .on = on } };
 }
 
 fn alarm(w: *Writer) Writer.Error!void {
-    var buf: [5]u8 = undefined;
+    var buf: [8]u8 = undefined;
     try ui.card(.{ .title = "Alarm", .body = zw.view("<form{z}>{a}{b}<p id=\"demo-stepper-alarm\" class=\"demo-stepper-out\">{s}</p></form>", .{
         .z = ui.Z{ .post = "/demo/stepper/alarm", .trigger = "change", .target = "#demo-stepper-alarm", .swap = .inner, .keep = true },
         .a = ui.toggle(.{ .name = "demo-stepper-on", .label = "Alarm", .on = true }),
@@ -149,6 +149,6 @@ fn alarm(w: *Writer) Writer.Error!void {
 fn alarmUpdate(c: *zw.Ctx) !void {
     const hour = std.math.clamp(std.fmt.parseInt(i64, c.form("demo-stepper-hour") orelse "", 10) catch 0, 0, 23);
     const minute = std.math.clamp(std.fmt.parseInt(i64, c.form("demo-stepper-minute") orelse "", 10) catch 0, 0, 59);
-    const buf = try c.arena.create([5]u8);
+    const buf = try c.arena.create([8]u8);
     try c.page(alarmText(buf, hour, minute, c.form("demo-stepper-on") != null));
 }

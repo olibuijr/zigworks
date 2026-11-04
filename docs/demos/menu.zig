@@ -310,7 +310,7 @@ fn preview(st: ViewState) Preview {
         .sidebar = st.sidebar,
         .status = st.status,
         .sort = st.sort,
-        .rows = &sorted[@intFromEnum(st.sort)],
+        .rows = &sorted[@backingInt(st.sort)],
     } };
 }
 

@@ -193,7 +193,9 @@
       const el = e.target.closest?.(sel);
       if (!el) return;
       const field = el.matches('input,select,textarea');
-      if ((attr(el, 'trigger') || (el.tagName === 'FORM' ? 'submit' : field ? 'change' : 'click')) !== type) return;
+      // A z form always sends on submit (Enter in a field), even when its trigger is change or input.
+      const submit = type === 'submit' && el.tagName === 'FORM';
+      if (!submit && (attr(el, 'trigger') || (el.tagName === 'FORM' ? 'submit' : field ? 'change' : 'click')) !== type) return;
       if (type !== 'input' && type !== 'change') e.preventDefault();
       if (type === 'input') { clearTimeout(el._zwT); el._zwT = setTimeout(() => fire(el), 250); } else fire(el);
     });

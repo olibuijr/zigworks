@@ -105,9 +105,9 @@ fn renderTo(p: Props, buf: []u8) ![]const u8 {
 
 test avatar {
     var buf: [512]u8 = undefined;
-    const plain = try renderTo(.{ .name = "Ólafur Búi Ó" }, &buf);
-    try std.testing.expect(std.mem.find(u8, plain, "<span class=\"zw-avatar__i\">ÓB</span></span>") != null);
-    try std.testing.expect(std.mem.find(u8, plain, "aria-label=\"Ólafur Búi Ó\"") != null);
+    const plain = try renderTo(.{ .name = "Ásta Sigurðardóttir" }, &buf);
+    try std.testing.expect(std.mem.find(u8, plain, "<span class=\"zw-avatar__i\">ÁS</span></span>") != null);
+    try std.testing.expect(std.mem.find(u8, plain, "aria-label=\"Ásta Sigurðardóttir\"") != null);
 
     const pic = try renderTo(.{ .name = "Ada", .src = "/a.jpg", .status = .busy, .shape = .rounded, .hue = 200 }, &buf);
     try std.testing.expect(std.mem.find(u8, pic, "zw-avatar--rounded") != null);

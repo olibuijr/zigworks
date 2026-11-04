@@ -96,6 +96,11 @@ fn requests(comptime app: anytype, state: *const State, server: *http.Server) vo
         _ = arena.reset(.{ .retain_with_limit = 256 * 1024 });
         var req = server.receiveHead() catch |err| switch (err) {
             error.HttpConnectionClosing => return,
+            error.HttpHeadersOversize => {
+                server.out.writeAll("HTTP/1.1 431 Request Header Fields Too Large\r\nconnection: close\r\ncontent-length: 0\r\n\r\n") catch {};
+                server.out.flush() catch {};
+                return log.debug("closing connection: {t}", .{err});
+            },
             else => return log.debug("closing connection: {t}", .{err}),
         };
         handle(app, state, arena.allocator(), &req) catch |err| {
@@ -173,10 +178,13 @@ fn tooLarge(c: *Ctx) !void {
 
 /// Runs `raw` (one or more requests) through the request loop without sockets; returns the raw responses.
 fn testServe(comptime app: anytype, raw: []const u8) ![]u8 {
-    var in: Io.Reader = .fixed(raw);
+    // Read through a 16 KiB buffer like a real connection, so oversized heads fail the same way.
+    var src: Io.Reader = .fixed(raw);
+    var recv: [16 * 1024]u8 = undefined;
+    var in = src.limited(.unlimited, &recv);
     var out: Io.Writer.Allocating = .init(std.testing.allocator);
     defer out.deinit();
-    var server = http.Server.init(&in, &out.writer);
+    var server = http.Server.init(&in.interface, &out.writer);
     const state: State = .{ .io = std.testing.io, .gpa = std.testing.allocator, .opts = .{ .public = null, .max_body = 16 }, .public = null };
     requests(app, &state, &server);
     return out.toOwnedSlice();
@@ -232,6 +240,13 @@ test "404, route params, pass, 500, 204" {
         defer std.testing.allocator.free(res);
         try expectResponse(res, case[1], case[2]);
     }
+}
+
+test "oversized request head gets 431" {
+    const long: [20_000]u8 = @splat('x');
+    const res = try testServe(test_app, "GET /?q=" ++ long ++ " HTTP/1.1\r\n\r\n");
+    defer std.testing.allocator.free(res);
+    try std.testing.expect(std.mem.startsWith(u8, res, "HTTP/1.1 431 "));
 }
 
 test "HEAD on a GET route sends headers only" {

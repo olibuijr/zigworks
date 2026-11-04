@@ -19,7 +19,7 @@ pub const css =
     \\.zw-list--sep-none>li+li::before{display:none}
     \\.zw-list--sep-full>li+li::before,.zw-list--nav>li+li::before{left:12px}
     \\.zw-list--nav>li{padding:0;
-    \\  &>a{flex:1;align-self:stretch;display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px;color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent;
+    \\  &>a{flex:1;min-width:0;align-self:stretch;display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px;color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent;
     \\    &::after{content:"";flex:none;margin-left:auto;width:7px;height:7px;border:solid var(--tertiary);border-width:2px 2px 0 0;rotate:45deg}
     \\    &:active{background:var(--fill-strong)}
     \\    @media (hover:hover){&:hover{background:var(--fill)}}}}

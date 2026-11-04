@@ -192,7 +192,7 @@ fn mail(c: *zw.Ctx) !void {
     var read: u32 = 0;
     var fields = std.mem.splitScalar(u8, c.body, '&');
     while (fields.next()) |field| read += @intFromBool(std.mem.startsWith(u8, field, "read="));
-    const unread: u32 = if (all) 0 else inbox.len - @min(read, inbox.len);
+    const unread: u32 = if (all) 0 else @intCast(inbox.len - @min(read, inbox.len));
     try c.html("{#if all}{list}{/if}{head}{dock}{#if zero}{toast}{/if}", .{
         .all = all,
         .list = MailList{ .all_read = true },

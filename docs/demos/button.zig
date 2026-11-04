@@ -19,6 +19,7 @@ pub const css =
     \\.demo-button-grid{display:grid;grid-template-columns:max-content 1fr;gap:14px 20px;align-items:center;
     \\  &>code{justify-self:start;color:var(--secondary)}}
     \\.demo-button-set{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+    \\.demo-button-tools{flex-wrap:nowrap;gap:2px}
     \\.demo-button-count{display:inline-flex;align-items:center;gap:6px;margin-left:4px;font:var(--callout);color:var(--secondary)}
     \\.demo-button-msg{margin-top:14px;
     \\  & p{color:var(--secondary)}}
@@ -231,7 +232,7 @@ fn toolbar(w: *Writer) Writer.Error!void {
         .title = "Inbox",
         .subtitle = "3 unread",
         .body = zw.view(
-            \\<div class="demo-button-set">{new}<span class="zw-grow"></span>{reply}{archive}{trash}{more}{menu}</div>
+            \\<div class="demo-button-set demo-button-tools">{new}<span class="zw-grow"></span>{reply}{archive}{trash}{more}{menu}</div>
             \\<div class="demo-button-msg"><strong>Ada Lovelace</strong><p>Notes on the Analytical Engine</p></div>
         , .{
             .new = ui.button(.{ .label = "Compose", .icon = compose, .variant = .primary, .z = d.save }),

@@ -129,7 +129,7 @@ fn states(w: *Writer) Writer.Error!void {
 
     try w.writeAll("<p class=\"demo-avatar-cap\">Initials</p><div class=\"demo-avatar-grid\">");
     try cell(ui.avatar(.{ .name = "Plato", .size = 56 }), "one word").render(w);
-    try cell(ui.avatar(.{ .name = "Ólafur Búi Ólafsson", .size = 56 }), "first two words").render(w);
+    try cell(ui.avatar(.{ .name = "Ásta Sigurðardóttir", .size = 56 }), "first two words").render(w);
     try cell(ui.avatar(.{ .name = "Ada King Lovelace", .size = 56 }), "third word ignored").render(w);
 
     try w.writeAll("</div><p class=\"demo-avatar-cap\">Stack and overflow</p><div class=\"demo-avatar-grid\">");
