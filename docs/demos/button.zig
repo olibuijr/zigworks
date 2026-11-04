@@ -130,9 +130,10 @@ fn hero(w: *Writer) Writer.Error!void {
         .card = ui.card(.{
             .title = "Profile",
             .subtitle = "Shown in Mail and Messages",
-            .body = zw.view("<div class=\"zw-stack\">{name}<div>{photo}</div></div>", .{
+            .body = zw.view("<div class=\"zw-stack\">{name}<div class=\"demo-button-set\">{photo}{revert}</div></div>", .{
                 .name = ui.field(.{ .name = "name", .label = "Display name", .value = "Ada Lovelace", .help = "Clear the field and save to see an error." }),
                 .photo = ui.button(.{ .label = "Choose Photo…", .href = "/components/avatar", .size = .small }),
+                .revert = ui.button(.{ .label = "Revert", .variant = .plain, .type = .reset, .size = .small }),
             }),
             .footer = zw.view("{del}<span class=\"zw-grow\"></span>{save}", .{
                 .del = ui.button(.{

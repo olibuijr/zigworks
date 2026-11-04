@@ -2,7 +2,7 @@
 
 A macOS push button. Use one primary button per view for the default action.
 
-The pane below is a typical Settings page. "Save Changes" is the primary button and submits the form, "Delete Account…" is destructive and asks first, and "Choose Photo…" is a link styled as a button. Clear the name and save to see the error toast.
+The pane below is a typical Settings page. "Save Changes" is the primary button and submits the form, "Delete Account…" is destructive and asks first, and "Choose Photo…" is a link styled as a button. "Revert" has `type = .reset` and puts the name back. Clear the name and save to see the error toast.
 
 ```demo
 button
@@ -54,6 +54,7 @@ button-toolbar
 
 ```zig
 ui.button(.{ .label = "Save", .variant = .primary, .type = .submit })
+ui.button(.{ .label = "Revert", .variant = .plain, .type = .reset })
 ui.button(.{ .label = "Delete", .variant = .destructive, .z = .{
     .delete = "/todos/1", .target = "closest li", .swap = .delete, .confirm = "Delete this todo?",
 } })
@@ -89,7 +90,7 @@ ui.button(.{ .label = "Check for Updates", .z = .{ .post = "/check", .swap = .ou
 |---|---|---|---|
 | `label` | string | required | use title case: "Save Changes"; the accessible name when `icon_only` |
 | `variant` | enum | `.secondary` | `.primary`, `.secondary`, `.plain`, `.destructive`; primary and secondary are glass |
-| `type` | enum | `.button` | `.submit` inside forms |
+| `type` | enum | `.button` | `.submit` sends the form, `.reset` restores its fields (Revert, Cancel) |
 | `aria` | string | `""` | accessible name when the label is a symbol ("+") |
 | `opens` | string | `""` | id of a popover (menu or sheet) to toggle; no JS needed |
 | `disabled` | bool | `false` | dimmed and inert |
@@ -109,4 +110,5 @@ ui.button(.{ .label = "Check for Updates", .z = .{ .post = "/check", .swap = .ou
 - Give `.loading` buttons the same label as before, or its progressive form ("Saving…"), so the width barely changes.
 - While a `z` request is in flight the button is dimmed and ignores clicks, so a double click sends once.
 - On touch screens every button is at least 44px tall. Reduce Motion stops the spinner turning; the ring stays visible.
-- `opens` and `type` apply to the `<button>` form only; an `href` button is a plain link (`z` attributes still work on it).
+- `opens` and `type` apply to the `<button>` form only; an `href` button is a plain link (`z` attributes still work on it), and `opens` on it is ignored because a link cannot toggle a popover. Use a button for that.
+- A request in flight only dims the button (z.js adds `zw-busy`); it cannot show the spinner by itself. To show `.loading` while the work runs, answer with the loading button and later the idle one, as the live row does.

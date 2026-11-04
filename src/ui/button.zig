@@ -10,7 +10,7 @@ pub const css =
     \\border:0;border-radius:999px;background:transparent;color:var(--label);font:var(--body);font-weight:500;letter-spacing:-.08px;white-space:nowrap;cursor:default;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
     \\&:hover{text-decoration:none}
     \\&:disabled,&[aria-disabled=true]{opacity:.4;pointer-events:none}
-    \\&.is-loading:disabled{opacity:.7}
+    \\&.is-loading:disabled,&.is-loading[aria-disabled=true]{opacity:.7}
     \\svg{width:1.15em;height:1.15em;flex:none}}
     \\.zw-btn--small{--zw-btn-h:calc(var(--control-h) - 6px);--zw-btn-px:10px;font:var(--callout);font-weight:500}
     \\.zw-btn--large{--zw-btn-h:calc(var(--control-h) + 8px);--zw-btn-px:20px;font:var(--title3);font-weight:500;letter-spacing:-.23px}
@@ -31,7 +31,8 @@ pub const css =
 ;
 
 pub const Variant = enum { primary, secondary, plain, destructive };
-pub const Type = enum { submit, button };
+/// `reset` restores the form's fields to their initial values (Revert, Cancel).
+pub const Type = enum { submit, button, reset };
 /// AppKit control sizes: small and large step the height and text size either side of regular.
 pub const Size = enum { small, regular, large };
 
@@ -98,10 +99,17 @@ test "size, icon and loading render" {
     try expectHas(.{ .label = "Save", .loading = true }, "aria-busy=\"true\"");
     try expectHas(.{ .label = "Save", .loading = true }, "<span class=\"zw-btn-spin\"");
     try expectHas(.{ .label = "Save", .loading = true }, " disabled");
+    try expectHas(.{ .label = "Revert", .type = .reset }, "type=\"reset\"");
 }
 
 test "href renders a link, inert when disabled" {
     try expectHas(.{ .label = "Docs", .href = "/docs" }, "<a class=\"zw-btn");
     try expectHas(.{ .label = "Docs", .href = "/docs" }, "href=\"/docs\"");
     try expectHas(.{ .label = "Docs", .href = "/docs", .disabled = true }, "aria-disabled=\"true\" tabindex=\"-1\"");
+    try expectHas(.{ .label = "Docs", .href = "/docs", .loading = true }, "is-loading");
+    try expectHas(.{ .label = "Docs", .href = "/docs", .loading = true }, "aria-disabled=\"true\"");
+}
+
+test "css dims a loading link like a loading button" {
+    try std.testing.expect(std.mem.find(u8, css, "&.is-loading[aria-disabled=true]{opacity:.7}") != null);
 }
