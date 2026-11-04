@@ -118,7 +118,7 @@ fn cell(cap: []const u8, p: ui.Picker) Cell {
 }
 
 fn options(w: *Writer) Writer.Error!void {
-    try zw.view("<div class=\"demo-picker-grid\">{a}{b}{c}{d}{e}</div>", .{
+    try zw.view("<div class=\"demo-picker-grid\">{a}{b}{c}{d}{e}{f}{g}{h}{i}</div>", .{
         .a = cell("selected", ui.picker(.{ .id = "demo-picker-sel", .name = "opt-sort", .label = "Sort by", .z = d.save, .options = &.{
             .{ .value = "name", .label = "Name" },
             .{ .value = "date", .label = "Date Modified", .selected = true },
@@ -146,6 +146,24 @@ fn options(w: *Writer) Writer.Error!void {
             .{ .value = "preview", .label = "Preview", .selected = true },
             .{ .value = "textedit", .label = "TextEdit" },
             .{ .value = "other", .label = "Other…", .separated = true },
+        } })),
+        .f = cell("size = .small", ui.picker(.{ .id = "demo-picker-small", .name = "opt-small", .label = "Zoom", .size = .small, .z = d.save, .options = &.{
+            .{ .value = "fit", .label = "Fit", .selected = true },
+            .{ .value = "100", .label = "100%" },
+            .{ .value = "200", .label = "200%" },
+        } })),
+        .g = cell("size = .large", ui.picker(.{ .id = "demo-picker-large", .name = "opt-large", .label = "Zoom", .size = .large, .z = d.save, .options = &.{
+            .{ .value = "fit", .label = "Fit", .selected = true },
+            .{ .value = "100", .label = "100%" },
+            .{ .value = "200", .label = "200%" },
+        } })),
+        .h = cell("help", ui.picker(.{ .id = "demo-picker-help", .name = "opt-quality", .label = "Export quality", .help = "Higher quality makes larger files.", .full = true, .z = d.save, .options = &.{
+            .{ .value = "good", .label = "Good" },
+            .{ .value = "best", .label = "Best", .selected = true },
+        } })),
+        .i = cell("invalid", ui.picker(.{ .id = "demo-picker-invalid", .name = "opt-region", .label = "Region", .placeholder = "Choose…", .invalid = "Choose a region to continue.", .full = true, .z = d.save, .options = &.{
+            .{ .value = "eu", .label = "Europe" },
+            .{ .value = "na", .label = "North America" },
         } })),
     }).render(w);
 }

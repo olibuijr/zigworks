@@ -51,7 +51,11 @@ ui.picker(.{ .id = "group", .name = "group", .label = "Group by", .placeholder =
 } })
 ```
 
-The picker has one size, the height of a regular button. It is as wide as its label (at least 120px) up to the width of its container, or the whole container with `full`.
+`size` follows the button sizes (`.small`, `.regular`, `.large`). `help` puts a hint under the button, and `invalid` replaces it with a red error message, outlines the button and sets `aria-invalid` on the menu's radio group (the message is announced). The picker is as wide as its label (at least 120px) up to the width of its container, or the whole container with `full`. Help and error text wrap within the button's width, so give a picker with long messages `full`.
+
+```zig
+ui.picker(.{ .id = "region", .name = "region", .label = "Region", .placeholder = "Choose…", .invalid = "Choose a region to continue.", .options = ... })
+```
 
 ## States
 
@@ -63,7 +67,7 @@ picker-states
 
 ## In a form
 
-A picker submits like a `<select>`: `name=value` for the checked option. A picker with no selected option sends nothing, and so does a disabled one. This form shows what arrived in a toast. Press Add Reminder before choosing a list to see the server's error.
+A picker submits like a `<select>`: `name=value` for the checked option. A picker with a placeholder and no selected option sends nothing, and so does a disabled one. This form shows what arrived in a toast. Press Add Reminder before choosing a list to see the server's error.
 
 ```demo
 picker-form
@@ -86,9 +90,12 @@ picker-checkout
 | `label` | string | required | accessible name |
 | `options` | `[]const ui.PickerOption` | required | see option fields below |
 | `z` | `ui.Z` | none | request sent when the choice changes, with this picker's `name=value`. To send several fields, put the request on the form instead |
-| `placeholder` | string | none | dimmed text shown while no option is `selected`; without it the button shows the first label |
+| `placeholder` | string | none | dimmed text shown while no option is `selected`; without it the first enabled option is checked and shown, like a `<select>` |
 | `disabled` | bool | `false` | dimmed, cannot open, submits nothing (like a disabled `<select>`) |
 | `full` | bool | `false` | stretch the button to the width of its container |
+| `size` | `.small` / `.regular` / `.large` | `.regular` | button height and text size, like `ui.button` |
+| `help` | string | none | hint under the button; replaced by `invalid` while that is set |
+| `invalid` | string | none | error text under the button (red, `role="alert"`); outlines the button and sets `aria-invalid` |
 
 Option fields:
 
@@ -108,5 +115,8 @@ Option fields:
 - The menu is anchored under the button and at least as wide as it. It scrolls when taller than 60% of the screen, and its items are 44px tall on touch screens.
 - Choosing an item updates the label and closes the menu. The button shows only the label, so icons and descriptions stay in the menu.
 - Screen readers hear "Sort by: Name" on the button; the menu is a radio group with the same name.
-- Mark one option `selected` unless you pass a `placeholder`, so what the button shows is what the form submits.
-- There is no multiple choice and no error or loading state. For validation, answer with a toast or text next to the picker, as the form demo does.
+- With no `selected` option and no `placeholder`, the first enabled option is checked, so what the button shows is what the form submits. Pass a `placeholder` when the user must choose.
+- `z` is copied onto every option, so a picker sends only its own `name=value`. To send several pickers together, put the request on the form (see Usage).
+- The picker dims and ignores clicks while its own `z` request runs. When the request is on a form, the form dims instead.
+- The button copies the label text of the chosen option. Keep SVG icons free of `<title>` or text, since that text would join the label.
+- There is no multiple choice. For server-side validation, re-render the picker with `invalid`, or answer with a toast as the form demo does.
