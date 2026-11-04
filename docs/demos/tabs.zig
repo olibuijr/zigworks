@@ -11,6 +11,7 @@ pub const demos = [_]d.Demo{
     .{ "tabs-options", true, options },
     .{ "tabs-states", true, states },
     .{ "tabs-live", true, live },
+    .{ "tabs-lazy", true, lazy },
     .{ "tabs-form", true, form },
 };
 /// Extra CSS for these demos (scope it under a demo-specific class).
@@ -26,6 +27,7 @@ pub const css =
 /// Server routes these demos need, e.g. `.{ "POST /demo/tabs/x", handler }`.
 pub const routes = .{
     .{ "POST /demo/tabs/mail", mailDemo },
+    .{ "GET /demo/tabs/lazy", lazyDemo },
     .{ "POST /demo/tabs/clear", clearDemo },
     .{ "POST /demo/tabs/save", saveDemo },
 };
@@ -186,6 +188,44 @@ fn mailDemo(c: *zw.Ctx) !void {
     }));
 }
 
+// On-demand panels: choosing a tab sends a GET (`demo-tabs-lazy=Label`) and the server answers with
+// the tabs again, that panel filled in. Until then the other panels only say "Loading…".
+const lazy_labels = [_][]const u8{ "Overview", "Activity", "Files" };
+const lazy_text = [_][]const u8{ "A summary of the project.", "12 changes this week, fetched when you opened this tab.", "48 files, fetched when you opened this tab." };
+
+const Lazy = struct {
+    sel: usize,
+
+    fn panel(l: Lazy, i: usize) []const u8 {
+        return if (l.sel == i) lazy_text[i] else "Loading…";
+    }
+
+    pub fn render(l: Lazy, w: *Writer) Writer.Error!void {
+        try ui.tabs(.{
+            .id = "demo-tabs-lazy",
+            .label = "Project",
+            .labels = &lazy_labels,
+            .selected = l.sel,
+            .z = .{ .get = "/demo/tabs/lazy", .target = "closest .zw-tabs", .swap = .outer },
+            .panels = .{ l.panel(0), l.panel(1), l.panel(2) },
+        }).render(w);
+    }
+};
+
+fn lazy(w: *Writer) Writer.Error!void {
+    try w.writeAll("<div class=\"demo-tabs-case\">");
+    try (Lazy{ .sel = 0 }).render(w);
+    try w.writeAll("</div>");
+}
+
+fn lazyDemo(c: *zw.Ctx) !void {
+    const chosen = c.query("demo-tabs-lazy") orelse "";
+    const sel = for (lazy_labels, 0..) |l, i| {
+        if (std.mem.eql(u8, l, chosen)) break i;
+    } else 0;
+    try c.page(Lazy{ .sel = sel });
+}
+
 fn clearDemo(c: *zw.Ctx) !void {
     try c.page(ui.toast(.{ .text = "History cleared", .kind = .success }));
 }
@@ -198,7 +238,7 @@ fn form(w: *Writer) Writer.Error!void {
         .card = ui.card(.{
             .title = "Project",
             .subtitle = "Nebula",
-            .body = ui.tabs(.{ .id = "demo-tabs-project", .label = "Project sections", .labels = &.{ "Details", "Tags", "Activity" }, .badges = &.{ "", "3" }, .panels = .{
+            .body = ui.tabs(.{ .id = "demo-tabs-project", .label = "Project sections", .submit = false, .labels = &.{ "Details", "Tags", "Activity" }, .badges = &.{ "", "3" }, .panels = .{
                 zw.view("<div class=\"zw-stack\">{a}{b}{c}</div>", .{
                     .a = ui.field(.{ .name = "demo-tabs-name", .label = "Project name", .placeholder = "Project name", .value = "Nebula" }),
                     .b = ui.field(.{ .name = "demo-tabs-owner", .label = "Owner email", .type = "email", .autocomplete = "email", .value = "ada@example.com", .help = "Used for build notifications." }),
