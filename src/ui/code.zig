@@ -6,21 +6,27 @@ const writeEscaped = @import("../view.zig").writeEscaped;
 const highlight = @import("../highlight.zig");
 
 pub const css =
-    \\.zw-code{--lh:18px;margin:0;border-radius:var(--radius-control);background:var(--code-bg);box-shadow:inset 0 0 0 .5px var(--separator);overflow:hidden}
-    \\.zw-code figcaption{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px;padding:0 6px 0 12px;font:var(--callout);color:var(--secondary);border-bottom:1px solid var(--separator)}
-    \\.zw-code-title{color:var(--label);font-weight:500}.zw-code-lang{margin-left:6px}
-    \\.zw-code-body{position:relative;display:flex}
-    \\.zw-code pre{margin:0;padding:12px 14px;overflow-x:auto;font:12px/var(--lh) var(--mono);color:var(--label);tab-size:4}
-    \\.zw-code-body>pre{position:relative;flex:1;min-width:0}
-    \\.zw-code .zw-code-gutter{flex:none;overflow:hidden;padding:12px 10px 12px 14px;text-align:right;color:var(--tertiary);user-select:none;border-right:1px solid var(--separator)}
-    \\.zw-code-hl{position:absolute;left:0;right:0;top:calc(12px + var(--l) * var(--lh));height:calc(var(--n) * var(--lh));pointer-events:none;
+    \\.zw-code{--lh:18px;border-radius:var(--radius-control);background:var(--code-bg);box-shadow:inset 0 0 0 .5px var(--separator);overflow:hidden;
+    \\  & figcaption{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px;padding:0 6px 0 12px;font:var(--callout);color:var(--secondary);border-bottom:1px solid var(--separator);
+    \\    @media (pointer:coarse){min-height:44px}}
+    \\  & pre{padding:12px 14px;overflow-x:auto;font:12px/var(--lh) var(--mono);color:var(--label);tab-size:4}
+    \\  & .zw-code-gutter{flex:none;overflow:hidden;padding:12px 10px 12px 14px;text-align:right;color:var(--tertiary);user-select:none;border-right:1px solid var(--separator)}}
+    \\.zw-code-title{color:var(--label);font-weight:500}
+    \\.zw-code-lang{margin-left:6px}
+    \\.zw-code-body{position:relative;display:flex;
+    \\  &>pre{position:relative;flex:1;min-width:0}}
+    \\.zw-code-hl{position:absolute;inset:calc(12px + var(--l) * var(--lh)) 0 auto;height:calc(var(--n) * var(--lh));pointer-events:none;
     \\background:color-mix(in srgb,var(--accent) 14%,transparent);box-shadow:inset 2px 0 0 var(--accent)}
     \\.zw-code--wrap pre{overflow-x:visible;white-space:pre-wrap;overflow-wrap:anywhere}
-    \\.zw-copy{appearance:none;border:0;background:transparent;color:var(--secondary);font:var(--callout);font-weight:500;height:22px;padding:0 8px;border-radius:5px;cursor:default}
-    \\.zw-copy:hover{background:var(--fill);color:var(--label)}
-    \\@media (pointer:coarse){.zw-code figcaption{min-height:44px}.zw-copy{height:34px;padding:0 12px}}
-    \\.tok-keyword{color:var(--tok-keyword)}.tok-string{color:var(--tok-string)}.tok-number{color:var(--tok-number)}
-    \\.tok-comment{color:var(--tok-comment);font-style:italic}.tok-type{color:var(--tok-type)}.tok-builtin,.tok-fn{color:var(--tok-fn)}
+    \\.zw-copy{appearance:none;border:0;background:transparent;color:var(--secondary);font:var(--callout);font-weight:500;height:22px;padding:0 8px;border-radius:5px;cursor:default;
+    \\  &:hover{background:var(--fill);color:var(--label)}
+    \\  @media (pointer:coarse){height:34px;padding:0 12px}}
+    \\.tok-keyword{color:var(--tok-keyword)}
+    \\.tok-string{color:var(--tok-string)}
+    \\.tok-number{color:var(--tok-number)}
+    \\.tok-comment{color:var(--tok-comment);font-style:italic}
+    \\.tok-type{color:var(--tok-type)}
+    \\.tok-builtin,.tok-fn{color:var(--tok-fn)}
     \\
 ;
 

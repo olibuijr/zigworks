@@ -6,24 +6,23 @@ const std = @import("std");
 const zv = @import("../view.zig");
 
 pub const css =
-    \\.zw-setting{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 16px;min-height:36px}
-    \\.zw-setting>:last-child:not(.zw-setting-text){margin-left:auto}
-    \\.zw-setting+.zw-setting{border-top:1px solid var(--separator);margin-top:6px;padding-top:6px}
-    \\.zw-setting .zw-slider{flex:0 1 240px}
+    \\.zw-setting{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 16px;min-height:36px;
+    \\  &>:last-child:not(.zw-setting-text){margin-left:auto}
+    \\  &+.zw-setting{border-top:1px solid var(--separator);margin-top:6px;padding-top:6px}
+    \\  & .zw-slider{flex:0 1 240px}
+    \\  @media (pointer:coarse){min-height:44px}}
     \\.zw-setting-text{min-width:0;margin-right:auto}
-    \\.zw-setting-desc{display:block;font:var(--callout);color:var(--secondary);margin-top:1px}
-    \\.zw-setting-value{color:var(--secondary)}
+    \\.zw-setting-desc{display:block;font:var(--callout);margin-top:1px}
+    \\.zw-setting-desc,.zw-setting-value{color:var(--secondary)}
     \\.zw-setting-icon{flex:none;display:grid;place-items:center;width:28px;height:28px;margin-right:-4px;border-radius:7px;background:var(--accent);color:var(--on-accent);font-size:15px;line-height:1}
     \\fieldset.zw-setting{border:0;padding:0;min-inline-size:0}
     \\.zw-setting--disabled{opacity:.4;pointer-events:none}
-    \\a.zw-setting{color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:opacity var(--speed)}
-    \\a.zw-setting:hover{text-decoration:none}
-    \\a.zw-setting:active{opacity:.6}
-    \\.zw-setting--link{flex-wrap:nowrap;cursor:default}
-    \\.zw-setting--link>.zw-setting-text{flex:1}
-    \\.zw-setting--link::after{content:"";flex:none;width:7px;height:7px;margin-left:-4px;border:solid var(--tertiary);border-width:2px 2px 0 0;rotate:45deg;transition:border-color var(--speed)}
-    \\.zw-setting--link:hover::after{border-color:var(--secondary)}
-    \\@media (pointer:coarse){.zw-setting{min-height:44px}}
+    \\a.zw-setting{color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:opacity var(--speed);
+    \\  &:active{opacity:.6}}
+    \\.zw-setting--link{flex-wrap:nowrap;cursor:default;
+    \\  &>.zw-setting-text{flex:1}
+    \\  &::after{content:"";flex:none;width:7px;height:7px;margin-left:-4px;border:solid var(--tertiary);border-width:2px 2px 0 0;rotate:45deg;transition:border-color var(--speed)}
+    \\  &:hover::after{border-color:var(--secondary)}}
     \\
 ;
 
