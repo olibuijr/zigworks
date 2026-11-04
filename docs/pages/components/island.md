@@ -40,7 +40,15 @@ The placeholder fills the wait while the module loads. Set `loading` to `false` 
 island-loading
 ```
 
-Without JavaScript the placeholder is hidden and `fallback` is shown instead, so a page that needs the island still says something useful.
+Without JavaScript the placeholder is hidden and `fallback` is shown instead, so a page that needs the island still says something useful. `fallback` lives in a `<noscript>`, so it only ever appears with JavaScript off.
+
+## Errors
+
+When the module cannot be loaded, or its default export throws, z.js marks the island and `failed` replaces the placeholder. The message is announced as an alert. This island points at a module that does not exist.
+
+```demo
+island-error
+```
 
 ## Props from the server
 
@@ -81,12 +89,15 @@ island-compose
 | `aspect` | string | `""` | CSS aspect ratio such as `"16/9"`: the island scales with its width, which suits phones |
 | `loading` | bool | `true` | show the placeholder until the module adds its own content |
 | `fallback` | string | `""` | text shown when JavaScript is off |
+| `failed` | string | `"This content could not be loaded."` | message shown when the module fails to load |
 
 ## Notes
 
-- The placeholder disappears as soon as the module adds any element to the island (a canvas, a div). A module that fails to load leaves it in place, and the error goes to the console.
+- The placeholder disappears as soon as the module adds any element to the island (a canvas, a div). A module that fails to load shows `failed` instead (the error also goes to the console).
 - Pick `aspect` for charts and scenes that should keep their proportions, `height` for editors and panels.
 - The module may return a cleanup function. z.js calls it when the island is swapped out of the page.
+- Return the cleanup function itself rather than a Promise: an `async` default export is not awaited, so its cleanup is not called.
+- A module that draws on a canvas should skip drawing while the island has no size (hidden tab, closed sheet) and redraw when a `ResizeObserver` reports one.
 - Give every island a `label` that says what it shows; screen readers announce it as a group.
 
 See [Islands and three.js](/islands) for import maps and a full 3D scene.
