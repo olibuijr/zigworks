@@ -38,7 +38,7 @@
       const to = res.headers.get('z-redirect');
       if (to) return location.assign(to);
       if (!res.ok) throw new Error(`${res.status} ${verb.toUpperCase()} ${url}`);
-      if (res.status !== 204 && target) swap(target, attr(el, 'swap') || 'inner', await res.text());
+      if (res.status !== 204) { if (target) swap(target, attr(el, 'swap') || 'inner', await res.text()); else console.error('z.js: no target', tsel); }
       if (form && verb !== 'get' && !el.hasAttribute('z-keep')) el.reset();
       el.closest('[popover]')?.hidePopover();
     } catch (e) {
