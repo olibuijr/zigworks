@@ -18,11 +18,11 @@ To save a change as soon as it is made, give the checkbox a request. It is sent 
 ui.checkbox(.{ .name = "grammar", .label = "Check grammar with spelling", .z = .{ .post = "/prefs", .swap = .none } })
 ```
 
-A checkbox has one size and one style. What changes is its state and the text around it.
+A checkbox has one size and one style, so there are no variants to pick from. What changes is its state and the text around it.
 
 ## States
 
-Each row shows the prop that produces the state. Click the mixed one: the first click checks it. Check the red one and the mark goes away.
+Each row shows the prop that produces the state. Click the mixed one: the first click checks it. Check the red one and the red and its message go away.
 
 ```demo
 checkbox-states
@@ -31,10 +31,10 @@ checkbox-states
 ```zig
 ui.checkbox(.{ .name = "all", .label = "Select all", .mixed = true, .description = "2 of 5 selected" })
 ui.checkbox(.{ .name = "sync", .label = "Sync with iCloud", .description = "Turned off by your administrator.", .disabled = true })
-ui.checkbox(.{ .name = "terms", .label = "I accept the terms of use", .invalid = true })
+ui.checkbox(.{ .name = "terms", .label = "I accept the terms of use", .message = "Required to continue." })
 ```
 
-A disabled checkbox is dimmed and is not submitted. `invalid` only marks the box; your handler decides when to set it, as in the checkout form below.
+A disabled checkbox is dimmed and is not submitted. `invalid` only marks the box; `message` shows a line in red under the label and implies `invalid`. Your handler decides when to set them, as in the checkout form below.
 
 ## Name and value
 
@@ -71,13 +71,14 @@ fn rowsChanged(c: *zw.Ctx) !void {
     const mask = selected(c.body); // rows in `m=0&m=3`
     const n = @popCount(mask);
     try c.html("{parent}{count}", .{
-        .parent = parent(.{ .on = n == rows.len, .mixed = n > 0 and n < rows.len }), // oob div around ui.checkbox
+        .parent = ui.checkbox(.{ .name = "all", .label = "Select all", .id = "all", .oob = true,
+            .on = n == rows.len, .mixed = n > 0 and n < rows.len }),
         .count = ui.badge(.{ .id = "count", .count = n, .hide_zero = true, .oob = true }),
     });
 }
 ```
 
-A mixed checkbox is a visual start state: when the page recomputes it, re-render it with the new `on` or `mixed`. Here the response replaces the parent out of band.
+A mixed checkbox is a visual start state: when the page recomputes it, re-render it with the new `on` or `mixed`. Give the checkbox an `id` and set `oob`, and the response replaces just that box. The first click on a mixed box clears the dash in the browser and nothing brings it back until the server renders it again.
 
 ## In a form
 
@@ -91,7 +92,7 @@ checkbox-form
 fn order(c: *zw.Ctx) !void {
     const terms = c.form("terms") != null; // unchecked boxes are not sent
     try c.html("{form}{toast}", .{
-        .form = checkout(.{ .gift = c.form("gift") != null, .invalid = !terms }),
+        .form = checkout(.{ .gift = c.form("gift") != null, .invalid = !terms }), // sets `.message` on the terms box
         .toast = ui.toast(.{ .text = "Accept the terms to place your order", .kind = .@"error" }),
     });
 }
@@ -109,6 +110,11 @@ fn order(c: *zw.Ctx) !void {
 | `mixed` | bool | `false` | starts in the mixed state: a dash and `aria-checked="mixed"`. Overrides `on`; the first click checks it |
 | `disabled` | bool | `false` | dimmed, not interactive, not submitted |
 | `invalid` | bool | `false` | red box and `aria-invalid`, for a required box left unchecked; the red goes away once the box is checked |
+| `message` | string | none | red line under the label; implies `invalid` and hides once the box is checked |
+| `id` | string | none | `id` of the `<label>`, so a response can replace this one box |
+| `oob` | bool | `false` | in a z.js response, replaces the element with the same `id` instead of landing in the target |
 | `z` | `ui.Z` | none | sent on `change`; the box's `name=value` goes with it, or an empty body when unchecked |
 
 The whole label is the click target, at least 44px tall on touch screens. The mark and dash use `--on-accent` on the accent color, so they follow the system accent in light and dark mode.
+
+A mixed box is a display state only. Like a native indeterminate box it is not checked, so a form sends nothing for it, the same as unchecked. The browser never works out mixed from child boxes; the server decides and re-renders the parent.
