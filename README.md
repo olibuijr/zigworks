@@ -44,7 +44,7 @@ Apps listen on every interface (`0.0.0.0`) so they are reachable on your LAN. Se
 ### Use it in your project
 
 ```sh
-zig fetch --save git+https://github.com/olibuijr/zigworks#v0.4.2
+zig fetch --save git+https://github.com/olibuijr/zigworks#v0.5.0
 ```
 
 ```zig
@@ -146,6 +146,8 @@ controls stretch and spring back, knobs swell into clear drops. Classes for your
 `zw-glass`, `zw-glass--clear`, `zw-press`. See docs/pages/glass.md.
 No stock browser UI: pickers replace `<select>`, a custom dialog replaces `confirm()`.
 
+The main props are listed here; every component's docs page (`docs/pages/components/`) lists all of them.
+
 | Component | Props (defaults) | Type |
 |---|---|---|
 | `layout` | title, body, brand="", toolbar, sidebar, head="" | `Layout(Toolbar, Sidebar, Body)` |
@@ -216,7 +218,7 @@ Only content added by `beforeend`/`afterbegin` animates, so motion marks what ch
 ## Markdown
 
 `zw.markdown(src)` is a component: headings with anchors, lists, fenced code (Zig highlighted on
-the server), `> [!NOTE|TIP|WARNING]` callouts, tables, rules, inline code/bold/emphasis/links.
+the server), `> [!NOTE|TIP|IMPORTANT|WARNING|CAUTION]` callouts, tables, rules, inline code/bold/emphasis/links.
 Raw HTML is escaped and links are limited to http(s), mailto, relative and `#` URLs, so it is safe
 for user input. `zw.markdownWith(src, fences)` lets `fences.fence(w, lang, body) !bool` render
 custom fences (the docs turn ```` ```demo ```` into live components). `zw.highlight(w, "zig", src)` stands alone.
