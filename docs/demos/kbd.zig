@@ -102,7 +102,7 @@ const key_list = [_]Key{
     .{ .name = "Caps Lock", .word = "caps" },
     .{ .name = "Left Arrow", .word = "left" },
     .{ .name = "Page Up", .word = "pageup" },
-    .{ .name = "Anything else", .word = "F5" },
+    .{ .name = "Anything else", .word = "f5" },
 };
 
 const KeyRow = zw.View(
@@ -132,7 +132,7 @@ fn keys(w: *Writer) Writer.Error!void {
     }).render(w);
 }
 
-// Redo is Shift+Cmd+Z on a Mac and Ctrl+Y on Windows, so it carries its own PC keys.
+// Redo is Shift+Cmd+Z on a Mac and Ctrl+Y on Windows, so it carries its own PC keys. Other rows (Cmd+Z) map to Ctrl+Z.
 const edit_menu = [_]Row{
     .{ .label = "Undo", .keys = "cmd z" },
     .{ .label = "Redo", .keys = "shift cmd z", .pc_keys = "cmd y" },
