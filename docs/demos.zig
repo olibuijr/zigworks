@@ -217,10 +217,20 @@ fn badge(w: *Writer) Writer.Error!void {
 }
 
 fn progress(w: *Writer) Writer.Error!void {
-    try zw.view("{a}<p class=\"zw-row\" style=\"margin-top:14px\">{b}<span class=\"zw-secondary\">Indexing…</span></p>", .{
-        .a = ui.progress(.{ .value = 42, .label = "Download" }),
-        .b = ui.progress(.{ .value = null, .label = "Indexing" }),
-    }).render(w);
+    try zw.view(
+        "<div class=\"zw-stack\" style=\"width:100%\">{a}{b}{c}" ++
+            "<div class=\"zw-row\" style=\"gap:20px\">{d}{e}{f}{g}{h}</div></div>",
+        .{
+            .a = ui.progress(.{ .value = 42, .label = "Download", .text = "Downloading Xcode", .show_value = true }),
+            .b = ui.progress(.{ .value = 88, .label = "Storage", .text = "Storage almost full", .show_value = true, .tone = .warning }),
+            .c = ui.progress(.{ .value = 100, .label = "Backup", .tone = .success, .size = .large }),
+            .d = ui.progress(.{ .value = null, .label = "Indexing", .text = "Indexing…" }),
+            .e = ui.progress(.{ .value = 64, .label = "Storage used", .ring = true, .show_value = true }),
+            .f = ui.progress(.{ .value = 100, .label = "Done", .ring = true, .size = .small, .tone = .success }),
+            .g = ui.progress(.{ .value = 30, .label = "Upload failed", .ring = true, .size = .large, .show_value = true, .tone = .@"error" }),
+            .h = ui.progress(.{ .value = null, .label = "Syncing", .size = .large }),
+        },
+    ).render(w);
 }
 
 fn callout(w: *Writer) Writer.Error!void {
