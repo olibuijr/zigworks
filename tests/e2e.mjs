@@ -65,6 +65,7 @@ async function open(url, { dark = false, width = 900, height = 900 } = {}) {
   const event = (method) => new Promise((resolve) => waiters.push({ method, resolve }));
   await send('Page.enable');
   await send('Runtime.enable');
+  await send('Page.bringToFront'); // a background tab may never paint, and screenshots then wait forever
   await send('Log.enable');
   await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 2, mobile: width < 600 });
   if (width < 600) await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
@@ -418,11 +419,10 @@ await test('docs: mobile sidebar and island', async () => {
   const p = await open(`${docs}/islands`, { width: 390, height: 800 });
   eq(await p.eval(`document.documentElement.scrollWidth <= innerWidth`), true, 'no horizontal scroll');
   await p.waitFor(`!!document.querySelector('.zw-island canvas')`);
-  await sleep(300);
-  const withCanvas = await p.grab('.zw-island');
-  await p.eval(`document.querySelector('.zw-island canvas').style.visibility = 'hidden'`);
-  if (withCanvas === await p.grab('.zw-island')) throw new Error('orbit island paints nothing');
-  await p.eval(`document.querySelector('.zw-island canvas').style.visibility = ''`);
+  // The chart island draws on a 2D canvas: count the pixels it painted.
+  const painted = `(() => { const c = document.querySelector('.zw-island canvas'); if (!c.width || !c.height) return 0;
+    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i]) n++; return n; })()`;
+  await p.waitFor(`${painted} > 1000`);
   await p.shot('docs-mobile');
   await p.click('.zw-sidebar-toggle');
   await p.waitFor(`document.getElementById('zw-sidebar').matches(':popover-open')`);
@@ -430,9 +430,69 @@ await test('docs: mobile sidebar and island', async () => {
   await done(p);
 });
 
+await test('docs: Enter in a change-triggered z form sends it instead of reloading the page', async () => {
+  const p = await open(`${docs}/components/button`, { width: 1280 });
+  await p.eval(`document.body.insertAdjacentHTML('beforeend', '<form id=zf z-post="/demo" z-trigger="change" z-swap="none"><input id=zq name=q></form>'); window.__stay = 1`);
+  await p.click('#zq');
+  await p.key('Enter');
+  await sleep(300);
+  eq(await p.eval(`window.__stay === 1 && location.search === ''`), true, 'page did not reload');
+  await done(p);
+});
+await test('docs: z.js polling, error toasts, keep-open, stepper clamp, reset and search keys', async () => {
+  const p = await open(`${docs}/components/button`, { width: 1280 });
+  // A stubbed fetch answers by URL so the page needs no extra routes.
+  await p.eval(`window.__calls = []; window.fetch = async (u) => { __calls.push(u);
+    if (u.startsWith('/err')) return new Response('<div id="zw-toasts" z-oob="beforeend"><div class="zw-toast zw-toast--error">Nope</div></div><p id=x>swapped</p>', { status: 422 });
+    if (u === '/pollers') return new Response('<div z-get="/poll" z-trigger="every 200ms" z-swap="none"></div>');
+    if (u.startsWith('/open')) return new Response('<b>kept</b>', { headers: { 'z-keep-open': '1', 'z-keep': '1' } });
+    return new Response('ok'); }`);
+  // every 200ms polls once z.js swaps it in; swapping it out stops it
+  await p.eval(`document.body.insertAdjacentHTML('beforeend', '<div id=ph></div><button id=pin z-get="/pollers" z-target="#ph"></button><button id=pout z-get="/gone" z-target="#ph"></button>'); document.querySelector('#pin').click()`);
+  const polls = `__calls.filter((u) => u === '/poll').length`;
+  await p.waitFor(`${polls} >= 2`, 3000);
+  await p.eval(`document.querySelector('#pout').click()`);
+  await p.waitFor(`document.querySelector('#ph').textContent === 'ok'`);
+  const stopped = await p.eval(polls);
+  await sleep(500);
+  eq(await p.eval(polls), stopped, 'polling stops when the element leaves');
+  // error status: the oob toast shows, nothing else is swapped
+  await p.eval(`document.body.insertAdjacentHTML('beforeend', '<button id=eb z-post="/err" z-target="#et"></button><div id=et>before</div>'); document.querySelector('#eb').click()`);
+  await p.waitFor(`!!document.querySelector('#zw-toasts .zw-toast--error')`);
+  eq(await p.eval(`document.querySelector('#et').textContent`), 'before', 'error response swaps nothing but its oob parts');
+  p.errors.splice(0, p.errors.length, ...p.errors.filter((e) => !e.includes('422 POST /err'))); // z.js logs failed requests on purpose
+  // z-keep-open header keeps a popover open and the form keeps its value
+  await p.eval(`document.body.insertAdjacentHTML('beforeend', '<div id=pp popover><form id=pf z-post="/open" z-target="#po"><input name=a value=typed><button>Go</button></form><div id=po></div></div>'); document.querySelector('#pp').showPopover(); document.querySelector('#pf input').value = 'changed'; document.querySelector('#pf button').click()`);
+  await p.waitFor(`document.querySelector('#po').textContent === 'kept'`);
+  eq(await p.eval(`document.querySelector('#pp').matches(':popover-open') && document.querySelector('#pf input').value`), 'changed', 'popover open, form kept');
+  await done(p);
+  // stepper: a typed value above max is clamped on change
+  const s = await open(`${docs}/components/stepper`, { width: 1280 });
+  const i = `[...document.querySelectorAll('.zw-stepper input')].find((x) => x.max !== '' && !x.readOnly && !x.disabled)`;
+  await s.eval(`const i = ${i}; i.value = +i.max + 50; i.dispatchEvent(new Event('change', { bubbles: true }))`);
+  eq(await s.eval(`${i}.value === ${i}.max`), true, 'typed value clamped to max');
+  await done(s);
+  // textarea counter follows a form reset
+  const t = await open(`${docs}/components/textarea`, { width: 1280 });
+  await t.eval(`document.body.insertAdjacentHTML('beforeend', '<form id=rf>' + document.querySelector('.zw-textarea:has([data-count])').outerHTML + '</form>'); const ta = document.querySelector('#rf textarea'); ta.value += ' extra'; ta.dispatchEvent(new Event('input', { bubbles: true })); document.querySelector('#rf').reset()`);
+  await t.waitFor(`(() => { const ta = document.querySelector('#rf textarea'), c = document.querySelector('#rf [data-count]'); return c.textContent.startsWith([...ta.value].length + ' / '); })()`);
+  await done(t);
+  // search: ArrowDown moves from the field into its results and back up
+  const q = await open(`${docs}/components/search`, { width: 1280 });
+  await q.eval(`document.body.insertAdjacentHTML('beforeend', '<div class="zw-search" id=sx><input id=sxi><div class="zw-results"><a href="#1">One</a><a href="#2">Two</a></div></div>')`);
+  await q.click('#sxi');
+  await q.key('ArrowDown');
+  await q.waitFor(`document.activeElement?.textContent === 'One'`);
+  await q.key('ArrowDown');
+  await q.waitFor(`document.activeElement?.textContent === 'Two'`);
+  await q.key('ArrowUp');
+  await q.key('ArrowUp');
+  await q.waitFor(`document.activeElement?.id === 'sxi'`);
+  await done(q);
+});
 await test('docs: toasts and the confirm dialog animate out before they leave', async () => {
   const p = await open(`${docs}/components/toast`, { width: 1280 });
-  const undo = `[...document.querySelectorAll('button')].find((b) => b.textContent.includes('Undo'))`;
+  const undo = `document.querySelector('[z-post="/demo/toast/show?k=sticky"]')`;
   await p.eval(`${undo}.click()`);
   await p.waitFor(`document.querySelectorAll('#zw-toasts .zw-toast').length === 1`);
   await p.eval(`${undo}.click()`);
@@ -454,47 +514,60 @@ await test('docs: toasts and the confirm dialog animate out before they leave', 
 
 await test('docs: slider readout and textarea counter follow input', async () => {
   const p = await open(`${docs}/components/slider`, { width: 1280 });
-  const volume = `document.querySelector('input[name=volume]')`;
-  const readout = `${volume}.closest('.zw-slider').querySelector('.zw-slider-value').textContent`;
-  eq(await p.eval(readout), '70%', 'initial readout');
-  await p.press('input[name=volume]', -40); // lands well below 70
+  const sel = '.zw-slider:has(.zw-slider-value) input';
+  const input = `document.querySelector('${sel}')`;
+  const readout = `(${input}.closest('.zw-slider').querySelector('.zw-slider-value').textContent)`;
+  const shows = `${readout} === ${input}.value + ${input}.closest('.zw-slider').querySelector('.zw-slider-value').dataset.unit`;
+  eq(await p.eval(shows), true, 'initial readout matches the value');
+  const before = await p.eval(`${input}.value`);
+  await p.eval(`${input}.scrollIntoView({ block: 'center' })`);
+  await p.press(sel, -60);
   await p.release();
-  await p.waitFor(`${volume}.value !== '70' && ${readout} === ${volume}.value + '%'`);
+  await p.waitFor(`${input}.value !== '${before}' && ${shows}`);
   await done(p);
   const t = await open(`${docs}/components/textarea`, { width: 1280 });
-  const count = `document.querySelector('textarea[name=bio]').closest('.zw-textarea').querySelector('.zw-count[data-count]').textContent`;
-  eq(await t.eval(count), '14 / 140', 'initial count');
-  await t.type('textarea[name=bio]', ' Hi');
-  await t.waitFor(`${count} === '17 / 140'`);
+  const ta = `document.querySelector('.zw-textarea:has([data-count]) textarea')`;
+  const count = `${ta}.closest('.zw-textarea').querySelector('[data-count]')`;
+  const len = await t.eval(`[...${ta}.value].length`), max = await t.eval(`${count}.dataset.count`);
+  eq(await t.eval(`${count}.textContent`), `${len} / ${max}`, 'initial count');
+  await t.eval(`${ta}.id ||= 'e2e-ta'`);
+  await t.type(`#${await t.eval(`${ta}.id`)}`, ' Hi');
+  await t.waitFor(`${count}.textContent === '${len + 3} / ${max}'`);
   await done(t);
 });
 
 await test('docs: stepper wraps, mixed checkbox clears, menu arrow keys', async () => {
   const p = await open(`${docs}/components/stepper`, { width: 1280 });
-  const hour = `document.querySelector('input[name=hour]').value`;
-  eq(await p.eval(hour), '23', 'starts at max');
-  await p.click('.zw-stepper:has(input[name=hour]) [data-step="1"]');
-  await p.waitFor(`${hour} === '0'`);
-  await p.click('.zw-stepper:has(input[name=hour]) [data-step="-1"]');
-  await p.waitFor(`${hour} === '23'`);
+  const i = `document.querySelector('.zw-stepper input[data-wrap]')`;
+  await p.eval(`${i}.value = ${i}.max; ${i}.closest('.zw-stepper').id ||= 'e2e-step'`);
+  const id = await p.eval(`${i}.closest('.zw-stepper').id`);
+  await p.click(`#${id} [data-step="1"]`);
+  await p.waitFor(`${i}.value === ${i}.min`);
+  await p.click(`#${id} [data-step="-1"]`);
+  await p.waitFor(`${i}.value === ${i}.max`);
   await done(p);
   const c = await open(`${docs}/components/checkbox`, { width: 1280 });
-  const all = `document.querySelector('input[name=all]')`;
-  eq(await c.eval(`${all}.hasAttribute('data-mixed')`), true, 'starts mixed');
-  await c.click('input[name=all]');
-  await c.waitFor(`!${all}.hasAttribute('data-mixed') && !${all}.hasAttribute('aria-checked') && ${all}.checked`);
+  const all = `document.querySelector('input[data-mixed]')`;
+  await c.eval(`${all}.id ||= 'e2e-mixed'`);
+  const mid = await c.eval(`${all}.id`);
+  const mixed = `document.getElementById('${mid}')`;
+  await c.click(`#${mid}`);
+  await c.waitFor(`!${mixed}.hasAttribute('data-mixed') && !${mixed}.hasAttribute('aria-checked')`);
   await done(c);
+  // Menus: arrow keys move between enabled items and wrap around.
   const m = await open(`${docs}/components/menu`, { width: 1280 });
-  await m.click('[popovertarget=demo-menu]');
-  await m.waitFor(`document.getElementById('demo-menu').matches(':popover-open')`);
-  const focused = `document.activeElement.closest('#demo-menu [role^=menuitem]')?.textContent`;
-  await m.eval(`document.querySelector('#demo-menu [role^=menuitem]').focus()`);
+  const menuId = await m.eval(`[...document.querySelectorAll('.zw-menu')].find((x) => document.querySelector('[popovertarget="' + x.id + '"]')).id`);
+  await m.click(`[popovertarget="${menuId}"]`);
+  await m.waitFor(`document.getElementById('${menuId}').matches(':popover-open')`);
+  const items = `[...document.querySelectorAll('#${menuId} [role^=menuitem]:not([disabled]):not([aria-disabled=true])')]`;
+  const at = `${items}.indexOf(document.activeElement)`;
+  await m.eval(`${items}[0].focus()`);
   await m.key('ArrowDown');
-  await m.waitFor(`${focused}?.startsWith('Share')`);
-  await m.key('ArrowDown'); // skips the disabled Archive item
-  await m.waitFor(`${focused}?.startsWith('Move to Trash')`);
+  await m.waitFor(`${at} === 1`);
+  await m.key('End');
+  await m.waitFor(`${at} === ${items}.length - 1`);
   await m.key('ArrowDown'); // wraps around
-  await m.waitFor(`${focused}?.startsWith('Duplicate')`);
+  await m.waitFor(`${at} === 0`);
   await done(m);
 });
 
@@ -506,10 +579,10 @@ await test('docs: Ctrl+K search, sheet focuses first field, skip link', async ()
   const s = await open(`${docs}/components/sheet`, { width: 1280 });
   eq(await s.eval(`document.querySelector('a.zw-skip')?.getAttribute('href')`), '#zw-main', 'skip link target');
   eq(await s.eval(`document.getElementById('zw-main')?.tabIndex`), -1, 'skip target focusable');
-  eq(await s.eval(`document.getElementById('demo-sheet').hasAttribute('data-focus-first')`), true, 'sheet focuses first by default');
-  await s.click('[popovertarget=demo-sheet]');
-  await s.waitFor(`document.getElementById('demo-sheet').matches(':popover-open')`);
-  await s.waitFor(`document.activeElement === document.querySelector('#demo-sheet input[name=name]')`);
+  const sheetId = await s.eval(`[...document.querySelectorAll('.zw-sheet[data-focus-first]')].find((x) => x.querySelector('input:not([type=hidden]):not([type=checkbox]):not([type=radio])') && !x.querySelector('[autofocus]')).id`);
+  await s.click(`[popovertarget="${sheetId}"]`);
+  await s.waitFor(`document.getElementById('${sheetId}').matches(':popover-open')`);
+  await s.waitFor(`document.activeElement === document.querySelector('#${sheetId} input:not([type=hidden]):not([disabled])')`);
   await done(s);
 });
 

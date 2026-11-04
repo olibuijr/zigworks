@@ -5,10 +5,13 @@ const std = @import("std");
 const zv = @import("../view.zig");
 
 // Fades in with list.zig's zw-fade keyframes.
+// `.zw-results .zw-empty p` keeps search.zig's `.zw-results p` padding and font off the text when an
+// empty state is returned as search results.
 pub const css =
     \\.zw-empty{display:flex;flex-direction:column;align-items:center;gap:6px;padding:36px var(--space);text-align:center;animation:zw-fade var(--dur) ease;
     \\  & h3{font:var(--title3);font-weight:600;color:var(--label)}
     \\  & p{color:var(--secondary);max-width:36ch}}
+    \\.zw-results .zw-empty p{padding:0;font:var(--callout)}
     \\.zw-empty-icon{font-size:40px;line-height:1;color:var(--tertiary);margin-bottom:4px;user-select:none}
     \\.zw-empty-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin-top:10px}
     \\.zw-empty--compact{padding:16px var(--space);gap:4px;
@@ -27,6 +30,10 @@ pub const Size = enum { regular, compact, large };
 pub fn Props(comptime Action: type, comptime Secondary: type) type {
     return struct {
         title: []const u8,
+        /// For `oob` and swap targets.
+        id: []const u8 = "",
+        /// Replace the element with this `id` out of band.
+        oob: bool = false,
         text: []const u8 = "",
         icon: []const u8 = "",
         size: Size = .regular,
@@ -40,7 +47,7 @@ pub fn Data(comptime Action: type, comptime Secondary: type) type {
     return struct { p: Props(Action, Secondary), actions: bool };
 }
 
-const src = "<div class=\"zw-empty zw-empty--{p.size}\">{#if p.icon}<div class=\"zw-empty-icon\" aria-hidden=\"true\">{p.icon}</div>{/if}<h3>{p.title}</h3>{#if p.text}<p>{p.text}</p>{/if}" ++
+const src = "<div class=\"zw-empty zw-empty--{p.size}\"{#if p.id} id=\"{p.id}\"{/if}{#if p.oob} z-oob{/if} role=\"status\">{#if p.icon}<div class=\"zw-empty-icon\" aria-hidden=\"true\">{p.icon}</div>{/if}<h3>{p.title}</h3>{#if p.text}<p>{p.text}</p>{/if}" ++
     "{#if actions}<div class=\"zw-empty-actions\">{p.action}{p.secondary}</div>{/if}</div>";
 
 pub fn EmptyOf(comptime Action: type, comptime Secondary: type) type {
@@ -62,13 +69,17 @@ test "empty renders icon, size and actions" {
     var buf: [1024]u8 = undefined;
     var w: std.Io.Writer = .fixed(&buf);
     try empty(.{ .title = "None", .text = "Add one." }).render(&w);
-    try std.testing.expectEqualStrings("<div class=\"zw-empty zw-empty--regular\"><h3>None</h3><p>Add one.</p></div>", w.buffered());
+    try std.testing.expectEqualStrings("<div class=\"zw-empty zw-empty--regular\" role=\"status\"><h3>None</h3><p>Add one.</p></div>", w.buffered());
 
     w = .fixed(&buf);
     try empty(.{ .title = "None", .icon = "i", .size = .compact, .secondary = zv.view("<b>{x}</b>", .{ .x = "s" }) }).render(&w);
     try std.testing.expectEqualStrings(
-        "<div class=\"zw-empty zw-empty--compact\"><div class=\"zw-empty-icon\" aria-hidden=\"true\">i</div><h3>None</h3>" ++
+        "<div class=\"zw-empty zw-empty--compact\" role=\"status\"><div class=\"zw-empty-icon\" aria-hidden=\"true\">i</div><h3>None</h3>" ++
             "<div class=\"zw-empty-actions\"><b>s</b></div></div>",
         w.buffered(),
     );
+
+    w = .fixed(&buf);
+    try empty(.{ .title = "None", .id = "e", .oob = true }).render(&w);
+    try std.testing.expectEqualStrings("<div class=\"zw-empty zw-empty--regular\" id=\"e\" z-oob role=\"status\"><h3>None</h3></div>", w.buffered());
 }

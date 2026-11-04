@@ -29,6 +29,7 @@ pub const css =
     \\
 ;
 
+/// Exported as `ui.CardVariant`, so a variant chosen at run time can be a typed value.
 pub const Variant = enum { elevated, inset, plain };
 
 pub fn Props(comptime Body: type, comptime Acc: type, comptime Foot: type) type {
@@ -101,4 +102,10 @@ test "card renders header, footer and link" {
         "<a class=\"zw-card zw-card--inset zw-card--flush zw-card--link\" href=\"/x\">b</a>",
         w.buffered(),
     );
+
+    // A variant chosen at run time needs a typed value: enum literals have no type inside `anytype` props.
+    const v: Variant = if (out.len > 0) .inset else .elevated;
+    w = .fixed(&buf);
+    try card(.{ .variant = v, .body = "b" }).render(&w);
+    try std.testing.expectEqualStrings("<section class=\"zw-card zw-card--inset\">b</section>", w.buffered());
 }

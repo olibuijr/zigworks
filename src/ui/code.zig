@@ -73,7 +73,7 @@ pub fn writeProps(w: *Writer, p: Props) Writer.Error!void {
     const plain = !p.wrap and (p.numbers or p.highlight.len > 0);
     if (plain) {
         try w.writeAll("<div class=\"zw-code-body\">");
-        try writeBands(w, p.highlight, p.start);
+        try writeBands(w, p.highlight, p.start, lines);
         if (p.numbers) {
             try w.writeAll("<pre class=\"zw-code-gutter\" aria-hidden=\"true\">");
             for (0..lines) |i| {
@@ -99,15 +99,18 @@ fn lineCount(src: []const u8) usize {
     return n;
 }
 
-/// One band per range in "2,5-7" (numbers relative to `start`); bad parts are skipped.
-fn writeBands(w: *Writer, spec: []const u8, start: u32) Writer.Error!void {
+/// One band per range in "2,5-7" (numbers relative to `start`). Bad parts and lines past
+/// the end are skipped; a range running past the end stops at the last line.
+fn writeBands(w: *Writer, spec: []const u8, start: u32, lines: usize) Writer.Error!void {
+    const last: u64 = @as(u64, start) + lines - 1;
     var it = std.mem.tokenizeScalar(u8, spec, ',');
     while (it.next()) |part| {
         const t = std.mem.trim(u8, part, " ");
         const a_s, const b_s = std.mem.cutScalar(u8, t, '-') orelse .{ t, t };
         const a = std.fmt.parseInt(u32, std.mem.trim(u8, a_s, " "), 10) catch continue;
-        const b = std.fmt.parseInt(u32, std.mem.trim(u8, b_s, " "), 10) catch continue;
-        if (b < a or a < start) continue;
+        const b_raw = std.fmt.parseInt(u32, std.mem.trim(u8, b_s, " "), 10) catch continue;
+        if (b_raw < a or a < start or a > last) continue;
+        const b: u32 = @intCast(@min(b_raw, last));
         try w.print("<span class=\"zw-code-hl\" aria-hidden=\"true\" style=\"--l:{d};--n:{d}\"></span>", .{ a - start, b - a + 1 });
     }
 }
@@ -130,11 +133,21 @@ fn expectHas(p: Props, needle: []const u8) !void {
     try std.testing.expect(std.mem.find(u8, w.buffered(), needle) != null);
 }
 
+fn expectLacks(p: Props, needle: []const u8) !void {
+    var buf: [4096]u8 = undefined;
+    var w: Writer = .fixed(&buf);
+    try code(p).render(&w);
+    try std.testing.expect(std.mem.find(u8, w.buffered(), needle) == null);
+}
+
 test "caption, numbers, highlighted lines, wrap" {
     try expectHas(.{ .lang = "sh", .src = "ls" }, "<figure class=\"zw-code\"><figcaption><span>sh</span>");
     try expectHas(.{ .src = "a", .title = "main.zig" }, "<span class=\"zw-code-title\">main.zig</span><span class=\"zw-code-lang\">zig</span>");
     try expectHas(.{ .lang = "sh", .src = "a\nb\n", .numbers = true, .start = 5 }, "<pre class=\"zw-code-gutter\" aria-hidden=\"true\">5\n6</pre>");
     try expectHas(.{ .lang = "sh", .src = "a\nb\nc", .highlight = "2-3, x" }, "--l:1;--n:2");
+    try expectHas(.{ .lang = "sh", .src = "a\nb\nc\n", .highlight = "2-9" }, "--l:1;--n:2");
+    try expectLacks(.{ .lang = "sh", .src = "a\nb\nc\n", .highlight = "4" }, "zw-code-hl\" aria");
+    try expectLacks(.{ .lang = "sh", .src = "a\nb", .start = 5, .highlight = "7" }, "zw-code-hl\" aria");
     try expectHas(.{ .lang = "sh", .src = "a", .wrap = true, .numbers = true }, "zw-code--wrap");
     try expectHas(.{ .lang = "sh", .src = "a", .copy = false }, "</span></figcaption>");
 }

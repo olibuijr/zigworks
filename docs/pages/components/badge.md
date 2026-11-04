@@ -6,6 +6,50 @@ A small count or status. Tint it with a system color, fill it for a notification
 badge
 ```
 
+## Variants and sizes
+
+`tone` tints the badge with a system color. `solid` fills it, `size` shrinks it, and `dot` drops the text for a bare status dot. Each row below changes one prop across all five tones.
+
+```demo
+badge-variants
+```
+
+## Counts and status
+
+Give `count` a number and the badge keeps it tidy: above `max` it reads `99+`, and `hide_zero` hides it at 0. A `dot` with `text` is named for screen readers; one without is decorative. A badge is a read-only label, so it has no disabled or loading state: hide it or leave it out. With no `text` and no `count` it renders `hidden`, so an empty badge never shows as a blank pill but can still be filled in by `oob`.
+
+```demo
+badge-states
+```
+
+## Update it from the server
+
+Give the badge an `id`, and send it back with `oob` in any z.js response. It replaces the badge with the same `id`, wherever it is on the page. Here one form change updates the header badge and the Dock icon badge together. Check the messages, or mark them all read: the count drops, and `hide_zero` hides the badge at 0.
+
+```demo
+badge-live
+```
+
+The server keeps no state. The count comes from the checked boxes in the request.
+
+```zig
+fn mail(c: *zw.Ctx) !void {
+    const unread = total - checked(c.body);
+    try c.html("{head}{dock}", .{
+        .head = ui.badge(.{ .id = "unread", .count = unread, .tone = .red, .solid = true, .hide_zero = true, .oob = true }),
+        .dock = ui.badge(.{ .id = "dock", .count = unread, .tone = .red, .solid = true, .size = .small, .hide_zero = true, .oob = true }),
+    });
+}
+```
+
+## With other components
+
+A badge sits next to an avatar, in a card header, or at the end of a list row. It labels the thing beside it and never carries an action itself.
+
+```demo
+badge-compose
+```
+
 ## Usage
 
 ```zig
@@ -20,13 +64,16 @@ ui.badge(.{ .count = unread, .tone = .red, .solid = true, .hide_zero = true, .id
 
 // A status dot, named for screen readers:
 ui.badge(.{ .dot = true, .tone = .green, .text = "Online" })
+
+// Smaller, tinted, with a lower cap:
+ui.badge(.{ .count = 25, .max = 9, .tone = .accent, .size = .small })
 ```
 
 ## Props
 
 | Prop | Type | Default | Notes |
 |---|---|---|---|
-| `text` | string | `""` | label; the accessible name of a `dot` |
+| `text` | string | `""` | label; the accessible name of a `dot`. Empty with no `count` renders the badge `hidden` |
 | `id` | string | `""` | needed for `oob` |
 | `oob` | bool | `false` | replace the element with the same `id` |
 | `tone` | `.gray` `.accent` `.red` `.green` `.orange` | `.gray` | system color of the tint (or of the fill with `solid`) |
@@ -42,3 +89,4 @@ ui.badge(.{ .dot = true, .tone = .green, .text = "Online" })
 - A `dot` with no `text` is decorative and hidden from assistive technology; give it `text` when the color carries meaning, and never rely on color alone.
 - `solid` uses white text on the system color. Prefer `.red` or `.accent` for small text; on `.green` and `.orange` keep the badge `.regular` or larger.
 - Tints, fills and the Increase Contrast outline follow the light and dark appearance automatically.
+- Sidebar and tabs badges are plain strings owned by those components; they are not `ui.badge` and can't be tinted or updated out of band. Use `ui.badge` inline where you need that.

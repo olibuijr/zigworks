@@ -1,8 +1,11 @@
 // z.js: htmx-style attributes and islands for zigworks. No dependencies.
 // z-get|z-post|z-put|z-patch|z-delete="/url"   z-target="#sel" | "closest li"   z-swap="inner|outer|beforeend|afterbegin|delete|none"
-// z-trigger="click|submit|change|input|load"   z-confirm="Sure?"   z-keep (form keeps its values)   z-island="/mod.js" data-props='{}'
+// z-trigger="click|submit|change|input|load|every 2s"   z-confirm="Sure?"   z-keep (form keeps its values)
+// z-keep-open (a popover stays open after the request)   z-island="/mod.js" data-props='{}'
 // Response elements with z-oob and an id replace the element with that id, wherever it is;
-// z-oob="beforeend" appends their children to it instead (toasts use this).
+// z-oob="beforeend" appends their children to it instead (toasts use this). Error responses
+// still apply their z-oob parts, so a handler can answer 4xx with an error toast.
+// Response headers: z-redirect: /url, z-keep (don't reset the form), z-keep-open (keep the popover).
 // Also wires ui components that need a touch of JS: picker label, slider fill, closing popovers.
 (() => {
   document.documentElement.classList.add('zw-js'); // CSS: JS-drawn parts may replace native ones
@@ -33,15 +36,17 @@
     if (verb === 'get') { const q = data.toString(); if (q) url += (url.includes('?') ? '&' : '?') + q; } else body = data;
     const tsel = attr(el, 'target');
     const target = !tsel ? el : tsel.startsWith('closest ') ? el.closest(tsel.slice(8)) : document.querySelector(tsel);
+    const pop = el.closest('[popover]'), results = el.closest('.zw-results');
     el.classList.add('zw-busy');
     try {
       const res = await fetch(url, { method: verb.toUpperCase(), body, headers: { 'z-request': '1' } });
-      const to = res.headers.get('z-redirect');
+      const to = res.headers.get('z-redirect'), has = (h) => res.headers.has(h) || el.hasAttribute(h);
       if (to) return location.assign(to);
-      if (!res.ok) throw new Error(`${res.status} ${verb.toUpperCase()} ${url}`);
+      if (!res.ok) { swap(el, 'none', await res.text()); throw new Error(`${res.status} ${verb.toUpperCase()} ${url}`); }
       if (res.status !== 204) { if (target) swap(target, attr(el, 'swap') || 'inner', await res.text()); else console.error('z.js: no target', tsel); }
-      if (form && verb !== 'get' && !el.hasAttribute('z-keep')) el.reset();
-      el.closest('[popover]')?.hidePopover();
+      if (form && verb !== 'get' && !has('z-keep')) el.reset();
+      if (pop?.isConnected && pop.matches(':popover-open') && !has('z-keep-open')) pop.hidePopover();
+      if (results?.isConnected && !el.matches('input') && !results.contains(target)) results.replaceChildren(); // a picked result closes the panel
     } catch (e) {
       console.error('z.js', e);
     } finally {
@@ -97,16 +102,22 @@
   }
 
   // Islands: `export default function (el, props) { ...; return cleanup? }`
+  // An island that fails to load gets data-error (the component shows its `failed` text).
+  // z-trigger="every 2s" (or 500ms) polls while the page is visible, until the element leaves.
+  const live = '[z-island],[z-trigger=load],[z-trigger^="every "]';
   function mount(root) {
-    const found = root.querySelectorAll('[z-island],[z-trigger=load]');
-    for (const el of root.matches('[z-island],[z-trigger=load]') ? [root, ...found] : found) {
+    const found = root.querySelectorAll(live);
+    for (const el of root.matches(live) ? [root, ...found] : found) {
       if (el._zw) continue;
       el._zw = true;
       if (el.hasAttribute('z-island')) {
         import(new URL(attr(el, 'island'), location.href).href)
-          .then((m) => { el._zwStop = m.default(el, JSON.parse(el.dataset.props || '{}')); })
-          .catch((e) => console.error('z.js island', e));
+          .then((m) => m.default(el, JSON.parse(el.dataset.props || '{}')))
+          .then((stop) => { el._zwStop = stop; if (!el.isConnected && typeof stop === 'function') stop(); })
+          .catch((e) => { el.setAttribute('data-error', ''); console.error('z.js island', e); });
       }
+      const every = /^every (\d+)(ms|s)$/.exec(attr(el, 'trigger') || '');
+      if (every) el._zwPoll = setInterval(() => document.hidden || fire(el), every[1] * (every[2] === 's' ? 1000 : 1));
       if (attr(el, 'trigger') === 'load') fire(el);
     }
     root.querySelectorAll('.zw-slider input').forEach(fill);
@@ -114,8 +125,9 @@
   }
 
   function unmount(root) {
-    for (const el of [root, ...root.querySelectorAll('[z-island]')]) {
+    for (const el of [root, ...root.querySelectorAll('[z-island],[z-trigger^="every "]')]) {
       if (typeof el._zwStop === 'function') el._zwStop();
+      clearInterval(el._zwPoll);
     }
   }
 
@@ -132,20 +144,34 @@
     if (i.disabled || i.hasAttribute('data-wrap')) return;
     if (b.length === 2) { b[0].disabled = i.min !== '' && +i.value <= +i.min; b[1].disabled = i.max !== '' && +i.value >= +i.max; }
   };
+  const count = (t, c) => { const n = [...t.value].length, max = +c.dataset.count; c.textContent = `${n} / ${max}`; c.classList.toggle('zw-count--full', n >= max); };
+  const pickLabel = (p) => { const c = p.querySelector(':checked'), v = p.querySelector('.zw-picker-value'); if (c) { v.textContent = c.closest('label').querySelector('.zw-pick-text').textContent; v.classList.remove('is-placeholder'); } };
   // Slider value label, textarea character counter.
   document.addEventListener('input', (e) => {
     const t = e.target, s = t.closest('.zw-slider'), c = t.closest('.zw-textarea')?.querySelector('[data-count]');
     if (s) { fill(t); const o = s.querySelector('.zw-slider-value'); if (o) o.textContent = t.value + o.dataset.unit; }
-    if (c) { const n = [...t.value].length, max = +c.dataset.count; c.textContent = `${n} / ${max}`; c.classList.toggle('zw-count--full', n >= max); }
+    if (c) count(t, c);
   });
-  // A mixed checkbox becomes a plain one after the first click; steppers re-check their bounds;
-  // a picker shows the chosen option as its label and closes.
+  // A form reset puts counters, picker labels and slider fills back (values restore after the event).
+  document.addEventListener('reset', (e) => setTimeout(() => {
+    const f = e.target;
+    f.querySelectorAll?.('.zw-textarea [data-count]').forEach((c) => count(c.closest('.zw-textarea').querySelector('textarea'), c));
+    f.querySelectorAll?.('.zw-picker').forEach(pickLabel);
+    f.querySelectorAll?.('.zw-slider input').forEach((i) => { fill(i); const o = i.closest('.zw-slider').querySelector('.zw-slider-value'); if (o) o.textContent = i.value + o.dataset.unit; });
+    f.querySelectorAll?.('.zw-stepper input').forEach(clampStep);
+  }));
+  // A mixed checkbox becomes a plain one after the first click; steppers clamp typed values
+  // (before any z request on the same change) and re-check their bounds; a picker shows the
+  // chosen option as its label and closes.
   document.addEventListener('change', (e) => {
     const t = e.target, picker = t.closest?.('.zw-picker');
     if (t.hasAttribute?.('data-mixed')) { t.removeAttribute('data-mixed'); t.removeAttribute('aria-checked'); }
-    if (t.closest?.('.zw-stepper')) clampStep(t);
+    if (t.closest?.('.zw-stepper') && t.matches('input')) {
+      if (t.value !== '' && !t.readOnly) { const v = Math.min(t.max === '' ? Infinity : +t.max, Math.max(t.min === '' ? -Infinity : +t.min, +t.value)); if (v !== +t.value) t.value = v; }
+      clampStep(t);
+    }
     if (t.matches?.('.zw-toast-x')) leave(t.closest('.zw-toast'));
-    if (picker) { picker.querySelector('.zw-picker-value').textContent = t.parentElement.textContent; picker.querySelector('[popover]').hidePopover(); }
+    if (picker) { pickLabel(picker); picker.querySelector('[popover]').hidePopover(); }
   });
   // Sheets focus their first field when they open.
   document.addEventListener('toggle', (e) => {
@@ -153,7 +179,9 @@
     if (e.newState === 'open' && s.matches?.('[data-focus-first]')) (s.querySelector('[autofocus],input:not([type=hidden]):not([disabled]),textarea:not([disabled])') || s).focus();
   }, true);
   // Menus: arrow keys, Home and End move between enabled items. ⌘K / Ctrl+K style shortcuts focus
-  // a search field with data-shortcut. Esc in a search field or tip blurs it (results hide then).
+  // the first visible search field with that data-shortcut. In a search field, ↓ moves into its
+  // results and ↑/↓ move between them (↑ from the first goes back to the field). Esc blurs a
+  // search field or tip (results hide then) and hides a tip shown by hover.
   document.addEventListener('keydown', (e) => {
     const t = e.target, m = t.closest?.('.zw-menu');
     if (m && ['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) {
@@ -162,9 +190,19 @@
       items.at({ ArrowDown: i + 1, ArrowUp: i - 1, Home: 0, End: items.length - 1 }[e.key] % items.length)?.focus();
       e.preventDefault();
     }
-    const f = (e.metaKey || e.ctrlKey) && !e.altKey && document.querySelector(`.zw-search [data-shortcut="${CSS.escape(e.key.toLowerCase())}"]`);
+    const f = (e.metaKey || e.ctrlKey) && !e.altKey && [...document.querySelectorAll(`.zw-search [data-shortcut="${CSS.escape(e.key.toLowerCase())}"]`)].find((i) => !i.disabled && i.offsetParent);
     if (f) { e.preventDefault(); f.focus(); f.select(); }
-    if (e.key === 'Escape' && t.closest?.('.zw-search,.zw-tip')) t.blur();
+    const box = t.closest?.('.zw-search');
+    if (box && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+      const links = [...box.querySelectorAll('.zw-results a')], i = links.indexOf(t);
+      const next = t.matches('input') ? (e.key === 'ArrowDown' ? links[0] : null) : e.key === 'ArrowDown' ? links[i + 1] : links[i - 1] || box.querySelector('input');
+      if (next) { e.preventDefault(); next.focus(); }
+    }
+    if (e.key === 'Escape') {
+      if (t.closest?.('.zw-search,.zw-tip')) t.blur();
+      const tip = document.querySelector('.zw-tip:hover');
+      if (tip) { tip.classList.add('zw-tip--off'); tip.addEventListener('pointerleave', () => tip.classList.remove('zw-tip--off'), { once: true }); }
+    }
   });
   // Stepper buttons step the number field and fire input + change like typing would.
   // Copy buttons copy their figure's code.
@@ -193,7 +231,9 @@
       const el = e.target.closest?.(sel);
       if (!el) return;
       const field = el.matches('input,select,textarea');
-      if ((attr(el, 'trigger') || (el.tagName === 'FORM' ? 'submit' : field ? 'change' : 'click')) !== type) return;
+      // A z form always sends on submit (Enter in a field), even when its trigger is change or input.
+      const submit = type === 'submit' && el.tagName === 'FORM';
+      if (!submit && (attr(el, 'trigger') || (el.tagName === 'FORM' ? 'submit' : field ? 'change' : 'click')) !== type) return;
       if (type !== 'input' && type !== 'change') e.preventDefault();
       if (type === 'input') { clearTimeout(el._zwT); el._zwT = setTimeout(() => fire(el), 250); } else fire(el);
     });

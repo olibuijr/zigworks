@@ -4,10 +4,11 @@
 //! Wide screens: sticky glass column. Narrow screens: a popover opened by the title bar's
 //! sidebar button (Popover API, no JS). Items are grouped under section headings.
 //! Links take an `icon` (inline SVG) and a `badge` (count); a section can `collapsible`-fold with a
-//! disclosure triangle; `size` is the macOS sidebar icon size; `footer` pins markup to the bottom.
+//! disclosure triangle (always visible while folded, on hover when open); `size` is the macOS sidebar icon size; `footer` pins markup to the bottom.
 const std = @import("std");
 const Writer = std.Io.Writer;
 const writeEscaped = @import("../view.zig").writeEscaped;
+const Z = @import("z.zig").Z;
 
 pub const css =
     \\.zw-sidebar{--row:28px;--icon:16px;margin:0;padding:12px 10px 24px;border:0;color:var(--label);--glass:var(--glass-thick);overscroll-behavior:contain;scrollbar-width:none;background:var(--glass-sheen),var(--glass);
@@ -33,7 +34,7 @@ pub const css =
     \\&::details-content{height:0;opacity:0;overflow:clip;transition:height var(--dur) var(--spring),opacity 200ms ease,content-visibility var(--dur) allow-discrete}
     \\&[open]::details-content{height:auto;opacity:1}
     \\&[open]>summary::after{rotate:45deg}
-    \\@media (hover:hover){>summary::after{opacity:0}.zw-sidebar:hover &>summary::after,>summary:focus-visible::after{opacity:1}}}
+    \\@media (hover:hover){&[open]>summary::after{opacity:0}.zw-sidebar:hover &>summary::after,>summary:focus-visible::after{opacity:1}}}
     \\.zw-sidebar-footer{margin:12px -10px 0;padding:10px 20px 12px;font:var(--callout);color:var(--secondary);border-top:.5px solid var(--separator)}
     \\.zw-sidebar-toggle{display:none}
     \\.zw-sidebar--inline{display:block;width:240px;max-width:100%;border-radius:var(--radius-panel)}
@@ -46,6 +47,7 @@ pub const css =
     \\.zw-sidebar::backdrop{background:rgba(0,0,0,.12)}}
     \\.zw-sidebar--footer{padding-bottom:0;
     \\&:popover-open,&.zw-sidebar--inline{display:flex;flex-direction:column}
+    \\&.zw-sidebar--inline{overflow-y:auto} /* the footer sticks inside the sidebar, never to the page */
     \\>*{flex:none}
     \\>.zw-sidebar-footer{position:sticky;bottom:0;margin-top:auto;background:color-mix(in srgb,var(--window) 55%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}}
     \\@media (pointer:coarse){.zw-sidebar{--row:44px;summary{min-height:44px}}}
@@ -61,10 +63,12 @@ pub const Link = struct {
     icon: []const u8 = "",
     /// Short trailing text, usually a count ("12"). Empty shows nothing.
     badge: []const u8 = "",
+    /// z.js attributes on the link, to swap a pane in place instead of loading `href`.
+    z: Z = .{},
 };
 
 pub const Section = struct {
-    /// Heading. May be empty for an untitled group (never foldable).
+    /// Heading. May be empty for an untitled group (never foldable). A section with no links renders nothing.
     title: []const u8,
     links: []const Link,
     /// The heading becomes a disclosure triangle that folds the links.
@@ -111,6 +115,7 @@ fn holds(s: Section, current: []const u8) bool {
 }
 
 fn section(w: *Writer, s: Section, current: []const u8) Writer.Error!void {
+    if (s.links.len == 0) return;
     const fold = s.collapsible and s.title.len > 0;
     if (fold) {
         try w.writeAll(if (s.open or holds(s, current)) "<details class=\"zw-sidebar-sec\" open><summary>" else "<details class=\"zw-sidebar-sec\"><summary>");
@@ -126,6 +131,7 @@ fn section(w: *Writer, s: Section, current: []const u8) Writer.Error!void {
         try w.writeAll("<li><a href=\"");
         try writeEscaped(w, l.href);
         try w.writeByte('"');
+        try l.z.render(w);
         if (std.mem.eql(u8, l.href, current)) try w.writeAll(" aria-current=\"page\"");
         try w.writeByte('>');
         if (l.icon.len > 0) try w.print("<span class=\"zw-sidebar-icon\" aria-hidden=\"true\">{s}</span>", .{l.icon});
@@ -150,8 +156,9 @@ test "sidebar renders icons, badges, collapsible sections and footer" {
     var buf: [2048]u8 = undefined;
     var w: Writer = .fixed(&buf);
     try sidebar(.{ .current = "/b", .size = .large, .footer = "<b>me</b>", .sections = &.{
-        .{ .title = "Mail", .links = &.{.{ .label = "A & B", .href = "/a", .badge = "3", .icon = "<svg/>" }} },
+        .{ .title = "Mail", .links = &.{.{ .label = "A & B", .href = "/a", .badge = "3", .icon = "<svg/>", .z = .{ .get = "/p", .target = "#pane" } }} },
         .{ .title = "Folded", .collapsible = true, .open = false, .links = &.{.{ .label = "C", .href = "/c" }} },
+        .{ .title = "Empty", .links = &.{} },
         .{ .title = "Holds", .collapsible = true, .open = false, .links = &.{.{ .label = "B", .href = "/b" }} },
     } }).render(&w);
     const out = w.buffered();
@@ -160,5 +167,7 @@ test "sidebar renders icons, badges, collapsible sections and footer" {
     try std.testing.expect(std.mem.find(u8, out, "<details class=\"zw-sidebar-sec\"><summary>Folded</summary>") != null);
     try std.testing.expect(std.mem.find(u8, out, "<details class=\"zw-sidebar-sec\" open><summary>Holds</summary>") != null);
     try std.testing.expect(std.mem.find(u8, out, "aria-current=\"page\"") != null);
+    try std.testing.expect(std.mem.find(u8, out, "<a href=\"/a\" z-get=\"/p\" z-target=\"#pane\">") != null);
+    try std.testing.expect(std.mem.find(u8, out, "Empty") == null);
     try std.testing.expect(std.mem.endsWith(u8, out, "<div class=\"zw-sidebar-footer\"><b>me</b></div></nav>"));
 }

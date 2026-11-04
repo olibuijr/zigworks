@@ -26,9 +26,11 @@ pub const Size = enum { small, regular, large };
 
 pub const Props = struct {
     /// Space-separated keys: symbols (⌘ ⌥ ⌃ ⇧ ↩ ⎋ ⇥ ⌫ ← ↑ → ↓) or words (cmd, option, shift, ctrl,
-    /// enter, esc, tab, backspace, space, up, down, left, right...). Lowercase letters are capitalized.
+    /// enter, esc, tab, backspace, space, up, down, left, right...). Other words are shown as written with
+    /// the first letter capitalized (`f5` becomes F5).
     keys: []const u8,
-    /// `.pc` swaps Mac symbols for Ctrl, Alt, Shift and so on (⌘ becomes Ctrl).
+    /// `.pc` swaps Mac symbols for Ctrl, Alt, Shift and so on (⌘ becomes Ctrl), puts the modifiers first in
+    /// the order Ctrl, Alt, Shift, and shows Ctrl once when both cmd and ctrl are given.
     platform: Platform = .mac,
     size: Size = .regular,
     /// Text between the keycaps, like "+" or "then" (a sequence). Empty: none, except "+" on `.pc`.
@@ -37,13 +39,13 @@ pub const Props = struct {
     plain: bool = false,
 };
 
-const Key = struct { aliases: []const []const u8, mac: []const u8, pc: []const u8, name: []const u8 };
+const Key = struct { aliases: []const []const u8, mac: []const u8, pc: []const u8, name: []const u8, rank: u8 = 3 };
 
 const table = [_]Key{
-    .{ .aliases = &.{ "⌘", "cmd", "command", "meta", "super" }, .mac = "⌘", .pc = "Ctrl", .name = "Command" },
-    .{ .aliases = &.{ "⌥", "opt", "option", "alt" }, .mac = "⌥", .pc = "Alt", .name = "Option" },
-    .{ .aliases = &.{ "⇧", "shift" }, .mac = "⇧", .pc = "Shift", .name = "Shift" },
-    .{ .aliases = &.{ "⌃", "ctrl", "control" }, .mac = "⌃", .pc = "Ctrl", .name = "Control" },
+    .{ .aliases = &.{ "⌘", "cmd", "command", "meta", "super" }, .mac = "⌘", .pc = "Ctrl", .name = "Command", .rank = 0 },
+    .{ .aliases = &.{ "⌥", "opt", "option", "alt" }, .mac = "⌥", .pc = "Alt", .name = "Option", .rank = 1 },
+    .{ .aliases = &.{ "⇧", "shift" }, .mac = "⇧", .pc = "Shift", .name = "Shift", .rank = 2 },
+    .{ .aliases = &.{ "⌃", "ctrl", "control" }, .mac = "⌃", .pc = "Ctrl", .name = "Control", .rank = 0 },
     .{ .aliases = &.{ "↩", "⏎", "return", "enter" }, .mac = "↩", .pc = "Enter", .name = "Return" },
     .{ .aliases = &.{ "⎋", "esc", "escape" }, .mac = "⎋", .pc = "Esc", .name = "Escape" },
     .{ .aliases = &.{ "⇥", "tab" }, .mac = "⇥", .pc = "Tab", .name = "Tab" },
@@ -74,11 +76,30 @@ fn writeKey(w: *Writer, tok: []const u8, platform: Platform, spoken: bool) Write
         const text = if (platform == .pc) k.pc else if (spoken) k.name else k.mac;
         return writeEscaped(w, text);
     }
-    if (tok.len == 1) {
-        const upper = [1]u8{std.ascii.toUpper(tok[0])};
-        return writeEscaped(w, &upper);
+    // Unknown words: first letter capitalized ("f5" is F5, "a" is A).
+    const first = [1]u8{std.ascii.toUpper(tok[0])};
+    try writeEscaped(w, &first);
+    try writeEscaped(w, tok[1..]);
+}
+
+const max_keys = 16;
+
+/// The keys in display order (at most `max_keys`). On a Mac: as written. On a PC: Ctrl, Alt and Shift
+/// first (Ctrl once, even for "cmd ctrl"), then the other keys as written.
+fn ordered(keys: []const u8, pc: bool, buf: *[max_keys][]const u8) [][]const u8 {
+    var n: usize = 0;
+    for (0..(if (pc) 4 else 1)) |pass| {
+        var it = std.mem.tokenizeScalar(u8, keys, ' ');
+        while (it.next()) |k| {
+            if (n == buf.len) return buf[0..n];
+            const rank: usize = if (!pc) 0 else if (lookup(k)) |e| e.rank else 3;
+            if (rank != pass) continue;
+            buf[n] = k;
+            n += 1;
+            if (pass < 3 and pc) break; // Ctrl, Alt and Shift once each
+        }
     }
-    try writeEscaped(w, tok);
+    return buf[0..n];
 }
 
 pub const Kbd = struct {
@@ -91,9 +112,9 @@ pub const Kbd = struct {
         if (p.plain) try w.writeAll(" zw-kbd--plain");
         // One accessible name for the whole chord ("Command Shift K", "G then I"); the keycaps inside are presentational.
         try w.writeAll("\" role=\"img\" aria-label=\"");
-        var it = std.mem.tokenizeScalar(u8, p.keys, ' ');
-        var n: usize = 0;
-        while (it.next()) |k| : (n += 1) {
+        var buf: [max_keys][]const u8 = undefined;
+        const keys = ordered(p.keys, p.platform == .pc, &buf);
+        for (keys, 0..) |k, n| {
             if (n > 0) {
                 try w.writeByte(' ');
                 if (p.joiner.len > 0) {
@@ -104,9 +125,7 @@ pub const Kbd = struct {
             try writeKey(w, k, p.platform, true);
         }
         try w.writeAll("\">");
-        it = std.mem.tokenizeScalar(u8, p.keys, ' ');
-        n = 0;
-        while (it.next()) |k| : (n += 1) {
+        for (keys, 0..) |k, n| {
             if (n > 0 and joiner.len > 0) {
                 try w.writeAll("<span class=\"zw-kbd__j\">");
                 try writeEscaped(w, joiner);
@@ -143,5 +162,16 @@ test kbd {
         "<span class=\"zw-kbd zw-kbd--plain\" role=\"img\" aria-label=\"G then I\"><kbd>G</kbd><span class=\"zw-kbd__j\">then</span><kbd>I</kbd></span>",
         .{ .keys = "g i", .joiner = "then", .plain = true },
     );
-    try expectHtml("<span class=\"zw-kbd\" role=\"img\" aria-label=\"a&lt;b\"><kbd>a&lt;b</kbd></span>", .{ .keys = "a<b" });
+    try expectHtml("<span class=\"zw-kbd\" role=\"img\" aria-label=\"A&lt;b\"><kbd>A&lt;b</kbd></span>", .{ .keys = "a<b" });
+    // F-keys and other words get a capital first letter.
+    try expectHtml("<span class=\"zw-kbd\" role=\"img\" aria-label=\"Command F5\"><kbd>⌘</kbd><kbd>F5</kbd></span>", .{ .keys = "cmd f5" });
+    // PC: modifiers first as Ctrl, Alt, Shift; "cmd ctrl" shows Ctrl once.
+    try expectHtml(
+        "<span class=\"zw-kbd\" role=\"img\" aria-label=\"Ctrl Shift Z\"><kbd>Ctrl</kbd><span class=\"zw-kbd__j\">+</span><kbd>Shift</kbd><span class=\"zw-kbd__j\">+</span><kbd>Z</kbd></span>",
+        .{ .keys = "shift cmd z", .platform = .pc },
+    );
+    try expectHtml(
+        "<span class=\"zw-kbd\" role=\"img\" aria-label=\"Ctrl Alt K\"><kbd>Ctrl</kbd><span class=\"zw-kbd__j\">+</span><kbd>Alt</kbd><span class=\"zw-kbd__j\">+</span><kbd>K</kbd></span>",
+        .{ .keys = "ctrl opt cmd k", .platform = .pc },
+    );
 }

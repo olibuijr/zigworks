@@ -1,5 +1,6 @@
 //! Round completion check (Reminders style). Server-driven: wire `z` to flip state.
-//! `tint` recolours it (Reminders list colours, flags), `size` scales it, `disabled` locks it.
+//! `tint` recolours it (Reminders list colours, flags), `size` scales it, `mixed` shows a dash
+//! (a parent of partly done items), `disabled` locks it.
 const std = @import("std");
 const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
@@ -9,15 +10,14 @@ pub const css =
     \\border:1.5px solid var(--tertiary);border-radius:50%;background:transparent;cursor:default;-webkit-tap-highlight-color:transparent;
     \\transition:background-color var(--speed),border-color var(--speed),box-shadow var(--speed),scale var(--dur-bouncy) var(--spring-bouncy);
     \\&:disabled{opacity:.4;pointer-events:none}
-    \\&:not(:disabled){
-    \\&:hover{border-color:var(--secondary)}
-    \\&:active{scale:.8;transition-duration:var(--dur-snappy)}
-    \\&:not([aria-checked=true]):hover{border-color:var(--zw-tint)}}
-    \\&[aria-checked=true]{border-color:transparent;background:radial-gradient(circle at 50% 20%,color-mix(in srgb,var(--zw-tint) 70%,#fff),var(--zw-tint) 70%);
+    \\&:not(:disabled):active{scale:.8;transition-duration:var(--dur-snappy)}
+    \\&:not(:disabled,[aria-checked=true],[aria-checked=mixed]):hover{border-color:var(--zw-tint)}
+    \\&:is([aria-checked=true],[aria-checked=mixed]){border-color:transparent;background:radial-gradient(circle at 50% 20%,color-mix(in srgb,var(--zw-tint) 70%,#fff),var(--zw-tint) 70%);
     \\box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 1px rgba(0,0,0,.12),0 2px 6px color-mix(in srgb,var(--zw-tint) 35%,transparent);
     \\&::after{content:"";width:calc(var(--zw-d)*.23);height:calc(var(--zw-d)*.45);border:solid var(--on-accent);border-width:0 calc(var(--zw-d)*.09) calc(var(--zw-d)*.09) 0;rotate:45deg;translate:0 -1px}
     \\&.zw-swapped,.zw-swapped &{animation:zw-pop var(--dur-bouncy) var(--spring-bouncy)}
-    \\.zw-swapped &::after{animation:zw-tick var(--dur) var(--spring-bouncy)}}}
+    \\.zw-swapped &::after{animation:zw-tick var(--dur) var(--spring-bouncy)}}
+    \\&[aria-checked=mixed]::after{width:calc(var(--zw-d)*.5);height:0;border-width:0 0 calc(var(--zw-d)*.09);rotate:0;translate:0}}
     \\.zw-check--small{--zw-d:18px}
     \\.zw-check--large{--zw-d:28px}
     \\.zw-check--red{--zw-tint:var(--red)}
@@ -39,12 +39,14 @@ pub const Props = struct {
     /// 18px, 22px or 28px.
     size: Size = .regular,
     tint: Tint = .accent,
+    /// A dash (`aria-checked="mixed"`) for a parent of partly done items; overrides `on`.
+    mixed: bool = false,
     /// Dimmed and not interactive.
     disabled: bool = false,
     z: Z = .{},
 };
 
-const src = "<button class=\"zw-check zw-check--{size} zw-check--{tint}\" type=\"button\" role=\"checkbox\" aria-checked=\"{on}\" aria-label=\"{label}\"{#if disabled} disabled{/if}{z}></button>";
+const src = "<button class=\"zw-check zw-check--{size} zw-check--{tint}\" type=\"button\" role=\"checkbox\" aria-checked=\"{#if mixed}mixed{:else}{on}{/if}\" aria-label=\"{label}\"{#if disabled} disabled{/if}{z}></button>";
 
 pub const Check = zv.View(src, Props);
 
@@ -61,4 +63,13 @@ test "check renders tint, size and disabled" {
     try std.testing.expect(std.mem.find(u8, s, "zw-check--small zw-check--red") != null);
     try std.testing.expect(std.mem.find(u8, s, "aria-checked=\"true\"") != null);
     try std.testing.expect(std.mem.find(u8, s, " disabled") != null);
+}
+
+test "check mixed overrides on" {
+    var buf: [512]u8 = undefined;
+    var w: std.Io.Writer = .fixed(&buf);
+    try check(.{ .on = true, .label = "x", .mixed = true }).render(&w);
+    const s = w.buffered();
+    try std.testing.expect(std.mem.find(u8, s, "aria-checked=\"mixed\"") != null);
+    try std.testing.expect(std.mem.find(u8, s, "aria-checked=\"true\"") == null);
 }

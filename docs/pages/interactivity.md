@@ -14,7 +14,7 @@ const add: ui.Z = .{ .post = "/todos", .target = "#todos", .swap = .beforeend };
 | `z-get`, `z-post`, `z-put`, `z-patch`, `z-delete` | send a request to the URL |
 | `z-target` | where the answer goes: a selector, or `closest li` |
 | `z-swap` | `inner` (default), `outer`, `beforeend`, `afterbegin`, `delete`, `none` |
-| `z-trigger` | `click`, `submit`, `change`, `input` (debounced), `load` |
+| `z-trigger` | `click`, `submit`, `change`, `input` (debounced), `load`, `every 2s` / `every 500ms` (polls while the page is visible) |
 | `z-confirm` | ask first, in a custom dialog |
 | `z-oob` | on a response element with an `id`: replace that element anywhere |
 
@@ -35,8 +35,9 @@ try c.html("{row}{count}", .{
 
 - A `z-redirect` response header sends the browser to that URL (`c.redirect` does this for you).
 - `204 No Content` swaps nothing.
-- A successful non-GET form is reset (add `z-keep`, or `.keep = true` in `ui.Z`, to keep its values, as settings forms should), and an open menu or sheet closes.
-- Errors are logged to the console and nothing is swapped.
+- A successful non-GET form is reset (add `z-keep`, or `.keep = true` in `ui.Z`, to keep its values, as settings forms should; a `z-keep` response header does the same for one response), and an open menu or sheet closes (a `z-keep-open` attribute or response header keeps it open, for showing an error inside it).
+- Pressing Enter in a field of a `z` form sends it, whatever its trigger, instead of reloading the page.
+- Errors are logged to the console. Only the response's `z-oob` parts are applied, so an error status can still carry an error toast.
 
 ## Motion
 

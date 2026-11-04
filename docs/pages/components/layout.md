@@ -2,6 +2,8 @@
 
 The root of every page: the document shell, a glass title bar and the content column. It loads `zw.css` and `z.js`, so pages need nothing else.
 
+A layout is a whole document, so each demo below is a real page in a frame. Here is a Notes app: a sidebar, a toolbar and a list that scrolls under the title bar. The frame is 840px wide so the sidebar shows as a column; on a phone it scrolls sideways.
+
 ```demo
 layout
 ```
@@ -18,12 +20,66 @@ try c.page(ui.layout(.{
 }));
 ```
 
+A sidebar turns the page into an app:
+
+```zig
+try c.page(ui.layout(.{
+    .title = "Notes",
+    .sidebar = ui.sidebar(.{ .current = "/all", .sections = &.{
+        .{ .title = "iCloud", .links = &.{.{ .label = "All Notes", .href = "/all" }} },
+    } }),
+    .body = notes,
+}));
+```
+
+## Title bar
+
+`.title_align` places the title, `.brand` turns it into a link (to `/`, or to `.brand_href`), and `.toolbar` fills the trailing edge. With a sidebar, the title bar gains a button that opens it on narrow screens. `.head` adds raw HTML to `<head>`.
+
+```demo
+layout-titles
+```
+
+## Footer, language and skip link
+
+`.footer` sits under the page below a hairline. `.lang` sets the document language, `.skip_label` translates the skip link, and `.skip_link = false` removes it.
+
+```demo
+layout-chrome
+```
+
+## Updating the page from a response
+
+The title bar is part of the page, so z.js can update it. Give a toolbar badge an `id`, and answer a request with the same badge and `.oob = true`. Toasts work the same way.
+
+```demo
+layout-live
+```
+
+```zig
+// POST /reminders: append the row, replace the badge, show a toast.
+try c.page(zw.view("{row}{badge}{toast}", .{
+    .row = row,
+    .badge = ui.badge(.{ .count = n, .id = "remaining", .oob = true }),
+    .toast = ui.toast(.{ .text = "Reminder added", .kind = .success }),
+}));
+```
+
+## In a real app
+
+A settings window: a centered title, a sidebar, cards, setting rows and a footer.
+
+```demo
+layout-settings
+```
+
 ## Props
 
 | Prop | Type | Default | Notes |
 |---|---|---|---|
 | `title` | string | required | the tab title, and the title bar text without `brand` |
-| `brand` | string | `""` | title bar text that links to `/` |
+| `brand` | string | `""` | title bar text that links to `brand_href` |
+| `brand_href` | string | `"/"` | where the `brand` links; set it for apps that do not live at the site root, or for a localized home |
 | `head` | raw HTML | `""` | import maps, meta tags, a real favicon |
 | `lang` | string | `"en"` | the `lang` of the `<html>` element; set it for screen readers and hyphenation |
 | `toolbar` | component | none | trailing title bar content |
@@ -42,3 +98,6 @@ An unknown prop is a compile error. With a sidebar, the title bar gains a button
 - The title bar respects the notch and home indicator on phones (`viewport-fit=cover` with safe-area insets).
 - The sidebar button is 44 px on touch screens.
 - `.footer` is a good place for a copyright line, a version or links to legal pages. Use `zw-secondary` text for quiet content; the footer already uses the callout size and secondary color.
+- A layout is always a whole HTML document (`<!doctype html>` to `</html>`), so it is rendered by a route with `c.page`, never as a fragment. The docs show it in `<iframe>`s for that reason; a frame needs `.brand_href` (or no `.brand`) so the brand link does not load your site inside it, and fragment links such as the skip link stay in the frame.
+- The sidebar becomes a fixed column at a viewport width of 800px and wider; below that it opens as a popover from the title bar button. The breakpoint follows the browser window, not the container, so a narrow frame always shows the popover form.
+- Controls in the title bar or body work like anywhere else: `z-oob` replaces any element with an `id` (a hidden `<input>` included), and `ui.stepper` and `ui.segmented` fire their `.z` when the value changes.

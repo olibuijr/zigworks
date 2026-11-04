@@ -43,8 +43,7 @@ const Path_ = @import("ui/path.zig");
 
 const Glass_ = @import("ui/glass.zig");
 // Glass comes first: it is the shared material, and component rules after it refine it.
-const all = .{ Glass_, Layout_, Card_, List_, Sheet_, Setting_, Button_, Field_, Check_, Toggle_, Segmented_, Slider_, Picker_, Menu_, Badge_, Island_, Sidebar_, Code_, Callout_, Table_, Progress_, Search_, Prose_,
-    Tabs_, Textarea_, Stepper_, Checkbox_, Radio_, Disclosure_, Tooltip_, Toast_, Avatar_, Tag_, Empty_, Skeleton_, Kbd_, Path_ };
+const all = .{ Glass_, Layout_, Card_, List_, Sheet_, Setting_, Button_, Field_, Check_, Toggle_, Segmented_, Slider_, Picker_, Menu_, Badge_, Island_, Sidebar_, Code_, Callout_, Table_, Progress_, Search_, Prose_, Tabs_, Textarea_, Stepper_, Checkbox_, Radio_, Disclosure_, Tooltip_, Toast_, Avatar_, Tag_, Empty_, Skeleton_, Kbd_, Path_ };
 
 pub const Z = @import("ui/z.zig").Z;
 pub const Swap = @import("ui/z.zig").Swap;
@@ -54,6 +53,7 @@ pub const layout = Layout_.layout;
 pub const Layout = Layout_.Layout;
 pub const card = Card_.card;
 pub const Card = Card_.Card;
+pub const CardVariant = Card_.Variant;
 pub const list = List_.list;
 pub const List = List_.List;
 pub const sheet = Sheet_.sheet;
@@ -74,6 +74,7 @@ pub const empty = Empty_.empty;
 pub const Empty = Empty_.Empty;
 pub const callout = Callout_.callout;
 pub const Callout = Callout_.Callout;
+pub const CalloutKind = Callout_.Kind;
 
 // Controls
 pub const button = Button_.button;
@@ -82,6 +83,8 @@ pub const field = Field_.field;
 pub const Field = Field_.Field;
 pub const check = Check_.check;
 pub const Check = Check_.Check;
+pub const CheckSize = Check_.Size;
+pub const CheckTint = Check_.Tint;
 pub const toggle = Toggle_.toggle;
 pub const Toggle = Toggle_.Toggle;
 pub const segmented = Segmented_.segmented;
@@ -142,4 +145,19 @@ pub const css = blk: {
 test {
     std.testing.refAllDecls(@import("ui/z.zig"));
     inline for (all) |f| std.testing.refAllDecls(f);
+}
+
+test "every component's css closes its braces" {
+    inline for (all) |f| {
+        var depth: isize = 0;
+        for (f.css) |c| depth += switch (c) {
+            '{' => 1,
+            '}' => -1,
+            else => 0,
+        };
+        std.testing.expectEqual(0, depth) catch |e| {
+            std.debug.print("unbalanced css in {s}\n", .{@typeName(f)});
+            return e;
+        };
+    }
 }

@@ -4,6 +4,7 @@
 const std = @import("std");
 const Writer = std.Io.Writer;
 const zv = @import("../view.zig");
+const Z = @import("z.zig").Z;
 
 pub const css =
     \\.zw-path>ol{display:flex;flex-wrap:wrap;align-items:center;gap:2px;list-style:none;margin:0;padding:0;font:var(--callout);
@@ -37,6 +38,9 @@ pub const Item = struct {
     href: []const u8 = "",
     /// A short glyph (such as "⌂") shown before the label; it is decoration, hidden from screen readers.
     icon: []const u8 = "",
+    /// z.js request for the link, so a click updates part of the page instead of loading it. Keep a real
+    /// `href` too: it is the fallback without JS. Ignored on the last item and on plain-text items.
+    z: Z = .{},
 };
 
 pub const Separator = enum { chevron, slash };
@@ -51,28 +55,30 @@ pub const Props = struct {
 };
 
 const inner = "{#if it.icon}<span class=\"zw-path-icon\" aria-hidden=\"true\">{it.icon}</span>{/if}<span class=\"zw-path-label\">{it.label}</span>";
-const link = "<li>{#if it.href}<a href=\"{it.href}\">" ++ inner ++ "</a>{:else}<span class=\"zw-path-text\">" ++ inner ++ "</span>{/if}</li>";
+const link = "<li>{#if it.href}<a href=\"{it.href}\"{it.z}>" ++ inner ++ "</a>{:else}<span class=\"zw-path-text\">" ++ inner ++ "</span>{/if}</li>";
 
-const src = "<nav class=\"zw-path zw-path--{p.separator}\" aria-label=\"{p.label}\"><ol>" ++
+const src = "{#if has}<nav class=\"zw-path zw-path--{p.separator}\" aria-label=\"{p.label}\"><ol>" ++
     "{#each lead as it}" ++ link ++ "{/each}" ++
     "{#if hidden}<li><details class=\"zw-path-more\"><summary aria-label=\"{hidden.len} more\">…</summary><ul class=\"zw-path-menu zw-glass\">" ++
-    "{#each hidden as it}<li>{#if it.href}<a href=\"{it.href}\">" ++ inner ++ "</a>{:else}<span class=\"zw-path-text\">" ++ inner ++ "</span>{/if}</li>{/each}</ul></details></li>{/if}" ++
+    "{#each hidden as it}<li>{#if it.href}<a href=\"{it.href}\"{it.z}>" ++ inner ++ "</a>{:else}<span class=\"zw-path-text\">" ++ inner ++ "</span>{/if}</li>{/each}</ul></details></li>{/if}" ++
     "{#each tail as it}" ++ link ++ "{/each}" ++
-    "{#each last as it}<li><span aria-current=\"page\">" ++ inner ++ "</span></li>{/each}</ol></nav>";
+    "{#each last as it}<li><span aria-current=\"page\">" ++ inner ++ "</span></li>{/each}</ol></nav>{/if}";
 
-const Data = struct { p: Props, lead: []const Item, hidden: []const Item, tail: []const Item, last: []const Item };
+const Data = struct { has: bool, p: Props, lead: []const Item, hidden: []const Item, tail: []const Item, last: []const Item };
 
 pub const Path = zv.View(src, Data);
 
 /// `path(.{ .items = &.{ .{ .label = "Docs", .href = "/" }, .{ .label = "Button" } } })`
+/// An empty `items` renders nothing (no empty landmark).
 pub fn path(p: Props) Path {
     const n = p.items.len;
+    const has = n > 0;
     const last = p.items[n -| 1..];
     if (p.max != 0 and n > @max(p.max, 2)) {
         const keep = @max(p.max, 2) - 1; // trailing items shown, the current page included
-        return .{ .data = .{ .p = p, .lead = p.items[0..1], .hidden = p.items[1 .. n - keep], .tail = p.items[n - keep .. n - 1], .last = last } };
+        return .{ .data = .{ .has = has, .p = p, .lead = p.items[0..1], .hidden = p.items[1 .. n - keep], .tail = p.items[n - keep .. n - 1], .last = last } };
     }
-    return .{ .data = .{ .p = p, .lead = p.items[0 .. n -| 1], .hidden = p.items[0..0], .tail = p.items[0..0], .last = last } };
+    return .{ .data = .{ .has = has, .p = p, .lead = p.items[0..n -| 1], .hidden = p.items[0..0], .tail = p.items[0..0], .last = last } };
 }
 
 test path {
@@ -97,4 +103,23 @@ test path {
     w = .fixed(&buf);
     try path(.{ .items = items }).render(&w);
     try std.testing.expect(std.mem.find(u8, w.buffered(), "zw-path-more") == null);
+
+    // z.js attributes reach bar links and folded links, never the current page
+    const zitems: []const Item = &.{
+        .{ .label = "Home", .href = "/", .z = .{ .get = "/h", .target = "#main" } },
+        .{ .label = "A", .href = "/a", .z = .{ .get = "/a", .target = "#main" } },
+        .{ .label = "B", .href = "/b" },
+        .{ .label = "Here", .href = "/here", .z = .{ .get = "/here" } },
+    };
+    w = .fixed(&buf);
+    try path(.{ .items = zitems, .max = 3 }).render(&w);
+    const zout = w.buffered();
+    try std.testing.expect(std.mem.find(u8, zout, "<a href=\"/\" z-get=\"/h\" z-target=\"#main\">") != null);
+    try std.testing.expect(std.mem.find(u8, zout, "<a href=\"/a\" z-get=\"/a\" z-target=\"#main\">") != null);
+    try std.testing.expect(std.mem.find(u8, zout, "z-get=\"/here\"") == null);
+
+    // no items: nothing is rendered
+    w = .fixed(&buf);
+    try path(.{ .items = &.{} }).render(&w);
+    try std.testing.expectEqual(@as(usize, 0), w.buffered().len);
 }

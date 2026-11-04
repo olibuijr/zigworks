@@ -7,8 +7,9 @@ const std = @import("std");
 const zv = @import("../view.zig");
 
 pub const css =
-    \\.zw-sheet{--w:480px;inset:0 0 auto;margin:calc(68px + env(safe-area-inset-top)) auto 0;width:min(var(--w),calc(100vw - 32px));max-height:calc(100dvh - 84px - env(safe-area-inset-top));padding:22px;border:0;border-radius:var(--radius-panel);color:var(--label);--glass:var(--glass-thick);
+    \\.zw-sheet{--w:480px;inset:0 0 auto;width:min(var(--w),calc(100vw - 32px));max-height:calc(100dvh - 84px - env(safe-area-inset-top));padding:22px;border:0;border-radius:var(--radius-panel);color:var(--label);--glass:var(--glass-thick);
     \\transform-origin:top center;transition:opacity 200ms ease,scale var(--dur-bouncy) var(--spring-bouncy),translate var(--dur) var(--spring),display 320ms allow-discrete,overlay 320ms allow-discrete;
+    \\&[popover]{margin:calc(68px + env(safe-area-inset-top)) auto 0}
     \\&:focus{outline:none}
     \\&:not(:popover-open){opacity:0;scale:.94;translate:0 -12px;transition-duration:180ms}
     \\h2{font:var(--headline);margin-bottom:14px;&:has(+.zw-sheet-desc){margin-bottom:4px}}}
@@ -76,6 +77,10 @@ test "sheet defaults" {
             "<h2 id=\"s-title\">T &lt;1&gt;</h2>b</div>",
         w.buffered(),
     );
+}
+
+test "sheet margin beats a parent's sibling-spacing rule" {
+    try std.testing.expect(std.mem.find(u8, css, "&[popover]{margin:calc(68px + env(safe-area-inset-top)) auto 0}") != null);
 }
 
 test "sheet size, description, close button and footer" {
