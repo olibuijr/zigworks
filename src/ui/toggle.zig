@@ -1,6 +1,7 @@
 //! macOS switch row. A real checkbox (form value, keyboard, screen readers) drawn as a switch;
 //! laid out like `setting`, so switches and settings rows stack with separators.
 //! With `z`, z.js sends `name=on` when switched on and nothing when off.
+//! The label names the switch and the description is its accessible description (ids come from `name`).
 //! Optional description line, mini/small/regular sizes, disabled state and label on either side.
 const std = @import("std");
 const zv = @import("../view.zig");
@@ -49,8 +50,8 @@ pub const Props = struct {
 };
 
 const src = "<label class=\"zw-toggle zw-setting zw-toggle--{size} zw-toggle--{label_side}{#if disabled} zw-toggle--disabled{/if}\">" ++
-    "<span class=\"zw-toggle__txt\"><span>{label}</span>{#if description}<span class=\"zw-toggle__desc\">{description}</span>{/if}</span>" ++
-    "<input type=\"checkbox\" role=\"switch\" name=\"{name}\"{#if on} checked{/if}{#if disabled} disabled{/if}{z}></label>";
+    "<span class=\"zw-toggle__txt\"><span id=\"zw-toggle-{name}-label\">{label}</span>{#if description}<span class=\"zw-toggle__desc\" id=\"zw-toggle-{name}-desc\">{description}</span>{/if}</span>" ++
+    "<input type=\"checkbox\" role=\"switch\" name=\"{name}\" aria-labelledby=\"zw-toggle-{name}-label\"{#if description} aria-describedby=\"zw-toggle-{name}-desc\"{/if}{#if on} checked{/if}{#if disabled} disabled{/if}{z}></label>";
 
 pub const Toggle = zv.View(src, Props);
 
@@ -60,11 +61,17 @@ pub fn toggle(p: Props) Toggle {
 }
 
 test "toggle renders size, side, description and disabled" {
-    var buf: [1024]u8 = undefined;
+    var buf: [2048]u8 = undefined;
     var w: std.Io.Writer = .fixed(&buf);
     try toggle(.{ .name = "w", .label = "Wi-Fi", .description = "Known networks", .size = .mini, .label_side = .trailing, .disabled = true }).render(&w);
     const s = w.buffered();
     try std.testing.expect(std.mem.find(u8, s, "zw-toggle--mini zw-toggle--trailing zw-toggle--disabled") != null);
-    try std.testing.expect(std.mem.find(u8, s, "zw-toggle__desc\">Known networks") != null);
+    try std.testing.expect(std.mem.find(u8, s, "id=\"zw-toggle-w-desc\">Known networks") != null);
     try std.testing.expect(std.mem.find(u8, s, " disabled>") != null);
+    // Label and description are separate: the name is the label, the description is the hint.
+    try std.testing.expect(std.mem.find(u8, s, "aria-labelledby=\"zw-toggle-w-label\" aria-describedby=\"zw-toggle-w-desc\"") != null);
+    var buf2: [1024]u8 = undefined;
+    var w2: std.Io.Writer = .fixed(&buf2);
+    try toggle(.{ .name = "w", .label = "Wi-Fi" }).render(&w2);
+    try std.testing.expect(std.mem.find(u8, w2.buffered(), "aria-describedby") == null);
 }

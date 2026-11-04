@@ -101,4 +101,8 @@ fn prefs(c: *zw.Ctx) !void {
 | `disabled` | bool | `false` | dimmed, not interactive, not submitted |
 | `z` | `ui.Z` | none | sent on `change` |
 
+The label names the switch for screen readers (`aria-labelledby`) and the description is linked as its description (`aria-describedby`), so the two are not read as one long name. The ids are built from `name`, so keep `name` unique on the page.
+
+A toggle has two states only. There is no invalid, mixed or loading look: a switch cannot hold a wrong value, use a check for a mixed state, and while a request is in flight z.js dims the row. Disabled rows are marked by the native `disabled` input, which assistive technology already announces.
+
 Rows get at least 44px of height on touch screens. Use a check for items in a list and a toggle for settings.
