@@ -6,23 +6,21 @@ const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
 
 pub const css =
-    \\.zw-textarea{display:block;min-width:0}
-    \\.zw-textarea label{display:block}
-    \\.zw-textarea textarea{display:block;width:100%;min-height:calc(var(--rows) * 1lh + 16px);max-height:calc(var(--max-rows) * 1lh + 16px);field-sizing:content;resize:none;
-    \\font:13px/18px var(--font);padding:8px 11px}
+    \\.zw-textarea{min-width:0;
+    \\& label{display:block}
+    \\& textarea{display:block;width:100%;min-height:calc(var(--rows) * 1lh + 16px);max-height:calc(var(--max-rows) * 1lh + 16px);field-sizing:content;resize:none;font:13px/18px var(--font);padding:8px 11px;
+    \\&:disabled{opacity:.45}
+    \\&[readonly]{background:var(--fill);box-shadow:none}
+    \\&:is([aria-invalid=true],:user-invalid){box-shadow:0 0 0 1px var(--red)}
+    \\&[aria-invalid=true]:focus{box-shadow:0 0 0 .5px var(--red),0 0 0 4px color-mix(in srgb,var(--red) 35%,transparent)}}}
     \\.zw-textarea--fixed textarea{field-sizing:fixed;height:calc(var(--rows) * 1lh + 16px)}
     \\.zw-textarea--vertical textarea{resize:vertical}
-    \\.zw-textarea textarea:disabled{opacity:.45}
-    \\.zw-textarea textarea[readonly]{background:var(--fill);box-shadow:none}
-    \\.zw-textarea textarea[aria-invalid=true]{box-shadow:0 0 0 1px var(--red)}
-    \\.zw-textarea textarea:user-invalid{box-shadow:0 0 0 1px var(--red)}
-    \\.zw-textarea textarea[aria-invalid=true]:focus{box-shadow:0 0 0 .5px var(--red),0 0 0 4px color-mix(in srgb,var(--red) 35%,transparent)}
-    \\.zw-textarea-foot{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:4px 11px 0}
-    \\.zw-textarea-foot .zw-help{margin:0}
+    \\.zw-textarea-foot{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:4px 11px 0;
+    \\& .zw-help{margin:0}}
     \\.zw-count{margin-left:auto;font:var(--callout);color:var(--secondary);font-variant-numeric:tabular-nums;white-space:nowrap}
     \\.zw-count--full{color:var(--red)}
     \\@media (pointer:coarse){.zw-textarea textarea{line-height:22px}}
-    \\@media (forced-colors:active){.zw-textarea textarea{border:1px solid ButtonText}.zw-textarea textarea:focus{outline:2px solid Highlight}}
+    \\@media (forced-colors:active){.zw-textarea textarea{border:1px solid ButtonText;&:focus{outline:2px solid Highlight}}}
     \\
 ;
 
