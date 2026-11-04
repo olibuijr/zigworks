@@ -353,7 +353,16 @@ fn skeleton(w: *Writer) Writer.Error!void {
 }
 
 fn kbd(w: *Writer) Writer.Error!void {
-    try zw.view("<span>Search the docs</span>{a}<span style=\"margin-left:16px\">New window</span>{b}", .{ .a = ui.kbd(.{ .keys = "⌘ K" }), .b = ui.kbd(.{ .keys = "⌘ ⇧ N" }) }).render(w);
+    try zw.view("<span>Search the docs</span>{a}<span style=\"margin-left:16px\">New window</span>{b}<span style=\"margin-left:16px\">Quit</span>{c}" ++
+        "<span style=\"margin-left:16px\">On Windows</span>{d}<span style=\"margin-left:16px\">Go to Inbox</span>{e}<span style=\"margin-left:16px\">Menu style</span>{f}<span style=\"margin-left:16px\">Large</span>{g}", .{
+        .a = ui.kbd(.{ .keys = "⌘ K" }),
+        .b = ui.kbd(.{ .keys = "⌘ ⇧ N" }),
+        .c = ui.kbd(.{ .keys = "cmd q", .size = .small }),
+        .d = ui.kbd(.{ .keys = "cmd shift p", .platform = .pc }),
+        .e = ui.kbd(.{ .keys = "g i", .joiner = "then" }),
+        .f = ui.kbd(.{ .keys = "⌘ ⌥ esc", .plain = true }),
+        .g = ui.kbd(.{ .keys = "⌃ ⌥ ⌫", .size = .large }),
+    }).render(w);
 }
 
 fn path(w: *Writer) Writer.Error!void {
