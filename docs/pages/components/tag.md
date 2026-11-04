@@ -10,7 +10,7 @@ A note with tags. The × removes a tag and shows a toast; the form adds one. Eac
 
 ## Variants and sizes
 
-One row per prop. `tone` sets the tint, `size` the height, `icon` adds a glyph, `href` makes a link, `remove` adds the × button.
+One row per prop. `tone` sets the tint, `size` the height, `icon` adds a glyph, `href` makes a link, `remove` adds the × button. Text that is wider than the space truncates with an ellipsis.
 
 ```demo
 tag-variants
@@ -77,7 +77,7 @@ ui.tag(.{ .text = "Draft", .remove = .{ .delete = "/tags/draft" } })
 | `tone` | `.accent` `.gray` `.red` `.green` `.orange` | `.accent` | system color of the tint, or of the fill when selected |
 | `size` | `.small` `.regular` `.large` | `.regular` | 20, 24 and 28px tall |
 | `icon` | string | `""` | short glyph or emoji before the text; decorative |
-| `href` | string | `""` | renders the label as a link |
+| `href` | string | `""` | renders the label as a link; ignored (a plain span) when `disabled` |
 | `name` | string | `""` | makes the tag a filter chip: a checkbox with this name |
 | `value` | string | `""` | chip value sent when selected; the text when empty |
 | `selected` | bool | `false` | filled style; for a chip, the initial checked state |
@@ -87,7 +87,9 @@ ui.tag(.{ .text = "Draft", .remove = .{ .delete = "/tags/draft" } })
 ## Notes
 
 - Wrap a group of tags in `<div class="zw-tags">` for spacing and wrapping.
+- Long text truncates with an ellipsis at the width of its container; the × button stays visible.
 - A tag dims (`zw-busy`) while its request is in flight.
+- The remove request must answer 200 with a body (even a toast or an empty `<template>`): z.js does not swap on 204, so the tag would stay.
 - To filter with several chips, put the request on the `<form>`; a chip's own `z` only sends that one chip.
 - A selected link tag gets `aria-current="true"`; a chip is a real checkbox, so screen readers announce checked and unchecked.
 - On touch screens the link, chip and × hit areas grow to 44px without changing the look.

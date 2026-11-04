@@ -7,13 +7,14 @@ const writeEscaped = @import("../view.zig").writeEscaped;
 const Z = @import("z.zig").Z;
 
 pub const css =
-    \\.zw-tag{--tone:var(--accent);position:relative;display:inline-flex;align-items:center;height:24px;border-radius:999px;font:var(--callout);font-weight:500;white-space:nowrap;max-width:100%;
+    \\.zw-tag{--tone:var(--accent);position:relative;display:inline-flex;align-items:center;height:24px;border-radius:999px;font:var(--callout);font-weight:500;white-space:nowrap;max-width:100%;min-width:0;
     \\color:color-mix(in srgb,var(--tone) 85%,var(--label));background:color-mix(in srgb,var(--tone) 13%,transparent);box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--tone) 25%,transparent);
     \\transition:background-color,color,box-shadow,opacity;transition-duration:var(--speed)}
     \\.zw-tag--gray{--tone:var(--secondary)}.zw-tag--red{--tone:var(--red)}.zw-tag--green{--tone:var(--green)}.zw-tag--orange{--tone:var(--orange)}
-    \\.zw-tag__main{display:inline-flex;align-items:center;gap:4px;height:100%;padding:0 10px;border-radius:inherit;color:inherit;text-decoration:none;cursor:default;-webkit-tap-highlight-color:transparent}
+    \\.zw-tag__main{display:inline-flex;align-items:center;gap:4px;min-width:0;height:100%;padding:0 10px;border-radius:inherit;color:inherit;text-decoration:none;cursor:default;-webkit-tap-highlight-color:transparent}
     \\.zw-tag__main:hover{text-decoration:none}
     \\a.zw-tag__main:hover{background:color-mix(in srgb,var(--tone) 12%,transparent)}
+    \\.zw-tag__text{min-width:0;overflow:hidden;text-overflow:ellipsis}
     \\.zw-tag__icon{flex:none;font-size:1.05em;line-height:1}
     \\.zw-tag:has(.zw-tag__x) .zw-tag__main{padding-right:4px}
     \\.zw-tag__x{appearance:none;position:relative;flex:none;display:grid;place-items:center;width:18px;height:18px;margin-right:3px;border:0;border-radius:50%;background:transparent;color:inherit;font:600 13px/1 var(--font);cursor:default;
@@ -99,7 +100,9 @@ pub const Tag = struct {
             try writeEscaped(w, p.icon);
             try w.writeAll("</span>");
         }
+        try w.writeAll("<span class=\"zw-tag__text\">");
         try writeEscaped(w, p.text);
+        try w.writeAll("</span>");
         try w.writeAll(if (p.href.len > 0 and !chip and !p.disabled) "</a>" else "</span>");
         if (p.remove != null and !chip) {
             var z = p.remove.?;
@@ -124,22 +127,22 @@ pub fn tag(p: Props) Tag {
 }
 
 fn expectHtml(expected: []const u8, p: Props) !void {
-    var buf: [512]u8 = undefined;
+    var buf: [640]u8 = undefined;
     var w: Writer = .fixed(&buf);
     try tag(p).render(&w);
     try std.testing.expectEqualStrings(expected, w.buffered());
 }
 
 test tag {
-    try expectHtml("<span class=\"zw-tag zw-tag--accent\"><span class=\"zw-tag__main\">a&lt;b</span></span>", .{ .text = "a<b" });
+    try expectHtml("<span class=\"zw-tag zw-tag--accent\"><span class=\"zw-tag__main\"><span class=\"zw-tag__text\">a&lt;b</span></span></span>", .{ .text = "a<b" });
     try expectHtml(
-        "<span class=\"zw-tag zw-tag--red zw-tag--small\"><span class=\"zw-tag__main\"><span class=\"zw-tag__icon\" aria-hidden=\"true\">!</span>x</span>" ++
+        "<span class=\"zw-tag zw-tag--red zw-tag--small\"><span class=\"zw-tag__main\"><span class=\"zw-tag__icon\" aria-hidden=\"true\">!</span><span class=\"zw-tag__text\">x</span></span>" ++
             "<button type=\"button\" class=\"zw-tag__x\" aria-label=\"Remove x\" z-delete=\"/t\" z-target=\"closest .zw-tag\" z-swap=\"delete\">×</button></span>",
         .{ .text = "x", .tone = .red, .size = .small, .icon = "!", .remove = .{ .delete = "/t", .target = "#other", .swap = .inner } },
     );
-    try expectHtml("<span class=\"zw-tag zw-tag--accent zw-tag--selected\"><a class=\"zw-tag__main\" href=\"/q\" aria-current=\"true\">q</a></span>", .{ .text = "q", .href = "/q", .selected = true });
+    try expectHtml("<span class=\"zw-tag zw-tag--accent zw-tag--selected\"><a class=\"zw-tag__main\" href=\"/q\" aria-current=\"true\"><span class=\"zw-tag__text\">q</span></a></span>", .{ .text = "q", .href = "/q", .selected = true });
     try expectHtml(
-        "<label class=\"zw-tag zw-tag--gray zw-tag--chip\"><input type=\"checkbox\" name=\"s\" value=\"open\" checked><span class=\"zw-tag__main\">open</span></label>",
+        "<label class=\"zw-tag zw-tag--gray zw-tag--chip\"><input type=\"checkbox\" name=\"s\" value=\"open\" checked><span class=\"zw-tag__main\"><span class=\"zw-tag__text\">open</span></span></label>",
         .{ .text = "open", .tone = .gray, .name = "s", .selected = true },
     );
 }
