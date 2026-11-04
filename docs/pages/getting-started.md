@@ -5,14 +5,14 @@ zigworks needs **Zig 0.17.1** and nothing else. The repository pins it in `mise.
 ## Run the examples
 
 ```sh
-git clone <your copy of zigworks> && cd zigworks
-zig build run       # todo app on http://127.0.0.1:8080
+git clone https://github.com/olibuijr/zigworks && cd zigworks
+zig build run       # todo app on http://localhost:8080
 zig build gallery   # every component in a preferences window
 zig build scene     # three.js island
 zig build docs      # this site
 ```
 
-Set `PORT` to use another port: `PORT=3000 zig build run`.
+Apps listen on every interface (`0.0.0.0`), so they are reachable on your LAN. Set `HOST=127.0.0.1` to keep an app local, and `PORT` to use another port: `PORT=3000 zig build run`.
 
 ## Add it to your project
 
