@@ -7,26 +7,31 @@ const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
 
 pub const css =
-    \\.zw-toasts{position:fixed;top:12px;left:50%;translate:-50% 0;z-index:50;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;width:max-content;max-width:calc(100vw - 32px)}
-    \\.zw-toast{display:flex;align-items:center;gap:10px;min-height:40px;max-width:100%;padding:8px 16px 8px 12px;border-radius:999px;font:var(--body);font-weight:500;color:var(--label);
-    \\--glass:var(--glass-thick);pointer-events:auto;animation:zw-toast-in var(--dur-bouncy) var(--spring-bouncy) both}
+    \\.zw-toasts{position:fixed;top:12px;left:50%;translate:-50%;z-index:50;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;width:max-content;max-width:calc(100vw - 32px)}
+    \\.zw-toast{display:flex;align-items:center;gap:10px;min-height:40px;max-width:100%;padding:8px 16px 8px 12px;border-radius:999px;font:var(--body);font-weight:500;color:var(--label);--glass:var(--glass-thick);pointer-events:auto;animation:zw-toast-in var(--dur-bouncy) var(--spring-bouncy) both;
+    \\  &.zw-leave{animation:zw-toast-out 260ms ease both}
+    \\  &:has(.zw-toast-x:checked){display:none}
+    \\  @media (pointer:coarse){min-height:44px}
+    \\}
     \\.zw-toast-host{display:contents}
     \\.zw-toast-text{min-width:0;overflow-wrap:anywhere}
-    \\.zw-toast-icon{position:relative;flex:none;width:16px;height:16px;border-radius:50%;background:var(--c,var(--accent));box-shadow:0 0 8px color-mix(in srgb,var(--c,var(--accent)) 55%,transparent)}
-    \\.zw-toast-icon::before{content:"";position:absolute;inset:0;background:#fff;mask:var(--g) center/100% no-repeat}
+    \\.zw-toast-icon{position:relative;flex:none;width:16px;height:16px;border-radius:50%;background:var(--c,var(--accent));box-shadow:0 0 8px color-mix(in srgb,var(--c,var(--accent)) 55%,transparent);
+    \\  &::before{content:"";position:absolute;inset:0;background:#fff;mask:var(--g) center/100% no-repeat}
+    \\}
     \\.zw-toast--info{--g:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M8 7.4v4M8 4.9v.1'/%3E%3C/svg%3E")}
     \\.zw-toast--success{--c:var(--green);--g:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.7 8.3l2.2 2.2 4.4-4.8'/%3E%3C/svg%3E")}
     \\.zw-toast--warning{--c:var(--orange);--g:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M8 4.4v4M8 11.2v.1'/%3E%3C/svg%3E")}
     \\.zw-toast--error{--c:var(--red);--g:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8'/%3E%3C/svg%3E")}
-    \\.zw-toast-action{appearance:none;flex:none;height:28px;margin:-4px -8px -4px 0;padding:0 10px;border:0;border-radius:999px;background:transparent;color:var(--accent);font:inherit;font-weight:600;cursor:default;white-space:nowrap}
-    \\.zw-toast-action:hover{background:var(--fill)}
-    \\.zw-toast-x{appearance:none;position:relative;flex:none;width:28px;height:28px;margin:-4px -8px -4px -4px;border:0;border-radius:50%;background:transparent;cursor:default}
-    \\.zw-toast-x::before{content:"";position:absolute;left:50%;top:50%;width:22px;height:22px;translate:-50% -50%;border-radius:50%;transition:background-color var(--speed);
-    \\background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='%23888' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M2.5 2.5l5 5M7.5 2.5l-5 5'/%3E%3C/svg%3E") center/10px no-repeat var(--fill)}
-    \\.zw-toast-x:hover::before{background-color:var(--fill-strong)}
-    \\.zw-toast:has(.zw-toast-x:checked){display:none}
-    \\@media (pointer:coarse){.zw-toast{min-height:44px}.zw-toast-action{height:44px;margin-block:-8px}.zw-toast-x{width:44px;height:44px;margin-block:-8px}}
-    \\.zw-toast.zw-leave{animation:zw-toast-out 260ms ease both}
+    \\.zw-toast-action,.zw-toast-x{appearance:none;flex:none;border:0;background:transparent;cursor:default}
+    \\.zw-toast-action{height:28px;margin:-4px -8px -4px 0;padding:0 10px;border-radius:999px;color:var(--accent);font:inherit;font-weight:600;white-space:nowrap;
+    \\  &:hover{background:var(--fill)}
+    \\  @media (pointer:coarse){height:44px;margin-block:-8px}
+    \\}
+    \\.zw-toast-x{position:relative;width:28px;height:28px;margin:-4px -8px -4px -4px;border-radius:50%;
+    \\  &::before{content:"";position:absolute;inset:0;margin:auto;width:22px;height:22px;border-radius:50%;transition:background-color var(--speed);background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='%23888' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M2.5 2.5l5 5M7.5 2.5l-5 5'/%3E%3C/svg%3E") center/10px no-repeat var(--fill)}
+    \\  &:hover::before{background-color:var(--fill-strong)}
+    \\  @media (pointer:coarse){width:44px;height:44px;margin-block:-8px}
+    \\}
     \\@keyframes zw-toast-in{from{opacity:0;translate:0 -24px;scale:.85}}
     \\@keyframes zw-toast-out{to{opacity:0;translate:0 -12px;scale:.92}}
     \\
