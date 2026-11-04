@@ -2,6 +2,29 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [SemVer](https://semver.org/).
 
+**Releasing:** bump the version in `build.zig.zon`, `src/zigworks.zig` (`version`) and the README
+install snippet (`#vX.Y.Z`), rename `[Unreleased]` to the version and date, then tag `vX.Y.Z`.
+
+## [0.5.1] - 2026-11-04
+
+Codebase hygiene: less code, fewer surprises, same API.
+
+### Changed
+- `+` stays literal in route params and static file paths (only form bodies and query strings decode it as a space).
+- Built-in assets (`/_zw/z.js`, `/_zw/zw.css`) send an `ETag` and answer `304 Not Modified`.
+- Per-connection memory is bounded.
+- Markdown blockquotes no longer stop at 64 lines.
+- Shared base CSS for the focus ring, `.zw-input` and `.zw-sr`; components reuse it instead of repeating it.
+- glass.js lights only glass surfaces and keeps at most 64 refraction lenses (sizes rounded to 2px), so resizing no longer grows memory.
+- z.js logs an error when a `z-target` matches nothing instead of dropping the response.
+- Prose styles use `@scope`.
+
+### Internal
+- Server tests run in-process.
+- e2e helpers shorten the browser tests; new tests cover the slider readout, textarea counter, stepper wrap, mixed checkbox, menu arrow keys, Ctrl+K search, sheet focus and the skip link; the three.js test skips when the CDN is unreachable.
+- All component unit tests run (68 unit tests).
+- One add-a-component checklist in the agents docs; size, Node and host facts corrected in the docs.
+
 ## [0.5.0] - 2026-11-04
 
 Every component reviewed and extended. All new props have defaults, so existing code compiles unchanged.

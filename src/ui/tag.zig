@@ -30,7 +30,7 @@ pub const css =
     \\.zw-tag--chip input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;appearance:none;cursor:default}
     \\.zw-tag--selected,.zw-tag:has(input:checked){color:var(--on-accent);background:var(--tone);box-shadow:inset 0 .5px 0 rgba(255,255,255,.35),0 0 0 .5px rgba(0,0,0,.08)}
     \\.zw-tag--selected a.zw-tag__main:hover{background:rgba(255,255,255,.12)}
-    \\.zw-tag:has(input:focus-visible){outline:3px solid color-mix(in srgb,var(--accent) 50%,transparent);outline-offset:1px}
+    \\.zw-tag:has(input:focus-visible){outline:var(--focus-ring);outline-offset:1px}
     \\.zw-tag--disabled{opacity:.4;pointer-events:none}
     \\.zw-tag.zw-busy{opacity:.6}
     \\.zw-tags{display:flex;flex-wrap:wrap;gap:6px}

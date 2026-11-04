@@ -41,4 +41,4 @@ Tests prove behavior; screenshots catch design flaws: cramped labels, broken ali
 
 ## Requirements
 
-`chromium` and `node` (18+) on the path. Set `CHROMIUM` to use another browser binary.
+`chromium` and `node` (22+, for the global `WebSocket`) on the path. Set `CHROMIUM` to use another browser binary.

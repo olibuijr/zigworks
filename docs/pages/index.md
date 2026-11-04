@@ -11,7 +11,7 @@ hero
 - **An HTTP server** on the Zig standard library, with keep-alive and a memory arena per request.
 - **Routes checked at compile time.** `"GET /todos/:id"` is parsed when you build, not when a request arrives.
 - **Svelte-style templates** compiled by `comptime`, escaped by default. A typo in a template is a build error.
-- **Interactivity without a JS framework.** `z-post`, `z-target` and `z-swap` attributes, like htmx, in a 6 KB script.
+- **Interactivity without a JS framework.** `z-post`, `z-target` and `z-swap` attributes, like htmx, in one script of about 18 KB (~7 KB gzipped), Liquid Glass runtime included.
 - **35 components** in Liquid Glass that follow the macOS Human Interface Guidelines, light and dark.
 - **Islands** for code that needs real JavaScript, such as three.js scenes.
 - **Browser tests** that drive Chromium directly, with no npm packages.

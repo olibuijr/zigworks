@@ -59,36 +59,20 @@ pub fn renderBlocks(w: *Writer, src: []const u8, fences: anytype) Writer.Error!v
         } else if (std.mem.eql(u8, line, "---")) {
             try w.writeAll("<hr>");
         } else if (line[0] == '>') {
-            var kind: []const u8 = "note";
-            var first = true;
-            try w.writeAll("<aside class=\"zw-callout zw-callout--");
-            var body: [64][]const u8 = undefined;
-            var n: usize = 0;
-            var l: ?[]const u8 = line;
-            while (l) |q| : (l = lines.next()) {
+            const first = std.mem.trim(u8, line[1..], " ");
+            const kind = calloutKind(first);
+            try w.print("<aside class=\"zw-callout zw-callout--{s}\"><p>", .{kind orelse "note"});
+            if (kind == null) try inline_(w, first);
+            var sep = kind == null;
+            while (lines.next()) |q| {
                 const t = std.mem.trimEnd(u8, q, " \r");
                 if (t.len == 0 or t[0] != '>') {
                     pending = q;
                     break;
                 }
-                const text = std.mem.trim(u8, t[1..], " ");
-                if (first) {
-                    first = false;
-                    if (calloutKind(text)) |k| {
-                        kind = k;
-                        continue;
-                    }
-                }
-                if (n < body.len) {
-                    body[n] = text;
-                    n += 1;
-                }
-            }
-            try w.writeAll(kind);
-            try w.writeAll("\"><p>");
-            for (body[0..n], 0..) |t, i| {
-                if (i > 0) try w.writeByte(' ');
-                try inline_(w, t);
+                if (sep) try w.writeByte(' ');
+                sep = true;
+                try inline_(w, std.mem.trim(u8, t[1..], " "));
             }
             try w.writeAll("</p></aside>");
         } else if (listItem(line)) |item| {
@@ -274,6 +258,21 @@ test "blocks" {
         "| A | B |\n|---|---|\n| `x` | y |\n",
     );
     try expectMd("<hr><p>x</p>", "---\nx");
+}
+
+test "quotes stream every line" {
+    try expectMd("<aside class=\"zw-callout zw-callout--important\"><p>Read <strong>this</strong> first.</p></aside>", "> [!IMPORTANT]\n> Read **this**\n> first.\n");
+    var src_buf: [1024]u8 = undefined;
+    var src: Writer = .fixed(&src_buf);
+    var want_buf: [1024]u8 = undefined;
+    var want: Writer = .fixed(&want_buf);
+    try want.writeAll("<aside class=\"zw-callout zw-callout--note\"><p>");
+    for (0..70) |i| {
+        try src.print("> l{d}\n", .{i});
+        try want.print("{s}l{d}", .{ if (i > 0) " " else "", i });
+    }
+    try want.writeAll("</p></aside>");
+    try expectMd(want.buffered(), src.buffered());
 }
 
 test "inline safety" {

@@ -9,12 +9,9 @@ pub const css =
     \\.zw-textarea{display:block;min-width:0}
     \\.zw-textarea label{display:block}
     \\.zw-textarea textarea{display:block;width:100%;min-height:calc(var(--rows) * 1lh + 16px);max-height:calc(var(--max-rows) * 1lh + 16px);field-sizing:content;resize:none;
-    \\font:13px/18px var(--font);letter-spacing:-.08px;color:var(--label);background:var(--content);border:0;border-radius:var(--radius-control);padding:8px 11px;outline:none;
-    \\box-shadow:var(--shadow);transition:box-shadow var(--dur) var(--spring)}
+    \\font:13px/18px var(--font);padding:8px 11px}
     \\.zw-textarea--fixed textarea{field-sizing:fixed;height:calc(var(--rows) * 1lh + 16px)}
     \\.zw-textarea--vertical textarea{resize:vertical}
-    \\.zw-textarea textarea::placeholder{color:var(--secondary);opacity:.75}
-    \\.zw-textarea textarea:focus{box-shadow:0 0 0 .5px var(--accent),0 0 0 4px color-mix(in srgb,var(--accent) 40%,transparent)}
     \\.zw-textarea textarea:disabled{opacity:.45}
     \\.zw-textarea textarea[readonly]{background:var(--fill);box-shadow:none}
     \\.zw-textarea textarea[aria-invalid=true]{box-shadow:0 0 0 1px var(--red)}
@@ -60,7 +57,7 @@ pub const Props = struct {
 };
 
 const src = "<div class=\"zw-textarea zw-textarea--{p.resize}{#if !p.grow} zw-textarea--fixed{/if}\"><label><span class=\"zw-sr\">{p.label}</span>" ++
-    "<textarea name=\"{p.name}\" placeholder=\"{p.placeholder}\" rows=\"{p.rows}\" style=\"--rows:{p.rows};--max-rows:{p.max_rows}\"" ++
+    "<textarea class=\"zw-input\" name=\"{p.name}\" placeholder=\"{p.placeholder}\" rows=\"{p.rows}\" style=\"--rows:{p.rows};--max-rows:{p.max_rows}\"" ++
     "{#if p.maxlength} maxlength=\"{p.maxlength}\"{/if}{#if p.required} required{/if}{#if p.disabled} disabled{/if}{#if p.readonly} readonly{/if}" ++
     "{#if described} aria-describedby=\"{#if msg}zw-{p.name}-msg{/if}{#if both} {/if}{#if p.maxlength}zw-{p.name}-count{/if}\"{/if}" ++
     "{#if p.invalid} aria-invalid=\"true\"{/if}{p.z}>{p.value}</textarea></label>" ++

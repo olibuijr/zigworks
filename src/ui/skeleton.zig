@@ -10,16 +10,15 @@ pub const css =
     \\.zw-skeleton{--sk-h:12px;--sk-d:40px;display:flex;flex-direction:column;gap:9px;width:100%;max-width:100%}
     \\.zw-skeleton i,.zw-skeleton span{display:block;height:var(--sk-h);border-radius:calc(var(--sk-h) / 2);background:linear-gradient(90deg,var(--fill) 30%,var(--fill-strong) 50%,var(--fill) 70%) 0 0/300% 100%;
     \\animation:zw-shimmer 1.6s ease-in-out infinite}
-    \\.zw-skeleton>span:last-child:not(:first-child){width:var(--sk-last,62%)}
+    \\.zw-skeleton span:last-child:not(:first-child){width:var(--sk-last,62%)}
     \\.zw-skeleton--still i,.zw-skeleton--still span{animation:none;background:var(--fill)}
     \\.zw-skeleton--block,.zw-skeleton--circle{display:block}
-    \\.zw-skeleton--block>i{height:var(--sk-h);border-radius:var(--radius-control)}
+    \\.zw-skeleton--block>i{border-radius:var(--radius-control)}
     \\.zw-skeleton--circle{width:var(--sk-d)}
     \\.zw-skeleton--circle>i{width:var(--sk-d);height:var(--sk-d);border-radius:50%}
     \\.zw-skeleton--media{flex-direction:row;align-items:center;gap:12px}
     \\.zw-skeleton--media>i{flex:none;width:var(--sk-d);height:var(--sk-d);border-radius:50%}
     \\.zw-skeleton--media>div{display:flex;flex-direction:column;gap:9px;flex:1;min-width:0}
-    \\.zw-skeleton--media>div>span:last-child:not(:first-child){width:var(--sk-last,62%)}
     \\@keyframes zw-shimmer{from{background-position:100% 0}to{background-position:0 0}}
     \\@media (forced-colors:active){.zw-skeleton i,.zw-skeleton span{forced-color-adjust:none;background:GrayText;opacity:.3}}
     \\

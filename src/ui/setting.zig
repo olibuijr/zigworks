@@ -27,72 +27,43 @@ pub const css =
     \\
 ;
 
-/// Everything the template needs: the props and the flags `setting` works out from them.
-pub fn Data(comptime Control: type) type {
+pub fn Props(comptime Control: type) type {
     return struct {
         label: []const u8,
-        description: []const u8,
-        icon: []const u8,
-        href: []const u8,
-        disabled: bool,
-        tag: []const u8,
-        link: bool,
-        ctl: bool,
-        ctl_text: bool,
-        control: Control,
+        control: ?Control = null,
+        description: []const u8 = "",
+        icon: []const u8 = "",
+        href: []const u8 = "",
+        disabled: bool = false,
     };
 }
 
-const src = "<{tag} class=\"zw-setting{#if link} zw-setting--link{/if}{#if disabled} zw-setting--disabled{/if}\"{#if link} href=\"{href}\"{/if}{#if disabled} disabled{/if}>" ++
-    "{#if icon}<span class=\"zw-setting-icon\" aria-hidden=\"true\">{icon}</span>{/if}" ++
-    "<span class=\"zw-setting-text\">{label}{#if description}<small class=\"zw-setting-desc\">{description}</small>{/if}</span>" ++
-    "{#if ctl}{#if ctl_text}<span class=\"zw-setting-value\">{control}</span>{:else}{control}{/if}{/if}</{tag}>";
+/// The props plus the flags `setting` works out from them.
+pub fn Data(comptime Control: type) type {
+    return struct { p: Props(Control), tag: []const u8, link: bool, ctl: bool, ctl_text: bool };
+}
+
+const src = "<{tag} class=\"zw-setting{#if link} zw-setting--link{/if}{#if p.disabled} zw-setting--disabled{/if}\"{#if link} href=\"{p.href}\"{/if}{#if p.disabled} disabled{/if}>" ++
+    "{#if p.icon}<span class=\"zw-setting-icon\" aria-hidden=\"true\">{p.icon}</span>{/if}" ++
+    "<span class=\"zw-setting-text\">{p.label}{#if p.description}<small class=\"zw-setting-desc\">{p.description}</small>{/if}</span>" ++
+    "{#if ctl}{#if ctl_text}<span class=\"zw-setting-value\">{p.control}</span>{:else}{p.control}{/if}{/if}</{tag}>";
 
 pub fn Setting(comptime Control: type) type {
     return zv.View(src, Data(Control));
 }
 
-const names = [_][]const u8{ "label", "control", "description", "icon", "href", "disabled" };
-
-fn checkProps(comptime P: type) void {
-    comptime {
-        for (@typeInfo(P).@"struct".field_names) |n| {
-            var ok = false;
-            for (names) |k| ok = ok or std.mem.eql(u8, n, k);
-            if (!ok) @compileError("unknown prop '" ++ n ++ "' for setting");
-        }
-    }
-}
-
-fn opt(p: anytype, comptime name: []const u8, default: anytype) @TypeOf(default) {
-    return if (comptime @hasField(@TypeOf(p), name)) @field(p, name) else default;
-}
-
-fn ControlOf(comptime P: type) type {
-    return if (@hasField(P, "control")) @FieldType(P, "control") else []const u8;
-}
-
 /// `setting(.{ .label = "Theme", .description = "Applies to all windows", .control = ui.segmented(...) })`
 /// `setting(.{ .label = "Wi-Fi", .icon = "📶", .href = "/wifi", .control = "Home" })`
-pub fn setting(p: anytype) Setting(ControlOf(@TypeOf(p))) {
-    const P = @TypeOf(p);
-    checkProps(P);
-    const Control = ControlOf(P);
-    const href = opt(p, "href", @as([]const u8, ""));
-    const disabled = opt(p, "disabled", false);
-    const text = @typeInfo(Control) == .pointer;
+pub fn setting(p: anytype) Setting(zv.Slot(@TypeOf(p), "control")) {
+    const Control = zv.Slot(@TypeOf(p), "control");
+    const q = zv.props(Props(Control), p);
     return .{ .data = .{
-        .label = p.label,
-        .description = opt(p, "description", @as([]const u8, "")),
-        .icon = opt(p, "icon", @as([]const u8, "")),
-        .href = href,
-        .disabled = disabled,
+        .p = q,
         // A disabled row is a fieldset: it disables the controls inside but keeps them readable.
-        .tag = if (disabled) "fieldset" else if (href.len > 0) "a" else "div",
-        .link = href.len > 0 and !disabled,
-        .ctl = if (comptime @hasField(P, "control")) (if (text) p.control.len > 0 else true) else false,
-        .ctl_text = text,
-        .control = if (comptime @hasField(P, "control")) p.control else "",
+        .tag = if (q.disabled) "fieldset" else if (q.href.len > 0) "a" else "div",
+        .link = q.href.len > 0 and !q.disabled,
+        .ctl = zv.filled(q.control),
+        .ctl_text = @typeInfo(Control) == .pointer,
     } };
 }
 

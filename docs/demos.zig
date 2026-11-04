@@ -89,10 +89,9 @@ pub const TodoRow = zw.View(
 , struct { check: ui.Check, title: []const u8, done: bool, del: ui.Button });
 
 pub fn todoRow(arena: std.mem.Allocator, done: bool, title: []const u8) !TodoRow {
-    const t = try encode(arena, title);
     return .{ .data = .{
         .check = ui.check(.{ .on = done, .label = title, .z = .{
-            .post = try std.fmt.allocPrint(arena, "/demo/toggle?d={d}&t={s}", .{ @intFromBool(done), t }),
+            .post = try std.fmt.allocPrint(arena, "/demo/toggle?d={d}&t={f}", .{ @intFromBool(done), std.fmt.alt(std.Uri.Component{ .raw = title }, .formatEscaped) }),
             .target = "closest li",
             .swap = .outer,
         } }),
@@ -100,16 +99,6 @@ pub fn todoRow(arena: std.mem.Allocator, done: bool, title: []const u8) !TodoRow
         .done = done,
         .del = ui.button(.{ .label = "Delete", .variant = .destructive, .z = .{ .delete = "/demo/todo", .target = "closest li", .swap = .delete } }),
     } };
-}
-
-/// Percent-encodes a query value.
-fn encode(arena: std.mem.Allocator, s: []const u8) ![]const u8 {
-    var out: std.ArrayList(u8) = .empty;
-    for (s) |ch| switch (ch) {
-        'a'...'z', 'A'...'Z', '0'...'9', '-', '.', '_', '~' => try out.append(arena, ch),
-        else => try out.print(arena, "%{X:0>2}", .{ch}),
-    };
-    return out.items;
 }
 
 fn hero(w: *Writer) Writer.Error!void {

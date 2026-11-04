@@ -8,11 +8,8 @@ const zv = @import("../view.zig");
 
 pub const css =
     \\.zw-tabs{display:flex;flex-direction:column;align-items:center;gap:14px}
-    \\.zw-tabs--full{align-items:stretch}.zw-tabs--full>.zw-seg{display:grid;width:100%}
-    \\.zw-tabs>.zw-seg{grid-auto-columns:minmax(0,1fr)}
-    \\.zw-tabs>.zw-seg label{gap:6px;min-width:0}
-    \\.zw-tabs>.zw-seg label:has(:disabled){opacity:.4;pointer-events:none}
-    \\.zw-tab-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    \\.zw-tabs--full{align-items:stretch}
+    \\.zw-tabs>.zw-seg label:has(:disabled){pointer-events:none}
     \\.zw-tab-badge{flex:none;min-width:18px;padding:0 6px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:12px;line-height:18px;font-weight:600;font-variant-numeric:tabular-nums;text-align:center}
     \\@media (max-width:480px){.zw-tabs>.zw-seg label{padding:0 8px}}
     \\@media (pointer:coarse){.zw-tabs>.zw-seg label{height:40px}}
@@ -46,9 +43,8 @@ pub fn Tabs(comptime Panels: type) type {
         pub fn render(self: @This(), w: *Writer) Writer.Error!void {
             const names = @typeInfo(Panels).@"struct".field_names;
             std.debug.assert(self.labels.len == names.len);
-            try w.writeAll("<div class=\"zw-tabs");
-            if (self.full_width) try w.writeAll(" zw-tabs--full");
-            try w.writeAll("\"><fieldset class=\"zw-seg\" role=\"radiogroup\" aria-label=\"");
+            try w.writeAll(if (self.full_width) "<div class=\"zw-tabs zw-tabs--full\"><fieldset class=\"zw-seg zw-seg--full\"" else "<div class=\"zw-tabs\"><fieldset class=\"zw-seg\"");
+            try w.writeAll(" role=\"radiogroup\" aria-label=\"");
             try zv.writeEscaped(w, if (self.label.len > 0) self.label else self.id);
             try w.print("\" style=\"--n:{d}\"><span class=\"zw-seg-pill zw-glass\" aria-hidden=\"true\"></span>", .{self.labels.len});
             for (self.labels, 0..) |l, i| {
@@ -59,7 +55,7 @@ pub fn Tabs(comptime Panels: type) type {
                 try w.writeByte('"');
                 if (i == self.selected) try w.writeAll(" checked");
                 if (std.mem.findScalar(usize, self.disabled, i) != null) try w.writeAll(" disabled");
-                try w.writeAll("><span class=\"zw-tab-text\">");
+                try w.writeAll("><span class=\"zw-seg-text\">");
                 try zv.writeEscaped(w, l);
                 try w.writeAll("</span>");
                 if (i < self.badges.len and self.badges[i].len > 0) {
@@ -74,17 +70,12 @@ pub fn Tabs(comptime Panels: type) type {
                 try w.writeAll("<div class=\"zw-tab-panel\" role=\"tabpanel\" aria-label=\"");
                 try zv.writeEscaped(w, self.labels[i]);
                 try w.writeAll("\">");
-                try renderAny(w, @field(self.panels, name));
+                try zv.writeValue(w, @field(self.panels, name));
                 try w.writeAll("</div>");
             }
             try w.writeAll("</div>");
         }
     };
-}
-
-fn renderAny(w: *Writer, v: anytype) Writer.Error!void {
-    if (@TypeOf(v) == []const u8 or @typeInfo(@TypeOf(v)) == .pointer) return zv.writeEscaped(w, v);
-    return v.render(w);
 }
 
 pub fn tabs(p: anytype) Tabs(@TypeOf(p.panels)) {
@@ -98,7 +89,7 @@ test tabs {
     try tabs(.{ .id = "t", .labels = &.{ "A", "B <b>" }, .panels = .{ "one", "two" }, .badges = &.{ "", "3" }, .disabled = &.{1}, .full_width = true }).render(&w);
     const out = w.buffered();
     try std.testing.expect(std.mem.find(u8, out, "class=\"zw-tabs zw-tabs--full\"") != null);
-    try std.testing.expect(std.mem.find(u8, out, "value=\"A\" checked><span class=\"zw-tab-text\">A</span></label>") != null);
+    try std.testing.expect(std.mem.find(u8, out, "value=\"A\" checked><span class=\"zw-seg-text\">A</span></label>") != null);
     try std.testing.expect(std.mem.find(u8, out, "value=\"B &lt;b&gt;\" disabled>") != null);
     try std.testing.expect(std.mem.find(u8, out, "<span class=\"zw-tab-badge\">3</span>") != null);
     try std.testing.expect(std.mem.find(u8, out, "aria-label=\"A\">one</div>") != null);

@@ -20,7 +20,7 @@ htmx-style interactivity, and a Liquid Glass component library with a macOS look
 
 - **Pure Zig, zero dependencies.** Standard library only: HTTP/1.1 with keep-alive and a memory arena per request.
 - **Checked at compile time.** Routes like `"GET /todos/:id"` and templates are parsed when you build, so typos fail the build, not a request.
-- **Server-rendered, works without JS.** z.js (~6 KB) adds htmx-style requests and swaps with a few HTML attributes.
+- **Server-rendered, works without JS.** z.js (about 18 KB with the glass runtime, ~7 KB gzipped) adds htmx-style requests and swaps with a few HTML attributes.
 - **35 components.** macOS HIG defaults, Liquid Glass on controls (real refraction in Chromium), spring motion, light and dark mode.
 - **Accessible by default.** Honours Reduce Motion, Reduce Transparency and Increase Contrast, uses no stock browser popups, and never zooms into fields on phones.
 - **Islands for client JS.** Mount three.js or any ES module where you need it.
@@ -44,7 +44,7 @@ Apps listen on every interface (`0.0.0.0`) so they are reachable on your LAN. Se
 ### Use it in your project
 
 ```sh
-zig fetch --save git+https://github.com/olibuijr/zigworks#v0.5.0
+zig fetch --save git+https://github.com/olibuijr/zigworks#v0.5.1
 ```
 
 ```zig
@@ -193,8 +193,7 @@ A `sidebar` passed to `layout` makes a two-column app; on narrow screens it slid
 `button(.{ .opens = "id" })` toggles a `menu` or `sheet` (Popover API + CSS anchor positioning, no JS).
 `id`s used with `opens` must be valid CSS identifiers.
 
-**Add a component:** create `src/ui/<name>.zig` with `pub const css` and a constructor that returns a
-named `View` type, then import, export and list it in `src/ui.zig`. Add it to the gallery and to `tests/e2e.mjs`.
+**Add a component:** follow the checklist in [docs/pages/agents.md](docs/pages/agents.md#add-a-component).
 
 ## z.js
 
@@ -286,8 +285,8 @@ any console error.
 
 Issues and pull requests are welcome. Keep changes small and in the style of the code around them:
 
-- One component per file in `src/ui/`, with its own CSS, a docs page in `docs/pages/components/`
-  and a demo in `docs/demos.zig`.
+- One component per file in `src/ui/`, with its own CSS. A new component touches several files;
+  the [checklist](docs/pages/agents.md#add-a-component) lists them all.
 - `zig build test` and `zig build e2e` must pass. Add a test for new behaviour.
 - Note user-facing changes in [CHANGELOG.md](CHANGELOG.md) ([Keep a Changelog](https://keepachangelog.com), [SemVer](https://semver.org)).
 

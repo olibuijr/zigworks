@@ -11,7 +11,7 @@
 //!   static.zig  public/ directory
 const std = @import("std");
 
-pub const version = "0.5.0";
+pub const version = "0.5.1";
 
 pub const serve = @import("server.zig").serve;
 pub const Options = @import("server.zig").Options;
@@ -40,4 +40,5 @@ test {
     _ = @import("static.zig");
     _ = @import("css.zig");
     _ = @import("ui.zig");
+    _ = @import("server.zig");
 }

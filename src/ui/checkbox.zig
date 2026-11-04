@@ -15,7 +15,6 @@ pub const css =
     \\.zw-checkbox input:checked::after{scale:1}
     \\.zw-checkbox input[data-mixed]:not(:checked)::after,.zw-checkbox input:indeterminate:not(:checked)::after{width:8px;height:0;margin:0;border-width:0 0 2px;rotate:0;scale:1}
     \\.zw-checkbox:active input{scale:.85;transition-duration:var(--dur-snappy)}
-    \\.zw-checkbox input:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 50%,transparent);outline-offset:1px}
     \\.zw-checkbox input[aria-invalid=true]:not(:checked){box-shadow:inset 0 0 0 1.5px var(--red)}
     \\.zw-checkbox input[aria-invalid=true]:focus-visible{outline-color:color-mix(in srgb,var(--red) 50%,transparent)}
     \\.zw-checkbox__txt{display:flex;flex-direction:column;min-width:0}

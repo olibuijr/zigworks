@@ -15,7 +15,6 @@ pub const css =
     \\.zw-disclosure[open]>summary::before{rotate:45deg}
     \\.zw-disclosure>summary:hover{background:var(--fill)}
     \\.zw-disclosure>summary:active{background:color-mix(in srgb,var(--fill) 70%,var(--separator))}
-    \\.zw-disclosure>summary:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 50%,transparent)}
     \\.zw-disclosure-title{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
     \\.zw-disclosure-detail{flex:none;margin-left:auto;max-width:50%;font:var(--callout);color:var(--secondary);text-align:end;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     \\.zw-disclosure::details-content{height:0;opacity:0;overflow:clip;transition:height var(--dur) var(--spring),opacity 200ms ease,content-visibility var(--dur) allow-discrete}

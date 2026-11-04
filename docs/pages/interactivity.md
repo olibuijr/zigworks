@@ -1,6 +1,6 @@
 # Interactivity
 
-z.js is a 6 KB script (unminified) that every `ui.layout` page loads. It reads `z-*` attributes, sends requests and swaps the HTML the server returns into the page. Your handlers stay plain functions that return HTML.
+z.js is a small unminified script that every `ui.layout` page loads: about 10 KB, plus 8 KB of Liquid Glass runtime served with it as `/_zw/z.js` (about 7 KB gzipped together). It reads `z-*` attributes, sends requests and swaps the HTML the server returns into the page. Your handlers stay plain functions that return HTML.
 
 ```zig
 const add: ui.Z = .{ .post = "/todos", .target = "#todos", .swap = .beforeend };
