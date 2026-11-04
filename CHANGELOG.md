@@ -5,6 +5,11 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 **Releasing:** bump the version in `build.zig.zon`, `src/zigworks.zig` (`version`) and the README
 install snippet (`#vX.Y.Z`), rename `[Unreleased]` to the version and date, then tag `vX.Y.Z`.
 
+## [0.6.1] - 2026-11-04
+
+### Fixed
+- `zig build test` printed a "failed command" block on every fresh run, which looked like an intermittent test failure. Every test passed: the build runner shows any test output under that header, and the 500-response test logged an expected warning. The test now silences it, so a clean run prints nothing.
+
 ## [0.6.0] - 2026-11-04
 
 Motion for every action.

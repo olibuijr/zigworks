@@ -224,6 +224,9 @@ test "404, route params, pass, 500, 204" {
         .{ "GET /boom HTTP/1.1\r\n\r\n", "HTTP/1.1 500 Internal Server Error\r\n", "internal server error" },
         .{ "POST /nothing HTTP/1.1\r\ncontent-length: 2\r\n\r\nok", "HTTP/1.1 204 No Content\r\n", "" },
     };
+    // /boom's 500 logs a warning on purpose; keep it out of the test output.
+    std.testing.log_level = .err;
+    defer std.testing.log_level = .warn;
     for (cases) |case| {
         const res = try testServe(test_app, case[0]);
         defer std.testing.allocator.free(res);
