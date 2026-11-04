@@ -84,10 +84,16 @@ fn connection(comptime app: anytype, state: *const State, stream: Io.net.Stream)
     var r = stream.reader(io, &recv);
     var w = stream.writer(io, &send);
     var server = http.Server.init(&r.interface, &w.interface);
+    requests(app, state, &server);
+}
+
+/// Answers requests until the connection closes or fails.
+fn requests(comptime app: anytype, state: *const State, server: *http.Server) void {
     var arena: std.heap.ArenaAllocator = .init(state.gpa);
     defer arena.deinit();
     while (server.reader.state == .ready) {
-        _ = arena.reset(.retain_capacity);
+        // Bounded so one large static file doesn't pin its memory for the whole keep-alive connection.
+        _ = arena.reset(.{ .retain_with_limit = 256 * 1024 });
         var req = server.receiveHead() catch |err| switch (err) {
             error.HttpConnectionClosing => return,
             else => return log.debug("closing connection: {t}", .{err}),
@@ -121,7 +127,7 @@ fn handle(comptime app: anytype, state: *const State, arena: std.mem.Allocator, 
     }
     route(app, state, &c) catch |err| {
         if (err == error.WriteFailed) return err;
-        log.err("{t} {s}: {t}", .{ c.method, c.path, err });
+        log.warn("{t} {s}: {t}", .{ c.method, c.path, err }); // warn: the test runner fails on err logs
         if (!c.responded) try c.send(.internal_server_error, "text/plain", "internal server error");
     };
     if (!c.responded) try c.send(.no_content, "text/plain", "");
@@ -145,8 +151,15 @@ fn route(comptime app: anytype, state: *const State, c: *Ctx) !void {
     try c.send(.not_found, "text/plain", "not found");
 }
 
-fn asset(c: *Ctx, content_type: []const u8, body: []const u8) !void {
+/// Revalidated on every use (no-cache) but answered with 304 while the ETag matches.
+fn asset(c: *Ctx, content_type: []const u8, comptime body: []const u8) !void {
+    const etag = comptime etag: {
+        @setEvalBranchQuota(1_000_000); // Wyhash over ~45 KB at comptime
+        break :etag std.fmt.comptimePrint("\"{x}\"", .{std.hash.Wyhash.hash(0, body)});
+    };
     try c.setHeader("cache-control", "no-cache");
+    try c.setHeader("etag", etag);
+    if (std.mem.eql(u8, c.header("if-none-match") orelse "", etag)) return c.send(.not_modified, content_type, "");
     try c.send(.ok, content_type, body);
 }
 
@@ -156,4 +169,123 @@ fn tooLarge(c: *Ctx) !void {
     c.responded = true;
     try c.req.respond("request body too large", .{ .status = .payload_too_large, .keep_alive = false });
     return error.BodyTooLarge;
+}
+
+/// Runs `raw` (one or more requests) through the request loop without sockets; returns the raw responses.
+fn testServe(comptime app: anytype, raw: []const u8) ![]u8 {
+    var in: Io.Reader = .fixed(raw);
+    var out: Io.Writer.Allocating = .init(std.testing.allocator);
+    defer out.deinit();
+    var server = http.Server.init(&in, &out.writer);
+    const state: State = .{ .io = std.testing.io, .gpa = std.testing.allocator, .opts = .{ .public = null, .max_body = 16 }, .public = null };
+    requests(app, &state, &server);
+    return out.toOwnedSlice();
+}
+
+const test_app = .{
+    .routes = .{
+        .{ "GET /hello/:name", struct {
+            fn h(c: *Ctx) !void {
+                try c.text(c.param("name").?);
+            }
+        }.h },
+        .{ "GET /:page", struct {
+            fn h(c: *Ctx) !void {
+                c.pass();
+            }
+        }.h },
+        .{ "GET /boom", struct {
+            fn h(_: *Ctx) !void {
+                return error.Boom;
+            }
+        }.h },
+        .{ "POST /nothing", struct {
+            fn h(_: *Ctx) !void {}
+        }.h },
+        .{ "GET /go", struct {
+            fn h(c: *Ctx) !void {
+                try c.redirect("/there");
+            }
+        }.h },
+    },
+};
+
+fn expectResponse(res: []const u8, status_line: []const u8, body: []const u8) !void {
+    try std.testing.expectStringStartsWith(res, status_line);
+    try std.testing.expectStringEndsWith(res, "\r\n\r\n" ++ body);
+}
+
+test "404, route params, pass, 500, 204" {
+    const cases = [_]struct { []const u8, []const u8, []const u8 }{
+        .{ "GET /nope/x HTTP/1.1\r\n\r\n", "HTTP/1.1 404 Not Found\r\n", "not found" },
+        .{ "GET /hello/w%C3%B6rld HTTP/1.1\r\n\r\n", "HTTP/1.1 200 OK\r\n", "w\xc3\xb6rld" },
+        .{ "GET /about HTTP/1.1\r\n\r\n", "HTTP/1.1 404 Not Found\r\n", "not found" },
+        .{ "GET /boom HTTP/1.1\r\n\r\n", "HTTP/1.1 500 Internal Server Error\r\n", "internal server error" },
+        .{ "POST /nothing HTTP/1.1\r\ncontent-length: 2\r\n\r\nok", "HTTP/1.1 204 No Content\r\n", "" },
+    };
+    for (cases) |case| {
+        const res = try testServe(test_app, case[0]);
+        defer std.testing.allocator.free(res);
+        try expectResponse(res, case[1], case[2]);
+    }
+}
+
+test "HEAD on a GET route sends headers only" {
+    const res = try testServe(test_app, "HEAD /hello/abc HTTP/1.1\r\n\r\n");
+    defer std.testing.allocator.free(res);
+    try expectResponse(res, "HTTP/1.1 200 OK\r\n", "");
+    try std.testing.expect(std.mem.find(u8, res, "content-length: 3\r\n") != null);
+}
+
+test "body above max_body gets 413 and closes" {
+    const res = try testServe(test_app, "POST /nothing HTTP/1.1\r\ncontent-length: 100\r\n\r\nx" ++
+        "GET /hello/a HTTP/1.1\r\n\r\n");
+    defer std.testing.allocator.free(res);
+    try expectResponse(res, "HTTP/1.1 413 Payload Too Large\r\n", "request body too large");
+    try std.testing.expect(std.mem.find(u8, res, "connection: close\r\n") != null);
+}
+
+test "app.not_found" {
+    const app = .{ .routes = .{}, .not_found = struct {
+        fn h(c: *Ctx) !void {
+            try c.text("custom");
+        }
+    }.h };
+    const res = try testServe(app, "GET /x HTTP/1.1\r\n\r\n");
+    defer std.testing.allocator.free(res);
+    try expectResponse(res, "HTTP/1.1 404 Not Found\r\n", "custom");
+}
+
+test "built-in css: content type, ETag, 304" {
+    const res = try testServe(test_app, "GET /_zw/zw.css HTTP/1.1\r\n\r\n");
+    defer std.testing.allocator.free(res);
+    try std.testing.expectStringStartsWith(res, "HTTP/1.1 200 OK\r\n");
+    try std.testing.expect(std.mem.find(u8, res, "content-type: text/css; charset=utf-8\r\n") != null);
+    const start = (std.mem.find(u8, res, "etag: ") orelse return error.NoEtag) + "etag: ".len;
+    const etag = res[start..][0..std.mem.findScalar(u8, res[start..], '\r').?];
+
+    const req = try std.fmt.allocPrint(std.testing.allocator, "GET /_zw/zw.css HTTP/1.1\r\nif-none-match: {s}\r\n\r\n", .{etag});
+    defer std.testing.allocator.free(req);
+    const res304 = try testServe(test_app, req);
+    defer std.testing.allocator.free(res304);
+    try expectResponse(res304, "HTTP/1.1 304 Not Modified\r\n", "");
+}
+
+test "redirect: 303 for pages, z-redirect for z.js" {
+    const page = try testServe(test_app, "GET /go HTTP/1.1\r\n\r\n");
+    defer std.testing.allocator.free(page);
+    try expectResponse(page, "HTTP/1.1 303 See Other\r\n", "");
+    try std.testing.expect(std.mem.find(u8, page, "location: /there\r\n") != null);
+
+    const partial = try testServe(test_app, "GET /go HTTP/1.1\r\nz-request: 1\r\n\r\n");
+    defer std.testing.allocator.free(partial);
+    try expectResponse(partial, "HTTP/1.1 204 No Content\r\n", "");
+    try std.testing.expect(std.mem.find(u8, partial, "z-redirect: /there\r\n") != null);
+}
+
+test "keep-alive: two requests, two responses" {
+    const res = try testServe(test_app, "GET /hello/a HTTP/1.1\r\n\r\nGET /hello/b HTTP/1.1\r\n\r\n");
+    defer std.testing.allocator.free(res);
+    try std.testing.expectEqual(2, std.mem.count(u8, res, "HTTP/1.1 200 OK\r\n"));
+    try std.testing.expectStringEndsWith(res, "\r\n\r\nb");
 }
