@@ -140,6 +140,8 @@ pub const Tokens = struct {
     radius_control: []const u8 = "8px",
     radius_panel: []const u8 = "20px",
     space: []const u8 = "16px",
+    /// Keyboard focus outline, shared by the global :focus-visible rule and components.
+    focus_ring: []const u8 = "3px solid color-mix(in srgb,var(--accent) 50%,transparent)",
     /// backdrop-filter of regular and clear glass. Chromium adds a refraction lens in front (glass.js).
     glass_filter: []const u8 = "blur(14px) saturate(190%) brightness(1.03)",
     glass_filter_clear: []const u8 = "blur(1.5px) saturate(170%) brightness(1.08)",
@@ -198,7 +200,7 @@ const base =
     \\::selection{background:color-mix(in srgb,var(--accent) 30%,transparent)}
     \\h1{font:var(--large-title);letter-spacing:.22px}h2{font:var(--title2);font-weight:700;letter-spacing:-.43px}h3{font:var(--title3);font-weight:600;letter-spacing:-.23px}
     \\a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
-    \\:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 50%,transparent);outline-offset:1px}
+    \\:focus-visible{outline:var(--focus-ring);outline-offset:1px}
     \\code{font-family:var(--mono);font-size:12px}
     \\.zw-stack{display:flex;flex-direction:column;gap:var(--space)}
     \\.zw-row{display:flex;align-items:center;gap:8px}
@@ -220,6 +222,8 @@ test "tokens become css variables" {
     try std.testing.expect(std.mem.find(u8, s, "--on-accent:#ffffff;") != null);
     try std.testing.expect(std.mem.find(u8, s, "--radius-control:8px;") != null);
     try std.testing.expect(std.mem.find(u8, s, "--spring-bouncy:linear(") != null);
+    try std.testing.expect(std.mem.find(u8, s, "--focus-ring:3px solid ") != null);
+    try std.testing.expect(std.mem.find(u8, s, ":focus-visible{outline:var(--focus-ring);") != null);
 }
 
 test "README token override compiles" {
