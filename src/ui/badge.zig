@@ -24,7 +24,8 @@ pub const Tone = enum { gray, accent, red, green, orange };
 pub const Size = enum { small, regular };
 
 pub const Props = struct {
-    /// Label. For a `dot` it is the accessible name (a dot with no text is decorative).
+    /// Label. For a `dot` it is the accessible name (a dot with no text is decorative). With no
+    /// `text` and no `count` the badge renders `hidden` instead of an empty pill.
     text: []const u8 = "",
     id: []const u8 = "",
     /// Out-of-band: in a z.js response, replaces the element with the same `id`.
@@ -57,7 +58,9 @@ pub const Badge = struct {
             try w.writeByte('"');
         }
         if (p.oob) try w.writeAll(" z-oob");
-        if (p.hide_zero and p.count != null and p.count.? == 0) try w.writeAll(" hidden");
+        // An empty badge (no text, no count, not a dot) or a zero count with `hide_zero` stays in
+        // the page, hidden, so `oob` can fill it later.
+        if (p.hide_zero and p.count != null and p.count.? == 0) try w.writeAll(" hidden") else if (!p.dot and p.count == null and p.text.len == 0) try w.writeAll(" hidden");
         if (p.dot) {
             if (p.text.len > 0) {
                 try w.writeAll(" role=\"img\" aria-label=\"");
@@ -93,6 +96,8 @@ test badge {
     try expectHtml("<span class=\"zw-badge zw-badge--red zw-badge--solid\">99+</span>", .{ .count = 120, .tone = .red, .solid = true });
     try expectHtml("<span class=\"zw-badge zw-badge--gray\">42</span>", .{ .count = 42 });
     try expectHtml("<span class=\"zw-badge zw-badge--gray\" hidden>0</span>", .{ .count = 0, .hide_zero = true });
+    try expectHtml("<span class=\"zw-badge zw-badge--gray\" id=\"n\" z-oob hidden></span>", .{ .id = "n", .oob = true });
+    try expectHtml("<span class=\"zw-badge zw-badge--gray\">0</span>", .{ .count = 0 });
     try expectHtml("<span class=\"zw-badge zw-badge--green zw-badge--dot\" role=\"img\" aria-label=\"Online\"></span>", .{ .dot = true, .tone = .green, .text = "Online" });
     try expectHtml("<span class=\"zw-badge zw-badge--gray zw-badge--small zw-badge--dot\" aria-hidden=\"true\"></span>", .{ .dot = true, .size = .small });
 }
