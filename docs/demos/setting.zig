@@ -17,7 +17,6 @@ pub const demos = [_]d.Demo{
 pub const css =
     \\.demo-setting{display:flex;flex-direction:column;gap:12px;width:100%;
     \\  & .zw-field{flex:0 1 200px}}
-    \\.demo-setting-slot{border-top:1px solid var(--separator);margin-top:6px;padding-top:6px}
     \\
 ;
 /// Server routes these demos need, e.g. `.{ "POST /demo/setting/x", handler }`.
@@ -54,14 +53,14 @@ fn rows(w: *Writer) Writer.Error!void {
             } }) }),
             .c = ui.setting(.{ .label = "Language", .control = "English" }),
         }) }),
-        .b = ui.card(.{ .title = "Icon", .subtitle = "icon, control", .body = zw.view("{a}{b}{c}", .{
-            .a = ui.setting(.{ .label = "Notifications", .icon = "🔔", .control = ui.button(.{ .label = "Options…", .variant = .plain, .z = d.save }) }),
-            .b = ui.setting(.{ .label = "Lock Screen", .icon = "🔒", .control = ui.picker(.{ .id = "demo-setting-lock", .name = "demo-setting-lock", .label = "Require password", .z = d.save, .options = &.{
+        .b = ui.card(.{ .title = "Icon", .subtitle = "icon, tint, control", .body = zw.view("{a}{b}{c}", .{
+            .a = ui.setting(.{ .label = "Notifications", .icon = "🔔", .tint = .red, .control = ui.button(.{ .label = "Options…", .variant = .plain, .z = d.save }) }),
+            .b = ui.setting(.{ .label = "Lock Screen", .icon = "🔒", .tint = .gray, .control = ui.picker(.{ .id = "demo-setting-lock", .name = "demo-setting-lock", .label = "Require password", .z = d.save, .options = &.{
                 .{ .value = "1", .label = "After 1 minute" },
                 .{ .value = "5", .label = "After 5 minutes", .selected = true },
                 .{ .value = "15", .label = "After 15 minutes" },
             } }) }),
-            .c = ui.setting(.{ .label = "Focus", .icon = "🌙", .control = "Off" }),
+            .c = ui.setting(.{ .label = "Focus", .icon = "🌙", .tint = .orange, .control = "Off" }),
         }) }),
         .c = ui.card(.{ .title = "Navigation", .subtitle = "href, icon, description, string control", .body = zw.view("{a}{b}{c}", .{
             .a = ui.setting(.{ .label = "Wi-Fi", .icon = "📶", .href = "#demo-setting-rows", .control = "Home" }),
@@ -75,7 +74,7 @@ fn states(w: *Writer) Writer.Error!void {
     try zw.view("<div class=\"demo-setting\">{a}{b}{c}{d}</div>", .{
         .a = ui.card(.{ .title = "Disabled", .subtitle = "disabled", .body = zw.view("{a}{b}", .{
             .a = ui.setting(.{ .label = "Sync interval", .description = "Turned off by your administrator.", .disabled = true, .control = ui.stepper(.{ .name = "demo-setting-sync", .label = "Sync interval in minutes", .value = 15, .min = 5, .max = 60, .unit = "min" }) }),
-            .b = ui.setting(.{ .label = "AirDrop", .description = "A disabled row is never a link.", .icon = "📡", .href = "#demo-setting-states", .disabled = true, .control = "Off" }),
+            .b = ui.setting(.{ .label = "AirDrop", .description = "A disabled navigation row keeps its chevron but is not a link.", .icon = "📡", .href = "#demo-setting-states", .disabled = true, .control = "Off" }),
         }) }),
         .b = ui.card(.{ .title = "Loading and status", .subtitle = "a loading button, badges as controls", .body = zw.view("{a}{b}{c}{d}", .{
             .a = ui.setting(.{ .label = "Software Update", .description = "Looking for new versions…", .icon = "🔄", .control = ui.button(.{ .label = "Checking", .loading = true }) }),
@@ -99,16 +98,14 @@ fn states(w: *Writer) Writer.Error!void {
 const WarmthRow = struct {
     on: bool,
     pub fn render(s: WarmthRow, w: *Writer) Writer.Error!void {
-        try zw.view("<div id=\"demo-setting-warmth\" class=\"demo-setting-slot\" z-oob>{row}</div>", .{
-            .row = ui.setting(.{ .label = "Warmth", .description = "Shifts the display toward amber.", .disabled = !s.on, .control = ui.slider(.{
-                .name = "demo-setting-warmth",
-                .label = "Warmth",
-                .value = 50,
-                .show_value = true,
-                .unit = "%",
-                .z = .{ .post = "/demo/setting/warmth", .swap = .none, .trigger = "input" },
-            }) }),
-        }).render(w);
+        try ui.setting(.{ .id = "demo-setting-warmth", .oob = true, .label = "Warmth", .description = "Shifts the display toward amber.", .disabled = !s.on, .control = ui.slider(.{
+            .name = "demo-setting-warmth",
+            .label = "Warmth",
+            .value = 50,
+            .show_value = true,
+            .unit = "%",
+            .z = .{ .post = "/demo/setting/warmth", .swap = .none, .trigger = "input" },
+        }) }).render(w);
     }
 };
 
@@ -119,13 +116,14 @@ const UpdateRow = struct {
         var url: [48]u8 = undefined;
         var desc: [48]u8 = undefined;
         try ui.setting(.{
+            .id = "demo-setting-update",
             .label = "Software Update",
             .description = if (s.checks == 0) "Not checked yet." else std.fmt.bufPrint(&desc, "Up to date. Checked {d} time(s).", .{s.checks}) catch "Up to date.",
             .icon = "🔄",
             .control = ui.button(.{ .label = "Check Now", .z = .{
                 .post = std.fmt.bufPrint(&url, "/demo/setting/update?n={d}", .{s.checks}) catch "/demo/setting/update",
                 .target = "#demo-setting-update",
-                .swap = .inner,
+                .swap = .outer,
             } }),
         }).render(w);
     }
@@ -140,7 +138,7 @@ fn live(w: *Writer) Writer.Error!void {
     try ui.card(.{
         .title = "Display",
         .accessory = status("Off", false),
-        .body = zw.view("{night}{warmth}<div id=\"demo-setting-update\" class=\"demo-setting-slot\">{update}</div>", .{
+        .body = zw.view("{night}{warmth}{update}", .{
             .night = ui.toggle(.{ .name = "demo-setting-night", .label = "Night Shift", .description = "Warms the display after sunset.", .z = .{ .post = "/demo/setting/night", .swap = .none } }),
             .warmth = WarmthRow{ .on = false },
             .update = UpdateRow{ .checks = 0 },
