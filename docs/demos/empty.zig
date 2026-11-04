@@ -64,6 +64,7 @@ const Reminders = struct {
     pub fn render(r: Reminders, w: *Writer) Writer.Error!void {
         if (r.m == 0) {
             try ui.empty(.{
+                .id = "demo-empty-state",
                 .icon = "✓",
                 .title = "No Reminders",
                 .text = "Reminders you add show up here.",
@@ -252,7 +253,7 @@ fn filesRoute(c: *zw.Ctx) !void {
     };
     if (n > 0) return c.page(FileList{ .id = "demo-empty-files", .items = hits[0..n] });
     const title = try std.fmt.allocPrint(c.arena, "No Results for “{s}”", .{q});
-    try c.page(ui.empty(.{ .icon = "🔍", .title = title, .text = "Check the spelling or try a new search.", .size = .compact }));
+    try c.page(ui.empty(.{ .id = "demo-empty-none", .icon = "🔍", .title = title, .text = "Check the spelling or try a new search.", .size = .compact }));
 }
 
 fn search(w: *Writer) Writer.Error!void {

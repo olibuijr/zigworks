@@ -72,15 +72,29 @@ const title = try std.fmt.allocPrint(c.arena, "No Results for “{s}”", .{q});
 try c.page(ui.empty(.{ .title = title, .text = "Check the spelling or try a new search.", .size = .compact }));
 ```
 
+## Replacing out of band
+
+Give the empty state an `id` and `oob` to swap it in from any response, for example when a delete in another part of the page leaves nothing. It has `role="status"`, so a screen reader announces it when it appears.
+
+```zig
+try c.page(ui.empty(.{ .id = "no-results", .oob = true, .title = "No Reminders" }));
+```
+
 ## Props
 
 | Prop | Type | Default | Notes |
 |---|---|---|---|
 | `title` | string | required | names what is missing |
+| `id` | string | `""` | the element id, so a response can target or replace it |
+| `oob` | bool | `false` | replace the element with the same `id` out of band |
 | `text` | string | `""` | one sentence on what to do |
 | `icon` | string | `""` | a symbol or emoji above the title (decorative, hidden from screen readers) |
 | `size` | `.regular`, `.compact`, `.large` | `.regular` | `.compact` fits a popover or card, `.large` fills a whole page |
 | `action` | component | none | the main next step, usually a primary button |
 | `secondary` | component | none | an alternative step, usually a plain button; sits beside `action` |
 
-For a list that becomes empty after deletes, `ui.list`'s `empty` text is enough.
+## Notes
+
+- The root has `role="status"`, so an empty state swapped in after a request (a search with no results) is announced politely.
+- `ui.list`'s own `empty` text is plain text. When a list needs an icon or a button once it is empty, answer the request with `ui.empty` in place of the list, or send one with `id` and `oob`.
+- Inside a search popover (`.zw-results`) the text keeps its own padding and callout font, so an empty state can be returned there.
