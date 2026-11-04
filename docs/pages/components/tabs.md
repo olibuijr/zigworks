@@ -32,6 +32,8 @@ ui.tabs(.{
 | `badges` | `[]const []const u8` | `&.{}` | badge text per tab, by position, such as a count; an empty string or a missing entry shows none |
 | `disabled` | `[]const usize` | `&.{}` | indexes of tabs that can't be chosen; they are dimmed and skipped by the arrow keys |
 | `full_width` | bool | `false` | stretch the strip across the container, tabs of equal width |
+| `z` | `ui.Z` | `.{}` | z.js attributes on every tab's radio input; choosing a tab sends `id=Label` (see On-demand panels) |
+| `submit` | bool | `true` | `false` keeps the chosen tab out of an enclosing form's data |
 
 ## Selected, badges, disabled and full width
 
@@ -64,7 +66,7 @@ tabs-states
 
 ## Updating from the server
 
-The tab strip has no `z` prop, but the panels do whatever their content does. Here the Archive and Move to Inbox buttons post to the server, which answers with the whole mailbox again: the rows move to the other tab and both badges follow the counts. Archiving also sends a toast with Undo. The server keeps nothing; the set of archived messages travels in the URL of each button.
+The panels do whatever their content does. Here the Archive and Move to Inbox buttons post to the server, which answers with the whole mailbox again: the rows move to the other tab and both badges follow the counts. Archiving also sends a toast with Undo. The server keeps nothing; the set of archived messages travels in the URL of each button.
 
 ```demo
 tabs-live
@@ -86,9 +88,28 @@ ui.button(.{ .label = "Archive", .variant = .plain, .z = .{
 
 Wrap the tabs in an element with an `id` to give z.js something to target; the tabs themselves have none.
 
+## On-demand panels
+
+Every panel is in the page from the start, and a `z-trigger=load` inside a hidden panel fires on page load, not when the tab is shown. To fetch a panel when its tab is chosen, give the tabs a `z`: it goes on each radio input, which sends `id=Label` on change. Here the server answers with the tabs again, the chosen panel filled in; the other panels say "Loading…" until their tab is chosen. Panel `i` has the id `<id>-panel-<i>`.
+
+```demo
+tabs-lazy
+```
+
+```zig
+ui.tabs(.{
+    .id = "demo-tabs-lazy",
+    .labels = &.{ "Overview", "Activity", "Files" },
+    .selected = sel,
+    // Every tab sends GET /lazy?demo-tabs-lazy=<Label>.
+    .z = .{ .get = "/demo/tabs/lazy", .target = "closest .zw-tabs", .swap = .outer },
+    .panels = .{ overview, activity, files },
+})
+```
+
 ## In a form
 
-Tabs hold inputs like any other container. Every field in every panel belongs to the same form, so one Save button covers the whole window, whichever tab is showing. Here the tabs sit in a card whose footer holds the buttons. Saving with an empty name answers with an error toast. The tag buttons remove their tag.
+Tabs hold inputs like any other container. Every field in every panel belongs to the same form, so one Save button covers the whole window, whichever tab is showing. Here the tabs sit in a card whose footer holds the buttons. The tabs use `.submit = false`, so the chosen tab is not sent with the fields. Saving with an empty name answers with an error toast. The tag buttons remove their tag.
 
 ```demo
 tabs-form
@@ -103,10 +124,11 @@ zw.view("<form{z}>{card}</form>", .{
 
 ## Notes
 
-- The arrow keys move between tabs, because each tab is a native radio input. Each panel is labelled with its tab.
-- Every panel is in the page from the start, only one is visible. Content that must be fetched on demand needs its own request.
-- The radio group is named after `id`, so inside a form the chosen tab is submitted as `id=Label`.
-- Long labels are shortened with an ellipsis, and the strip tightens its padding below 480px. On touch screens the tabs are 44px tall.
+- The arrow keys move between tabs, because each tab is a native radio input. The strip is a radio group, not an ARIA tablist (a radio cannot take the tab role); each tab points to its panel with `aria-controls`, and each panel is labelled with its tab.
+- Every panel is in the page from the start, only one is visible. Content that must be fetched on demand needs the `z` prop, see On-demand panels.
+- The radio group is named after `id`, so inside a form the chosen tab is submitted as `id=Label`. Set `.submit = false` to leave it out.
+- `labels` and `panels` must have the same length; this is checked when the page renders in debug builds. A `selected` index past the last tab shows the first.
+- Long labels are shortened with an ellipsis, and the strip tightens its padding below 480px. On touch screens the strip is 44px tall.
 - A disabled tab is never chosen, but if `selected` points at one, that panel still shows first.
 
 `ui.Tabs(Panels)` names the type. Use tabs for peer sections of the same window; use the sidebar for navigation between pages.

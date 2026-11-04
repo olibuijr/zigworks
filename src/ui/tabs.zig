@@ -5,12 +5,12 @@
 const std = @import("std");
 const Writer = std.Io.Writer;
 const zv = @import("../view.zig");
+const Z = @import("z.zig").Z;
 
 pub const css =
     \\.zw-tabs{display:flex;flex-direction:column;align-items:center;gap:14px;
     \\&>.zw-seg label{&:has(:disabled){pointer-events:none}
-    \\@media (max-width:480px){padding:0 8px}
-    \\@media (pointer:coarse){height:40px}}}
+    \\@media (max-width:480px){padding:0 8px}}}
     \\.zw-tabs--full{align-items:stretch}
     \\.zw-tab-badge{flex:none;min-width:18px;padding:0 6px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:12px;line-height:18px;font-weight:600;font-variant-numeric:tabular-nums;text-align:center}
     \\.zw-tab-panel{display:none;width:100%}
@@ -40,10 +40,17 @@ pub fn Tabs(comptime Panels: type) type {
         disabled: []const usize = &.{},
         /// Stretch the strip to the full width instead of fitting its labels.
         full_width: bool = false,
+        /// z.js attributes, put on every tab's radio input: choosing a tab sends `id=Label`. Give it a
+        /// `target` (the tabs have no id of their own); a panel's id is `<id>-panel-<index>`, so a tab can
+        /// fetch its own content on demand.
+        z: Z = .{},
+        /// Include the chosen tab as `id=Label` when the tabs sit in a form. `false` keeps it out.
+        submit: bool = true,
 
         pub fn render(self: @This(), w: *Writer) Writer.Error!void {
             const names = @typeInfo(Panels).@"struct".field_names;
             std.debug.assert(self.labels.len == names.len);
+            const selected = if (self.selected < self.labels.len) self.selected else 0; // out of range: the first tab
             try w.writeAll(if (self.full_width) "<div class=\"zw-tabs zw-tabs--full\"><fieldset class=\"zw-seg zw-seg--full\"" else "<div class=\"zw-tabs\"><fieldset class=\"zw-seg\"");
             try w.writeAll(" role=\"radiogroup\" aria-label=\"");
             try zv.writeEscaped(w, if (self.label.len > 0) self.label else self.id);
@@ -53,9 +60,13 @@ pub fn Tabs(comptime Panels: type) type {
                 try zv.writeEscaped(w, self.id);
                 try w.writeAll("\" value=\"");
                 try zv.writeEscaped(w, l);
-                try w.writeByte('"');
-                if (i == self.selected) try w.writeAll(" checked");
+                try w.writeAll("\" aria-controls=\"");
+                try zv.writeEscaped(w, self.id);
+                try w.print("-panel-{d}\"", .{i});
+                if (!self.submit) try w.writeAll(" form=\"zw-none\""); // no such form: the input belongs to none
+                if (i == selected) try w.writeAll(" checked");
                 if (std.mem.findScalar(usize, self.disabled, i) != null) try w.writeAll(" disabled");
+                try self.z.render(w);
                 try w.writeAll("><span class=\"zw-seg-text\">");
                 try zv.writeEscaped(w, l);
                 try w.writeAll("</span>");
@@ -68,7 +79,9 @@ pub fn Tabs(comptime Panels: type) type {
             }
             try w.writeAll("</fieldset>");
             inline for (names, 0..) |name, i| {
-                try w.writeAll("<div class=\"zw-tab-panel\" role=\"tabpanel\" aria-label=\"");
+                try w.writeAll("<div class=\"zw-tab-panel\" role=\"tabpanel\" id=\"");
+                try zv.writeEscaped(w, self.id);
+                try w.print("-panel-{d}\" aria-label=\"", .{i});
                 try zv.writeEscaped(w, self.labels[i]);
                 try w.writeAll("\">");
                 try zv.writeValue(w, @field(self.panels, name));
@@ -85,13 +98,26 @@ pub fn tabs(p: anytype) Tabs(@TypeOf(p.panels)) {
 }
 
 test tabs {
-    var buf: [2048]u8 = undefined;
+    var buf: [4096]u8 = undefined;
     var w: Writer = .fixed(&buf);
     try tabs(.{ .id = "t", .labels = &.{ "A", "B <b>" }, .panels = .{ "one", "two" }, .badges = &.{ "", "3" }, .disabled = &.{1}, .full_width = true }).render(&w);
     const out = w.buffered();
     try std.testing.expect(std.mem.find(u8, out, "class=\"zw-tabs zw-tabs--full\"") != null);
-    try std.testing.expect(std.mem.find(u8, out, "value=\"A\" checked><span class=\"zw-seg-text\">A</span></label>") != null);
-    try std.testing.expect(std.mem.find(u8, out, "value=\"B &lt;b&gt;\" disabled>") != null);
+    try std.testing.expect(std.mem.find(u8, out, "value=\"A\" aria-controls=\"t-panel-0\" checked><span class=\"zw-seg-text\">A</span></label>") != null);
+    try std.testing.expect(std.mem.find(u8, out, "value=\"B &lt;b&gt;\" aria-controls=\"t-panel-1\" disabled>") != null);
     try std.testing.expect(std.mem.find(u8, out, "<span class=\"zw-tab-badge\">3</span>") != null);
-    try std.testing.expect(std.mem.find(u8, out, "aria-label=\"A\">one</div>") != null);
+    try std.testing.expect(std.mem.find(u8, out, "id=\"t-panel-0\" aria-label=\"A\">one</div>") != null);
+    try std.testing.expect(std.mem.find(u8, out, "form=") == null);
+
+    // z goes on every radio; submit = false detaches them from a surrounding form.
+    w = .fixed(&buf);
+    try tabs(.{ .id = "t", .labels = &.{ "A", "B" }, .panels = .{ "one", "two" }, .z = .{ .get = "/x", .target = "#p" }, .submit = false }).render(&w);
+    try std.testing.expectEqual(@as(usize, 2), std.mem.count(u8, w.buffered(), " form=\"zw-none\""));
+    try std.testing.expectEqual(@as(usize, 2), std.mem.count(u8, w.buffered(), " z-get=\"/x\" z-target=\"#p\">"));
+
+    // A selected index out of range falls back to the first tab.
+    w = .fixed(&buf);
+    try tabs(.{ .id = "t", .labels = &.{ "A", "B" }, .panels = .{ "one", "two" }, .selected = 5 }).render(&w);
+    try std.testing.expect(std.mem.find(u8, w.buffered(), "t-panel-0\" checked>") != null);
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, w.buffered(), " checked"));
 }
