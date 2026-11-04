@@ -1,46 +1,61 @@
+<div align="center">
+
 # zigworks
 
-A small, fast web framework in pure Zig, written for AI agents (and people) to read and extend.
-Server-rendered HTML, Svelte-style templates checked at compile time, htmx-style interactivity,
-a macOS-quality component library, and islands for three.js and other client JS. No dependencies.
+**A small, fast web framework in pure Zig, written by AI for AI agents and the people working with them.**
 
-- **Zig 0.17.1** (pinned in `mise.toml`), standard library only.
-- **Browser:** z.js (~6 KB, unminified) + one generated stylesheet. Pages work without JS.
+HTTP server to CSS tokens in one dependency-free package: compile-time routes, Svelte-style templates,
+htmx-style interactivity, and a Liquid Glass component library with a macOS look.
+
+[![CI](https://github.com/olibuijr/zigworks/actions/workflows/ci.yml/badge.svg)](https://github.com/olibuijr/zigworks/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/tag/olibuijr/zigworks?label=release&sort=semver)](https://github.com/olibuijr/zigworks/tags)
+[![Zig](https://img.shields.io/badge/zig-0.17.1-f7a41d?logo=zig&logoColor=white)](https://ziglang.org)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+<img src=".github/assets/gallery.png" alt="The zigworks component gallery in light and dark mode" width="900">
+
+</div>
+
+## Highlights
+
+- **Pure Zig, zero dependencies.** Standard library only: HTTP/1.1 with keep-alive and a memory arena per request.
+- **Checked at compile time.** Routes like `"GET /todos/:id"` and templates are parsed when you build, so typos fail the build, not a request.
+- **Server-rendered, works without JS.** z.js (~6 KB) adds htmx-style requests and swaps with a few HTML attributes.
+- **35 components.** macOS HIG defaults, Liquid Glass on controls (real refraction in Chromium), spring motion, light and dark mode.
+- **Accessible by default.** Honours Reduce Motion, Reduce Transparency and Increase Contrast, uses no stock browser popups, and never zooms into fields on phones.
+- **Islands for client JS.** Mount three.js or any ES module where you need it.
+- **Small enough to read.** One component per file. Agents and people can hold the whole thing in their head.
+
+## Quick start
+
+Requires [Zig 0.17.1](https://ziglang.org/download/) (pinned in `mise.toml`; `mise install` sets it up).
 
 ```sh
-zig build test      # unit tests
-zig build e2e       # browser tests + screenshots in zig-out/e2e (needs chromium + node)
-zig build run       # todo example on http://<this machine>:8080 (PORT=..., HOST=... to change)
-zig build gallery   # every ui component in a preferences window
-zig build scene     # three.js island
+git clone https://github.com/olibuijr/zigworks && cd zigworks
+zig build run       # todo example on http://localhost:8080
+zig build gallery   # every component in a preferences window
 zig build docs      # the documentation site, built with zigworks
+zig build scene     # three.js island
 ```
 
-Apps listen on every interface (`0.0.0.0`) by default so they are reachable on the LAN.
-Set `HOST=127.0.0.1` (or `Options.host`) to keep one local.
+Apps listen on every interface (`0.0.0.0`) so they are reachable on your LAN. Set `PORT=...`, or
+`HOST=127.0.0.1` to keep an app local.
 
-## Layout
+### Use it in your project
 
+```sh
+zig fetch --save git+https://github.com/olibuijr/zigworks#v0.4.0
 ```
-src/
-  zigworks.zig  public API (start here)
-  server.zig    HTTP/1.1 on std.http, keep-alive, one task per connection, per-request arena
-  router.zig    comptime routes
-  ctx.zig       request context and responses
-  view.zig      templates, props(), each()
-  markdown.zig  safe Markdown subset -> HTML, custom fences
-  highlight.zig Zig syntax highlighting with std.zig.Tokenizer
-  css.zig       design tokens -> CSS variables (macOS HIG defaults)
-  static.zig    public/ files (JS modules, wasm, glb/gltf/hdr/ktx2, images, fonts)
-  client/z.js   browser runtime: requests, swaps, islands
-  client/glass.js  Liquid Glass runtime: refraction lenses, pointer light, press inertia
-  client.zig    z.js + styles for what it creates
-  ui.zig        component library index
-  ui/*.zig      one component per file, each with its own css
-examples/       todo (CRUD, works without JS), gallery (all components), scene (three.js)
-docs/           documentation site: Markdown pages, live component demos, search
-tests/e2e.mjs   Chromium over DevTools protocol, zero npm packages
+
+```zig
+// build.zig
+const zigworks = b.dependency("zigworks", .{ .target = target, .optimize = optimize });
+exe.root_module.addImport("zigworks", zigworks.module("zigworks"));
 ```
+
+<div align="center">
+<img src=".github/assets/docs.png" alt="The zigworks documentation site with a live todo demo" width="720">
+</div>
 
 ## An app
 
@@ -230,3 +245,55 @@ See `examples/scene`. Vendor three into `public/` to run offline.
   reverse proxy (one task per connection, no idle timeout) or set `HOST=127.0.0.1`.
 - Static files are read into memory per request (64 MiB cap); no ETag or range requests yet.
 - No TLS, HTTP/2, sessions or CSRF tokens; add them when an app needs them.
+
+## Project layout
+
+```
+src/
+  zigworks.zig  public API (start here)
+  server.zig    HTTP/1.1 on std.http, keep-alive, one task per connection, per-request arena
+  router.zig    comptime routes
+  ctx.zig       request context and responses
+  view.zig      templates, props(), each()
+  markdown.zig  safe Markdown subset -> HTML, custom fences
+  highlight.zig Zig syntax highlighting with std.zig.Tokenizer
+  css.zig       design tokens -> CSS variables (macOS HIG defaults)
+  static.zig    public/ files (JS modules, wasm, glb/gltf/hdr/ktx2, images, fonts)
+  client/z.js   browser runtime: requests, swaps, islands
+  client/glass.js  Liquid Glass runtime: refraction lenses, pointer light, press inertia
+  client.zig    z.js + styles for what it creates
+  ui.zig        component library index
+  ui/*.zig      one component per file, each with its own css
+examples/       todo (CRUD, works without JS), gallery (all components), scene (three.js)
+docs/           documentation site: Markdown pages, live component demos, search
+tests/e2e.mjs   Chromium over DevTools protocol, zero npm packages
+```
+
+## Testing
+
+```sh
+zig build test      # unit tests
+zig build e2e       # browser tests over the DevTools protocol; screenshots in zig-out/e2e
+```
+
+The e2e suite needs Node 22+ and Chromium (`CHROMIUM=/path/to/browser` to pick one). It uses no npm
+packages. It drives real clicks and presses in light and dark mode and at phone width, and fails on
+any console error.
+
+## Contributing
+
+Issues and pull requests are welcome. Keep changes small and in the style of the code around them:
+
+- One component per file in `src/ui/`, with its own CSS, a docs page in `docs/pages/components/`
+  and a demo in `docs/demos.zig`.
+- `zig build test` and `zig build e2e` must pass. Add a test for new behaviour.
+- Note user-facing changes in [CHANGELOG.md](CHANGELOG.md) ([Keep a Changelog](https://keepachangelog.com), [SemVer](https://semver.org)).
+
+## Security
+
+Please report vulnerabilities privately; see [SECURITY.md](SECURITY.md). Read [Limits](#limits)
+before putting an app on the open internet.
+
+## License
+
+[MIT](LICENSE)

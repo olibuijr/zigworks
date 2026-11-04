@@ -1,2 +1,20 @@
+# Zig
 .zig-cache/
 zig-out/
+
+# Never commit secrets or local config
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.crt
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Node (tests use no packages, but just in case)
+node_modules/

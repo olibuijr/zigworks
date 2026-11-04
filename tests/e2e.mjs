@@ -1,6 +1,6 @@
 // Browser end-to-end tests + screenshots. No dependencies: Chromium over the DevTools protocol.
 // Run: `zig build e2e` (builds first). Screenshots land in zig-out/e2e/<name>-<light|dark>.png.
-// Env: CHROMIUM (browser path, default "chromium"), ZW_BIN (default zig-out/bin), ZW_SHOTS (default zig-out/e2e).
+// Env: CHROMIUM (browser path, default "chromium"), CHROMIUM_FLAGS (extra flags, e.g. --no-sandbox in CI), ZW_BIN (default zig-out/bin), ZW_SHOTS (default zig-out/e2e).
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -33,7 +33,8 @@ function app(name, port, dir = join('examples', name)) {
 const cdpPort = 9333;
 const browser = spawn(process.env.CHROMIUM ?? 'chromium', [
   '--headless=new', `--remote-debugging-port=${cdpPort}`, '--no-first-run', '--no-default-browser-check',
-  '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--hide-scrollbars', 'about:blank',
+  '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--hide-scrollbars',
+  ...(process.env.CHROMIUM_FLAGS ?? '').split(' ').filter(Boolean), 'about:blank',
 ], { stdio: 'ignore' });
 children.push(browser);
 
