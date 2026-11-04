@@ -178,7 +178,13 @@ fn button(w: *Writer) Writer.Error!void {
 }
 
 fn field(w: *Writer) Writer.Error!void {
-    try ui.field(.{ .name = "email", .label = "Email", .placeholder = "name@example.com", .type = "email" }).render(w);
+    try zw.view("{a}{b}{c}{d}{e}", .{
+        .a = ui.field(.{ .name = "email", .label = "Email", .placeholder = "name@example.com", .type = "email", .autocomplete = "email", .help = "We only use it to send the receipt." }),
+        .b = ui.field(.{ .name = "weight", .label = "Weight", .type = "number", .value = "72", .suffix = "kg", .inputmode = "decimal" }),
+        .c = ui.field(.{ .name = "price", .label = "Price", .placeholder = "0.00", .prefix = "$", .inputmode = "decimal", .pattern = "[0-9]+(\\.[0-9]{2})?" }),
+        .d = ui.field(.{ .name = "username", .label = "Username", .value = "ab", .invalid = "Use at least 3 characters.", .maxlength = 20 }),
+        .e = ui.field(.{ .name = "id", .label = "Account ID", .value = "ZW-1042", .readonly = true, .help = "Read only." }),
+    }).render(w);
 }
 
 fn search(w: *Writer) Writer.Error!void {
