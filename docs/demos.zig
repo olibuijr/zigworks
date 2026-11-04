@@ -205,7 +205,12 @@ fn segmented(w: *Writer) Writer.Error!void {
 }
 
 fn slider(w: *Writer) Writer.Error!void {
-    try ui.setting(.{ .label = "Volume", .control = ui.slider(.{ .name = "volume", .label = "Volume", .value = 70, .z = save }) }).render(w);
+    try zw.view("<div class=\"zw-stack\" style=\"width:100%\">{a}{b}{c}{d}</div>", .{
+        .a = ui.setting(.{ .label = "Volume", .control = ui.slider(.{ .name = "volume", .label = "Volume", .value = 70, .show_value = true, .unit = "%", .z = save }) }),
+        .b = ui.setting(.{ .label = "Quality", .control = ui.slider(.{ .name = "quality", .label = "Quality", .min = 0, .max = 4, .value = 2, .ticks = 4, .min_label = "Low", .max_label = "High", .z = save }) }),
+        .c = ui.setting(.{ .label = "Text size", .control = ui.slider(.{ .name = "text-size", .label = "Text size", .min = 10, .max = 20, .value = 13, .ticks = 10, .show_value = true, .unit = " pt", .z = save }) }),
+        .d = ui.setting(.{ .label = "Brightness", .control = ui.slider(.{ .name = "brightness", .label = "Brightness", .value = 40, .disabled = true }) }),
+    }).render(w);
 }
 
 fn picker(w: *Writer) Writer.Error!void {
