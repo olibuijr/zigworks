@@ -17,6 +17,7 @@ pub const css =
     \\.zw-main{max-width:var(--width);margin:0 auto;padding:20px var(--space) 64px}
     \\.zw-app .zw-bar{padding:0 var(--space)}
     \\.zw-app .zw-main{max-width:calc(72ch + 2 * var(--space) + 40px);padding:28px calc(var(--space) + 20px) 80px}
+    \\@media (max-width:599px){.zw-app .zw-main{padding:20px var(--space) 64px}}
     \\@media (min-width:800px){.zw-shell{display:grid;grid-template-columns:250px minmax(0,1fr)}}
     \\.zw-sidebar-toggle svg{width:18px;height:18px}
     \\

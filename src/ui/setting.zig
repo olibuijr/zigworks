@@ -3,7 +3,8 @@
 const zv = @import("../view.zig");
 
 pub const css =
-    \\.zw-setting{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:36px}
+    \\.zw-setting{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 16px;min-height:36px}
+    \\.zw-setting>:last-child{margin-left:auto}
     \\.zw-setting+.zw-setting{border-top:1px solid var(--separator);margin-top:6px;padding-top:6px}
     \\.zw-setting .zw-slider{flex:0 1 240px}
     \\

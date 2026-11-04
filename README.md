@@ -44,7 +44,7 @@ Apps listen on every interface (`0.0.0.0`) so they are reachable on your LAN. Se
 ### Use it in your project
 
 ```sh
-zig fetch --save git+https://github.com/olibuijr/zigworks#v0.4.1
+zig fetch --save git+https://github.com/olibuijr/zigworks#v0.4.2
 ```
 
 ```zig
@@ -186,7 +186,7 @@ No stock browser UI: pickers replace `<select>`, a custom dialog replaces `confi
 
 Option and item types: `ui.SegmentedOption`, `ui.PickerOption`, `ui.MenuItem`, `ui.SidebarSection`, `ui.SidebarLink`.
 A `sidebar` passed to `layout` makes a two-column app; on narrow screens it slides in from a title-bar button.
-`zw.markdown` output is styled by `.zw-prose`.
+`zw.markdown` output is styled by `.zw-prose`; add `zw-not-prose` to a wrapper to keep those styles off components inside it.
 
 `button(.{ .opens = "id" })` toggles a `menu` or `sheet` (Popover API + CSS anchor positioning, no JS).
 `id`s used with `opens` must be valid CSS identifiers.

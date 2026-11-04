@@ -4,7 +4,7 @@ const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
 
 pub const css =
-    \\.zw-seg{position:relative;display:inline-grid;grid-auto-flow:column;grid-auto-columns:1fr;min-width:0;margin:0;padding:2px;border:0;border-radius:999px;
+    \\.zw-seg{position:relative;display:inline-grid;grid-auto-flow:column;grid-auto-columns:1fr;flex:none;max-width:100%;margin:0;padding:2px;border:0;border-radius:999px;
     \\background:var(--fill);box-shadow:inset 0 .5px 1px rgba(0,0,0,.08)}
     \\.zw-seg label{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;height:calc(var(--control-h) - 4px);padding:0 14px;border-radius:999px;
     \\font:var(--body);font-weight:500;color:var(--label);cursor:default;user-select:none;-webkit-tap-highlight-color:transparent}

@@ -27,5 +27,6 @@ ui.sidebar(.{
 | `sections` | `[]const ui.SidebarSection` | required | `.{ .title, .links }` |
 | `current` | string | required | the `href` to mark with `aria-current="page"` |
 | `label` | string | `"Navigation"` | accessible name of the `nav` |
+| `inline_` | bool | `false` | show it inside content (no popover, no id), like the demo above |
 
 Each link is a `ui.SidebarLink`: `.{ .label, .href }`. Build sections at comptime to share them between pages, as this site does.

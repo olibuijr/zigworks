@@ -409,6 +409,18 @@ await test('docs: no zoom-on-focus on touch screens (text fields >= 16px)', asyn
   await p.close();
 });
 
+await test('docs: layout demos fit on phones', async () => {
+  const p = await open(`${docs}/components/sidebar`, { width: 390, height: 844 });
+  eq(await p.eval(`document.querySelectorAll('#zw-sidebar').length`), 1, 'one app sidebar id');
+  eq(await p.eval(`document.querySelector('.zw-demo .zw-sidebar--inline').getBoundingClientRect().height > 100`), true, 'inline sidebar shown');
+  eq(await p.eval(`getComputedStyle(document.querySelector('.zw-demo .zw-sidebar a')).textDecorationLine`), 'none', 'prose styles kept out');
+  await p.close();
+  const s = await open(`${docs}/components/setting`, { width: 390, height: 844 });
+  eq(await s.eval(`(() => { const seg = document.querySelector('.zw-demo .zw-seg'); return seg.scrollWidth <= seg.clientWidth + 1 && seg.getBoundingClientRect().right <= seg.closest('.zw-card').getBoundingClientRect().right; })()`), true, 'segmented fits its card');
+  noErrors(s);
+  await s.close();
+});
+
 await test('docs: mobile sidebar and island', async () => {
   const p = await open(`${docs}/islands`, { width: 390, height: 800 });
   eq(await p.eval(`document.documentElement.scrollWidth <= innerWidth`), true, 'no horizontal scroll');

@@ -2,6 +2,16 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [SemVer](https://semver.org/).
 
+## [0.4.2] - 2026-11-04
+
+### Added
+- `zw-not-prose`: a wrapper class that keeps `.zw-prose` text styles off the components inside it. Docs demos use it.
+- `ui.sidebar(.{ .inline_ = true })` shows a sidebar inside content (no popover, no id).
+
+### Fixed
+- Phones: the sidebar demo was empty, a settings row squeezed its segmented control (clipped label, misplaced pill), and docs text styles leaked into demo components (underlined sidebar links, big card titles).
+- Phones: app pages use 16px side margins instead of 36px; demos use 16px padding.
+
 ## [0.4.1] - 2026-11-04
 
 ### Fixed

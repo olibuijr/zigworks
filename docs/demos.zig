@@ -9,7 +9,8 @@ pub const css =
     \\.zw-demo{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:28px;border-radius:var(--radius);background:var(--window);box-shadow:inset 0 0 0 .5px var(--separator);font:var(--body);letter-spacing:-.08px}
     \\.zw-demo--block{display:block}
     \\.zw-demo--block>*+*{margin-top:12px}
-    \\.zw-demo .zw-sidebar{display:block;position:static;height:auto;width:240px;inset:auto;border:0;border-radius:var(--radius-control);box-shadow:var(--shadow);background:var(--content)}
+    \\@media (max-width:599px){.zw-demo{padding:16px}}
+    \\.zw-demo :not(pre)>code{font:.86em var(--mono);padding:1px 5px;border-radius:5px;background:var(--fill)}
     \\.zw-demo .zw-card,.zw-demo .zw-list{flex:1}
     \\.zw-demo .is-done{color:var(--secondary);text-decoration:line-through}
     \\@media (hover:hover){#hero-list .zw-btn--destructive{opacity:0;transition:opacity var(--speed)}#hero-list li:hover .zw-btn--destructive,#hero-list li:focus-within .zw-btn--destructive{opacity:1}}
@@ -64,7 +65,7 @@ pub const Fences = struct {
     pub fn fence(_: Fences, w: *Writer, lang: []const u8, body: []const u8) Writer.Error!bool {
         if (!std.mem.eql(u8, lang, "demo")) return false;
         for (demos) |d| if (std.mem.eql(u8, d[0], std.mem.trim(u8, body, " \n"))) {
-            try w.writeAll(if (d[1]) "<div class=\"zw-demo zw-demo--block\">" else "<div class=\"zw-demo\">");
+            try w.writeAll(if (d[1]) "<div class=\"zw-demo zw-demo--block zw-not-prose\">" else "<div class=\"zw-demo zw-not-prose\">");
             try d[2](w);
             try w.writeAll("</div>");
             return true;
@@ -133,7 +134,7 @@ fn layout(w: *Writer) Writer.Error!void {
 }
 
 fn sidebar(w: *Writer) Writer.Error!void {
-    try ui.sidebar(.{ .current = "#inbox", .sections = &.{
+    try ui.sidebar(.{ .current = "#inbox", .inline_ = true, .sections = &.{
         .{ .title = "Mail", .links = &.{ .{ .label = "Inbox", .href = "#inbox" }, .{ .label = "Drafts", .href = "#drafts" }, .{ .label = "Sent", .href = "#sent" } } },
         .{ .title = "Smart Mailboxes", .links = &.{.{ .label = "Today", .href = "#today" }} },
     } }).render(w);

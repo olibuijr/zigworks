@@ -21,6 +21,7 @@ pub const css =
     \\.zw-sidebar a:active{scale:.97;transition-duration:var(--dur-snappy)}
     \\.zw-sidebar a[aria-current=page]{background:var(--fill-strong);font-weight:600}
     \\.zw-sidebar-toggle{display:none}
+    \\.zw-sidebar--inline{display:block;width:240px;max-width:100%;border-radius:var(--radius-panel)}
     \\@media (min-width:800px){.zw-sidebar:not(:popover-open){display:block;inset:auto;position:sticky;top:60px;align-self:start;height:calc(100vh - 70px);margin:0 0 10px 10px;overflow-y:auto;width:auto;
     \\border-radius:var(--radius-panel)}}
     \\@media (max-width:799px){.zw-sidebar-toggle{display:inline-flex}
@@ -40,12 +41,15 @@ pub const Props = struct {
     /// Path of the current page; its link gets aria-current="page".
     current: []const u8,
     label: []const u8 = "Navigation",
+    /// Show it inside content (a demo, a settings pane) instead of as the app's sidebar:
+    /// no id, no popover, visible at every width.
+    inline_: bool = false,
 };
 
 pub const Sidebar = struct {
     p: Props,
     pub fn render(self: Sidebar, w: *Writer) Writer.Error!void {
-        try w.writeAll("<nav class=\"zw-sidebar zw-glass\" id=\"zw-sidebar\" popover aria-label=\"");
+        try w.writeAll(if (self.p.inline_) "<nav class=\"zw-sidebar zw-sidebar--inline zw-glass\" aria-label=\"" else "<nav class=\"zw-sidebar zw-glass\" id=\"zw-sidebar\" popover aria-label=\"");
         try writeEscaped(w, self.p.label);
         try w.writeAll("\">");
         for (self.p.sections) |s| {
