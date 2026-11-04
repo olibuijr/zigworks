@@ -151,8 +151,15 @@ fn route(comptime app: anytype, state: *const State, c: *Ctx) !void {
     try c.send(.not_found, "text/plain", "not found");
 }
 
-fn asset(c: *Ctx, content_type: []const u8, body: []const u8) !void {
+/// Revalidated on every use (no-cache) but answered with 304 while the ETag matches.
+fn asset(c: *Ctx, content_type: []const u8, comptime body: []const u8) !void {
+    const etag = comptime etag: {
+        @setEvalBranchQuota(1_000_000); // Wyhash over ~45 KB at comptime
+        break :etag std.fmt.comptimePrint("\"{x}\"", .{std.hash.Wyhash.hash(0, body)});
+    };
     try c.setHeader("cache-control", "no-cache");
+    try c.setHeader("etag", etag);
+    if (std.mem.eql(u8, c.header("if-none-match") orelse "", etag)) return c.send(.not_modified, content_type, "");
     try c.send(.ok, content_type, body);
 }
 
