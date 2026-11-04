@@ -4,7 +4,8 @@
 // rectangle (a signed-distance-field bezel), exposed as `--zw-lens: url(#...)` and used by
 // `backdrop-filter`. Edges bend what is behind them, like a convex glass drop. Only Chromium can use
 // SVG filters in backdrop-filter; other browsers keep the blur + rim material. Filters are cached
-// per size, so a page with many equal buttons builds one map.
+// per size (rounded to 2px), so a page with many equal buttons builds one map; the cache keeps the
+// most recently used sizes so elements that track the viewport don't pile up maps on resize.
 //
 // Light: the specular highlight follows the pointer (`--mx`, `--my`).
 // Inertia: pressed `.zw-press` controls stretch toward the pointer (`--dx`, `--dy`, `--sx`, `--sy`)
@@ -15,6 +16,7 @@
   const reduceGlass = matchMedia('(prefers-reduced-transparency: reduce)');
   const refract = !!navigator.userAgentData?.brands?.some((b) => b.brand === 'Chromium');
   const maxArea = 600_000; // larger surfaces keep plain blur; the map would cost more than it shows
+  const maxLenses = 64;
 
   let defs = null;
   const made = new Set();
@@ -24,7 +26,7 @@
   // `mag` > 0 also magnifies the middle (knobs read the track through a drop); `rimK` sets how far
   // the rim bends (knobs keep it low so the edge doesn't echo the track back in).
   function lens(w, h, r, id = `zw-lens-${w}-${h}-${r}`, mag = 0, rimK = 0.7) {
-    if (made.has(id)) return id;
+    if (made.delete(id)) { made.add(id); return id; } // re-add: most recently used goes last
     if (!defs) {
       const svg = document.createElementNS(ns, 'svg');
       svg.setAttribute('aria-hidden', 'true');
@@ -75,11 +77,16 @@
     f.append(map, disp);
     defs.append(f);
     made.add(id);
+    if (made.size > maxLenses) { // drop the least recently used per-size lens (not the knob ones)
+      const old = [...made].find((k) => /^zw-lens-\d/.test(k));
+      made.delete(old);
+      document.getElementById(old)?.remove();
+    }
     return id;
   }
 
   function fit(el) {
-    const w = Math.round(el.offsetWidth), h = Math.round(el.offsetHeight);
+    const w = Math.round(el.offsetWidth / 2) * 2, h = Math.round(el.offsetHeight / 2) * 2; // 2px steps
     // Scroll containers keep plain blur: content moving under a fixed lens looks broken.
     const cs = getComputedStyle(el);
     if (!w || !h || w * h > maxArea || /auto|scroll/.test(cs.overflowY)) return el.style.removeProperty('--zw-lens');
