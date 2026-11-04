@@ -12,11 +12,11 @@ pub const demos = [_]d.Demo{
     .{ "disclosure-states", true, states },
     .{ "disclosure-accordion", true, accordion },
     .{ "disclosure-filters", true, filters },
+    .{ "disclosure-oob", true, oobPane },
     .{ "disclosure-export", true, exportPane },
 };
 /// Extra CSS for these demos (scope it under a demo-specific class).
 pub const css =
-    \\.demo-disclosure-pane>*+.zw-disclosure{margin-top:6px;padding-top:6px;border-top:1px solid var(--separator)}
     \\.demo-disclosure-pair,.demo-disclosure-grid{display:grid;gap:16px;align-items:start;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
     \\.demo-disclosure-label{margin-bottom:8px;font:var(--callout);color:var(--secondary)}
     \\.demo-disclosure-inbox{display:flex;flex-direction:column;gap:12px}
@@ -29,6 +29,7 @@ pub const css =
 /// Server routes these demos need, e.g. `.{ "POST /demo/disclosure/x", handler }`.
 pub const routes = .{
     .{ "POST /demo/disclosure/filter", filterInbox },
+    .{ "POST /demo/disclosure/link", setLink },
 };
 
 /// Hero: a Finder "Get Info" panel. Plain disclosures group the sections inside one card.
@@ -198,6 +199,33 @@ fn filterInbox(c: *zw.Ctx) !void {
         .flagged = c.form("flagged") != null,
         .files = c.form("files") != null,
     });
+}
+
+fn connection(on: bool, oob: bool) ui.Disclosure([]const u8) {
+    const body: []const u8 = if (on) "Connected to Home. Signal is strong." else "Choose a network to connect.";
+    return ui.disclosure(.{
+        .id = "demo-disclosure-link",
+        .oob = oob,
+        .style = .card,
+        .open = true,
+        .title = "Connection",
+        .detail = if (on) "Connected" else "Not connected",
+        .body = body,
+    });
+}
+
+/// The buttons sit outside the disclosure. Their response replaces it by `id` (out of band),
+/// so the button that was pressed keeps keyboard focus.
+fn oobPane(w: *Writer) Writer.Error!void {
+    try zw.view("<div class=\"zw-stack\">{link}<div class=\"zw-row\">{on}{off}</div></div>", .{
+        .link = connection(false, false),
+        .on = ui.button(.{ .label = "Connect", .variant = .primary, .z = .{ .post = "/demo/disclosure/link?on=1", .swap = .none } }),
+        .off = ui.button(.{ .label = "Disconnect", .z = .{ .post = "/demo/disclosure/link", .swap = .none } }),
+    }).render(w);
+}
+
+fn setLink(c: *zw.Ctx) !void {
+    try c.html("{link}", .{ .link = connection(c.query("on") != null, true) });
 }
 
 /// Composition: an export panel with settings controls and a nested disclosure.
