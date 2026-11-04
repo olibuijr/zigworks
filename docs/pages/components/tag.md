@@ -89,7 +89,7 @@ ui.tag(.{ .text = "Draft", .remove = .{ .delete = "/tags/draft" } })
 - Wrap a group of tags in `<div class="zw-tags">` for spacing and wrapping.
 - Long text truncates with an ellipsis at the width of its container; the × button stays visible.
 - A tag dims (`zw-busy`) while its request is in flight.
-- The remove request must answer 200 with a body (even a toast or an empty `<template>`): z.js does not swap on 204, so the tag would stay.
+- The remove request must answer 200 (for example with a toast): z.js does not swap on 204, so the tag would stay.
 - To filter with several chips, put the request on the `<form>`; a chip's own `z` only sends that one chip.
 - A selected link tag gets `aria-current="true"`; a chip is a real checkbox, so screen readers announce checked and unchecked.
 - On touch screens the link, chip and × hit areas grow to 44px without changing the look.
