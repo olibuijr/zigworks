@@ -17,7 +17,7 @@ ui.disclosure(.{ .title = "Advanced", .body = advanced_settings })
 ui.disclosure(.{ .title = "Sharing & Permissions", .open = true, .detail = "You can read and write", .body = sharing })
 ```
 
-Inside a card, stack plain disclosures in a container. Hairlines between them are up to you; the demos use a `border-top` on every disclosure after the first.
+Inside a card, stack plain disclosures in a container. Consecutive plain disclosures get a hairline between them.
 
 ## Styles and detail
 
@@ -59,7 +59,7 @@ ui.disclosure(.{ .title = "Returns", .name = "faq", .style = .card, .detail = "3
 
 ## Live filters
 
-A disclosure has no `z` of its own, but its body can hold anything that does. Here the filter chips are a form that posts on every change. The handler reads which chips are checked and sends the whole inbox back, so the `detail` ("2 active"), the count and the empty state all follow. The server keeps nothing: the state is in the request.
+A disclosure has no `z` of its own (it is not a control), but its body can hold anything that does. Here the filter chips are a form that posts on every change. The handler reads which chips are checked and sends the whole inbox back, so the `detail` ("2 active"), the count and the empty state all follow. The server keeps nothing: the state is in the request.
 
 ```demo
 disclosure-filters
@@ -77,6 +77,22 @@ zw.view("<form class=\"zw-tags\"{z}>{a}{b}</form>", .{
 fn filterInbox(c: *zw.Ctx) !void {
     try c.page(Inbox{ .unread = c.form("unread") != null, .flagged = c.form("flagged") != null });
 }
+```
+
+## Updating from the server
+
+Give a disclosure an `id` and set `oob`, and a z.js response replaces the one on the page with that `id`, wherever it is. Here the buttons sit outside it: they answer with the new disclosure and swap nothing else, so the pressed button keeps focus. The replacement starts as `open` says, so pass the state you want shown.
+
+```demo
+disclosure-oob
+```
+
+```zig
+fn connection(on: bool, oob: bool) ui.Disclosure([]const u8) {
+    return ui.disclosure(.{ .id = "link", .oob = oob, .style = .card, .open = true, .title = "Connection",
+        .detail = if (on) "Connected" else "Not connected", .body = "..." });
+}
+// The page renders connection(false, false); the handler answers with connection(true, true).
 ```
 
 ## In a form
@@ -97,11 +113,15 @@ disclosure-export
 | `name` | string | `""` | disclosures with the same name are exclusive: opening one closes the others (an accordion) |
 | `detail` | string | `""` | secondary text at the trailing edge of the title row, such as a count or a current value |
 | `style` | `.plain` or `.card` | `.plain` | `.card` puts the section on its own content surface |
+| `id` | string | `""` | element id, so the server can target it |
+| `oob` | bool | `false` | in a z.js response, replaces the element with the same `id` |
 
 ## Notes
 
 - The whole title row is the target: it highlights on hover, shows a focus ring from the keyboard, and is 44px tall on touch screens. Space and Enter toggle it.
 - `name` uses the native `<details name>` grouping, so it needs no script. In a browser that doesn't support it, each disclosure simply opens on its own.
-- Consecutive `.card` disclosures are spaced 8px apart.
+- Consecutive `.card` disclosures are spaced 8px apart; consecutive `.plain` ones are separated by a hairline.
 - `detail` stays on one line and is shortened with an ellipsis; the title wraps.
-- There is no `id` or `z` prop. To update a disclosure from the server, put it in an element with an id and swap that element, as the filter demo does.
+- There is no `z` prop: the element is not a control. To update one from the server use `id` with `oob`. Replacing a disclosure also replaces anything focusable inside it, so to keep focus on a control in the body, swap something else (as the filter demo swaps the inbox).
+- There is no `disabled`: `<details>` has no such state and a script-free disclosure cannot block the keyboard. Leave the section out, or show its reason in a plain row instead.
+- A disclosure that arrives with `open` is already open; only toggling by the user animates the height.
