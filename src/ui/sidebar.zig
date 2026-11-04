@@ -54,7 +54,7 @@ pub const css =
     \\.zw-sidebar--footer:popover-open,.zw-sidebar--footer.zw-sidebar--inline{display:flex;flex-direction:column}
     \\@media (min-width:800px){.zw-sidebar--footer:not(:popover-open){display:flex;flex-direction:column}}
     \\.zw-sidebar--footer>*{flex:none}
-    \\.zw-sidebar--footer>.zw-sidebar-footer{position:sticky;bottom:0;margin-top:auto;border-top-color:var(--separator);
+    \\.zw-sidebar--footer>.zw-sidebar-footer{position:sticky;bottom:0;margin-top:auto;
     \\background:color-mix(in srgb,var(--window) 55%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
     \\@media (pointer:coarse){.zw-sidebar{--row:44px}.zw-sidebar summary{min-height:44px}}
     \\
