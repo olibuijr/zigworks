@@ -8,7 +8,7 @@ A Mail window. Sections have headings, links have icons and counts, two sections
 sidebar
 ```
 
-In the demos the links only change the URL hash. In an app they are real pages, and `current` marks the one you are on.
+Inbox and Drafts carry `z` props, so a click swaps the whole window in place (the selected mailbox follows). The other links only change the URL hash. In an app they are usually real pages, and `current` marks the one you are on.
 
 ## Usage
 
@@ -21,6 +21,8 @@ ui.sidebar(.{
         .{ .title = "Mail", .links = &.{
             .{ .label = "Inbox", .href = "/inbox", .badge = "12", .icon = inbox_svg },
             .{ .label = "Sent", .href = "/sent", .icon = sent_svg },
+            // swap a pane in place instead of loading the page
+            .{ .label = "Drafts", .href = "/drafts", .z = .{ .get = "/drafts", .target = "#pane" } },
         } },
         .{ .title = "Folders", .collapsible = true, .open = false, .links = &.{
             .{ .label = "Receipts", .href = "/receipts" },
@@ -63,7 +65,7 @@ fn filter(c: *zw.Ctx) !void {
 
 ## In a settings window
 
-A sidebar next to a card of settings, as in System Settings. The footer holds an account row and a storage meter; render them to a string first, since `footer` takes markup.
+A sidebar next to a card of settings, as in System Settings. The footer holds an account row and a storage meter; render them to a string first: `footer` takes markup, not a component, so `Sidebar` stays one concrete type.
 
 ```demo
 sidebar-settings
@@ -85,8 +87,8 @@ A section is `ui.SidebarSection`:
 | Field | Type | Default | Notes |
 |---|---|---|---|
 | `title` | string | required | the heading; empty gives an untitled group |
-| `links` | `[]const ui.SidebarLink` | required | |
-| `collapsible` | bool | `false` | the heading becomes a disclosure triangle that folds the links (it shows while the pointer is over the sidebar, and always on touch screens) |
+| `links` | `[]const ui.SidebarLink` | required | a section with no links renders nothing, not even its heading |
+| `collapsible` | bool | `false` | the heading becomes a disclosure triangle that folds the links (it shows while the section is folded, while the pointer is over the sidebar, and always on touch screens) |
 | `open` | bool | `true` | the initial state of a collapsible section. A section that holds the current page is always open |
 
 A link is `ui.SidebarLink`:
@@ -97,8 +99,9 @@ A link is `ui.SidebarLink`:
 | `href` | string | required | |
 | `icon` | inline SVG string | `""` | drawn in the accent color; use `currentColor` strokes and a square `viewBox`. Hidden from screen readers |
 | `badge` | string | `""` | trailing text, usually a count. Read after the label by screen readers |
+| `z` | `ui.Z` | `.{}` | z.js attributes on the link. With `.get`/`.post` a click swaps `target` in place and the `href` is kept for middle-click and no-JS use. `current` and `aria-current` do not move by themselves: have the response re-render the sidebar, as the Mail demo does |
 
-Build sections at comptime to share them between pages, as this site does. Build them from the request to change them per user, as the filter demo does. Links are plain `<a>` elements: they take no `z` props, so a link always loads its `href`.
+Build sections at comptime to share them between pages, as this site does. Build them from the request to change them per user, as the filter demo does. Links are plain `<a>` elements; without `z` a link loads its `href`.
 
 ## Notes
 
@@ -106,3 +109,4 @@ Build sections at comptime to share them between pages, as this site does. Build
 - Hover styles apply only on devices that can hover, so a tap never leaves a link looking stuck.
 - Section headings use the secondary label color for contrast in light and dark mode.
 - A collapsible section is a `<details>`, so it works without JavaScript and with the keyboard (Space or Enter on the heading).
+- A section with no `links` is skipped entirely, heading included. Show your own empty state when every section is empty, as the filter demo does.
