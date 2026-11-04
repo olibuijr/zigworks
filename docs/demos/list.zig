@@ -23,8 +23,6 @@ pub const css =
     \\.demo-list-title{font-weight:500}
     \\.demo-list-unread{font-weight:700}
     \\.demo-list-sub{font:var(--callout);color:var(--secondary)}
-    \\.zw-list>li[aria-selected=true] .demo-list-sub{color:inherit;opacity:.8}
-    \\.demo-list-grid .zw-list--nav>li[aria-selected=true]>a::after{border-color:currentColor}
     \\.demo-list-grid .zw-list>li>.zw-skeleton{flex:1}
     \\.demo-list-note{display:flex;flex-direction:column;gap:6px}
     \\.demo-list-note>*{margin:0}
@@ -41,14 +39,14 @@ pub const routes = .{
 
 // Hero: a Mail-style inbox.
 
-const Mail = struct { from: []const u8, subject: []const u8, time: []const u8, unread: bool = false };
+const Mail = struct { from: []const u8, subject: []const u8, time: []const u8, unread: bool = false, del: []const u8 };
 
 const inbox = [_]Mail{
-    .{ .from = "Ada Lovelace", .subject = "Notes on the Analytical Engine", .time = "9:41", .unread = true },
-    .{ .from = "Grace Hopper", .subject = "Compiler status for Friday", .time = "8:15", .unread = true },
-    .{ .from = "Alan Turing", .subject = "Re: A question about halting", .time = "Yesterday" },
-    .{ .from = "Katherine Johnson", .subject = "Trajectory check", .time = "Tuesday" },
-    .{ .from = "Margaret Hamilton", .subject = "Flight software review", .time = "Monday" },
+    .{ .from = "Ada Lovelace", .subject = "Notes on the Analytical Engine", .time = "9:41", .unread = true, .del = "Delete message from Ada Lovelace" },
+    .{ .from = "Grace Hopper", .subject = "Compiler status for Friday", .time = "8:15", .unread = true, .del = "Delete message from Grace Hopper" },
+    .{ .from = "Alan Turing", .subject = "Re: A question about halting", .time = "Yesterday", .del = "Delete message from Alan Turing" },
+    .{ .from = "Katherine Johnson", .subject = "Trajectory check", .time = "Tuesday", .del = "Delete message from Katherine Johnson" },
+    .{ .from = "Margaret Hamilton", .subject = "Flight software review", .time = "Monday", .del = "Delete message from Margaret Hamilton" },
 };
 
 const MailRow = zw.View(
@@ -62,7 +60,7 @@ fn mailRow(m: Mail) MailRow {
             .av = ui.avatar(.{ .name = m.from }),
             .dot = if (m.unread) ui.badge(.{ .dot = true, .text = "Unread", .tone = .accent }) else null,
             // An empty 200 lets z.js remove the row (see DELETE /demo/todo in main.zig).
-            .del = ui.button(.{ .label = "Delete", .variant = .destructive, .size = .small, .z = .{ .delete = "/demo/todo", .target = "closest li", .swap = .delete } }),
+            .del = ui.button(.{ .label = "Delete", .aria = m.del, .variant = .destructive, .size = .small, .z = .{ .delete = "/demo/todo", .target = "closest li", .swap = .delete } }),
         },
     };
 }
@@ -167,7 +165,8 @@ fn states(w: *Writer) Writer.Error!void {
         .e = ui.list(.{
             .id = "demo-list-loading",
             .header = "Loading",
-            .footer = "A skeleton in each row.",
+            .footer = "busy: true, with a skeleton in each row.",
+            .busy = true,
             .body = zw.view("<li>{a}</li><li>{b}</li>", .{
                 .a = ui.skeleton(.{ .shape = .media, .lines = 2, .size = 32, .label = "Loading messages" }),
                 .b = ui.skeleton(.{ .shape = .media, .lines = 2, .size = 32, .label = "Loading more messages" }),
@@ -230,10 +229,10 @@ const BagRow = zw.View(
     \\<li><span class="zw-grow">{t}</span>{del}</li>
 , struct { t: []const u8, del: ui.Button });
 
-fn bagRow(title: []const u8) BagRow {
+fn bagRow(title: []const u8, aria: []const u8) BagRow {
     return .{ .data = .{
         .t = title,
-        .del = ui.button(.{ .label = "Delete", .variant = .destructive, .size = .small, .z = .{ .delete = "/demo/list/item", .target = "closest li", .swap = .delete } }),
+        .del = ui.button(.{ .label = "Delete", .aria = aria, .variant = .destructive, .size = .small, .z = .{ .delete = "/demo/list/item", .target = "closest li", .swap = .delete } }),
     } };
 }
 
@@ -249,7 +248,7 @@ fn add(w: *Writer) Writer.Error!void {
             .empty = "Nothing to pack. Add an item above.",
             .separators = .full,
             .reveal = true,
-            .body = zw.view("{a}{b}", .{ .a = bagRow("Passport"), .b = bagRow("Charger") }),
+            .body = zw.view("{a}{b}", .{ .a = bagRow("Passport", "Delete Passport"), .b = bagRow("Charger", "Delete Charger") }),
         }),
     }).render(w);
 }
@@ -257,8 +256,10 @@ fn add(w: *Writer) Writer.Error!void {
 fn bagAdd(c: *zw.Ctx) !void {
     const item = std.mem.trim(u8, c.form("item") orelse "", " ");
     if (item.len == 0 or item.len > 60) return c.send(.no_content, "text/plain", "");
+    // A per-row accessible name needs a runtime string; the request arena owns it.
+    const aria = try std.fmt.allocPrint(c.arena, "Delete {s}", .{item});
     try c.page(zw.view("{row}{toast}", .{
-        .row = bagRow(item),
+        .row = bagRow(item, aria),
         .toast = ui.toast(.{ .text = "Added to the packing list", .kind = .success }),
     }));
 }

@@ -46,10 +46,10 @@ list-variants
 
 Set these on the `<li>`; no props needed.
 
-- `aria-selected="true"` fills the row with the accent color.
+- `aria-selected="true"` fills the row with the accent color. Secondary text (`--secondary`) and the `nav` chevron switch to a tint of the on-accent color, so they stay readable.
 - `aria-disabled="true"` dims the row and ignores the pointer.
 
-A list with no rows shows its `empty` text. While data loads, put a skeleton in each row.
+A list with no rows shows its `empty` text. While data loads, set `busy` (it sets `aria-busy` and hides the empty text) and put a skeleton in each row.
 
 ```demo
 list-states
@@ -98,6 +98,12 @@ A list inside a flush card, with avatars, tags and a switch. The card gives the 
 list-share
 ```
 
+## Notes
+
+- The `empty` text is plain text, shown by CSS when the last row is removed on the client. For an empty state with an icon or an action, render `ui.empty` yourself when the server knows the list has no rows.
+- Rows are not clickable by themselves. Make a row selectable with `nav` and a link (or a `<button>` inside the `<li>`) carrying a z.js request, as in the example above; the link is what takes focus and the keyboard. The chevron is part of `nav`.
+- A destructive button needs a per-row accessible name. Pass `aria` to `ui.button` (the visible label `Delete` stays as is); for a runtime name, build the string with `c.arena`, as the add demo does: `std.fmt.allocPrint(c.arena, "Delete {s}", .{item})`.
+
 ## Props
 
 | Prop | Type | Default | Notes |
@@ -110,4 +116,5 @@ list-share
 | `nav` | bool | `false` | rows are `<li><a href>`: the link fills the row and shows a disclosure chevron |
 | `reveal` | bool | `false` | a row's destructive button shows on hover or focus (always visible on touch) |
 | `inset` | bool | `true` | `false` drops the surface, so the list sits flat inside a card |
+| `busy` | bool | `false` | marks the list as loading (`aria-busy`) and hides the empty text; put skeleton rows in the body |
 | `body` | component | required | the rows |
