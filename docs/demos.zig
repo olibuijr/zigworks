@@ -287,9 +287,12 @@ fn radio(w: *Writer) Writer.Error!void {
 }
 
 fn disclosure(w: *Writer) Writer.Error!void {
-    try zw.view("{a}{b}", .{
+    try zw.view("{a}{b}<div class=\"zw-stack\" style=\"gap:0;margin-top:16px\">{c}{d}{e}</div>", .{
         .a = ui.disclosure(.{ .title = "What is zigworks?", .open = true, .body = "A small web framework in pure Zig, with a component library in Liquid Glass." }),
-        .b = ui.disclosure(.{ .title = "Does it need JavaScript?", .body = "No. Pages work without it; z.js adds requests, swaps, islands and the glass effects." }),
+        .b = ui.disclosure(.{ .title = "Does it need JavaScript?", .detail = "No", .body = "No. Pages work without it; z.js adds requests, swaps, islands and the glass effects." }),
+        .c = ui.disclosure(.{ .title = "Accordion: one open at a time", .name = "demo-faq", .style = .card, .open = true, .detail = "3 items", .body = "Disclosures that share a name close each other." }),
+        .d = ui.disclosure(.{ .title = "Second item", .name = "demo-faq", .style = .card, .body = "Opening this one closes the first." }),
+        .e = ui.disclosure(.{ .title = "Third item", .name = "demo-faq", .style = .card, .body = "Card style gives each item its own surface." }),
     }).render(w);
 }
 
