@@ -6,9 +6,9 @@ const std = @import("std");
 const zv = @import("../view.zig");
 
 pub const css =
-    \\.zw-island{position:relative;display:block;width:100%;max-width:100%;border-radius:var(--radius);overflow:hidden;background:var(--content);box-shadow:var(--shadow)}
-    \\.zw-island>canvas{display:block;width:100%;height:100%}
-    \\.zw-card .zw-island{box-shadow:none;border-radius:calc(var(--radius) - 6px)}
+    \\.zw-island{position:relative;display:block;width:100%;max-width:100%;border-radius:var(--radius);overflow:hidden;background:var(--content);box-shadow:var(--shadow);
+    \\& > canvas{display:block;width:100%;height:100%}
+    \\.zw-card &{box-shadow:none;border-radius:calc(var(--radius) - 6px)}}
     \\.zw-island-ph{display:none;position:absolute;inset:0;background:linear-gradient(90deg,var(--fill) 30%,var(--fill-strong) 50%,var(--fill) 70%) 0 0/300% 100%;animation:zw-shimmer 1.6s ease-in-out infinite}
     \\.zw-js .zw-island-ph{display:block}
     \\.zw-island:has(>:not(.zw-island-ph,noscript))>.zw-island-ph{display:none}
