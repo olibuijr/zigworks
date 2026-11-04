@@ -2,6 +2,7 @@
 //! Send it from a handler next to your response; it is an out-of-band append into the layout's
 //! toast area: `try c.html("{row}{toast}", .{ .row = ..., .toast = ui.toast(.{ .text = "Saved" }) })`.
 //! It can carry one action button (Undo) and, with `sticky`, stays until dismissed.
+//! `static` renders the bare toast in the flow of the page (docs, previews), without the append.
 const std = @import("std");
 const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
@@ -13,6 +14,7 @@ pub const css =
     \\  &:has(.zw-toast-x:checked):not(.zw-leave){display:none}
     \\  @media (pointer:coarse){min-height:44px}
     \\}
+    \\.zw-toast--static{animation:none;width:fit-content}
     \\.zw-toast-host{display:contents}
     \\.zw-toast-text{min-width:0;overflow-wrap:anywhere}
     \\.zw-toast-icon{position:relative;flex:none;width:16px;height:16px;border-radius:50%;background:var(--c,var(--accent));box-shadow:0 0 8px color-mix(in srgb,var(--c,var(--accent)) 55%,transparent);
@@ -43,17 +45,20 @@ pub const Props = struct {
     kind: Kind = .info,
     /// Label of an action button, such as "Undo". It fires `z`.
     action: []const u8 = "",
-    /// What the action button does. To close the toast afterwards, use
-    /// `.swap = .delete, .target = "closest .zw-toast"`.
+    /// What the action button does. z.js closes the toast when the action is pressed, so this
+    /// only says what the action does (`.swap = .none` when nothing on the page changes).
     z: Z = .{},
     /// Stay until dismissed: no auto-dismiss, and a close button is shown.
     sticky: bool = false,
+    /// Render the toast in place, as a plain block that stays, instead of an append into the
+    /// layout's toast area. For previews and docs; real notifications leave it off.
+    static: bool = false,
 };
 
 const Data = struct { p: Props, role: []const u8 };
 
-const src = "<div id=\"zw-toasts\" z-oob=\"beforeend\">{#if p.sticky}<div class=\"zw-toast-host\">{/if}" ++
-    "<div class=\"zw-toast zw-toast--{p.kind} zw-glass\" role=\"{role}\"><span class=\"zw-toast-icon\" aria-hidden=\"true\"></span><span class=\"zw-toast-text\">{p.text}</span>" ++
+const src = "<div{#if !p.static} id=\"zw-toasts\" z-oob=\"beforeend\"{/if}>{#if p.sticky}<div class=\"zw-toast-host\">{/if}" ++
+    "<div class=\"zw-toast zw-toast--{p.kind}{#if p.static} zw-toast--static{/if} zw-glass\" role=\"{role}\"><span class=\"zw-toast-icon\" aria-hidden=\"true\"></span><span class=\"zw-toast-text\">{p.text}</span>" ++
     "{#if p.action}<button type=\"button\" class=\"zw-toast-action zw-press\"{p.z}>{p.action}</button>{/if}" ++
     "{#if p.sticky}<input type=\"checkbox\" role=\"button\" class=\"zw-toast-x\" aria-label=\"Dismiss\">{/if}</div>{#if p.sticky}</div>{/if}</div>";
 
@@ -71,7 +76,17 @@ fn expectHas(p: Props, needle: []const u8) !void {
     try std.testing.expect(std.mem.find(u8, w.buffered(), needle) != null);
 }
 
-test "kinds, action and sticky" {
+fn expectLacks(p: Props, needle: []const u8) !void {
+    var buf: [2048]u8 = undefined;
+    var w: std.Io.Writer = .fixed(&buf);
+    try toast(p).render(&w);
+    try std.testing.expect(std.mem.find(u8, w.buffered(), needle) == null);
+}
+
+test "kinds, action, sticky and static" {
+    try expectHas(.{ .text = "x" }, "<div id=\"zw-toasts\" z-oob=\"beforeend\">");
+    try expectHas(.{ .text = "x", .static = true }, "<div><div class=\"zw-toast zw-toast--info zw-toast--static zw-glass\"");
+    try expectLacks(.{ .text = "x", .static = true }, "z-oob");
     try expectHas(.{ .text = "x", .kind = .warning }, "zw-toast--warning zw-glass\" role=\"status\"");
     try expectHas(.{ .text = "x", .kind = .@"error" }, "role=\"alert\"");
     try expectHas(.{ .text = "x", .action = "Undo", .z = .{ .post = "/undo" } }, "<button type=\"button\" class=\"zw-toast-action zw-press\" z-post=\"/undo\">Undo</button>");

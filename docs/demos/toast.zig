@@ -15,6 +15,7 @@ pub const demos = [_]d.Demo{
 /// Extra CSS for these demos (scope it under a demo-specific class).
 pub const css =
     \\.demo-toast-name{overflow-wrap:anywhere}
+    \\.demo-toast-kinds{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
     \\.demo-toast-size{color:var(--secondary);font:var(--callout);white-space:nowrap}
     \\
 ;
@@ -96,19 +97,19 @@ fn restore(c: *zw.Ctx) !void {
     });
 }
 
-// Kinds and options: every button asks /demo/toast/show for one toast. The toast is an
-// out-of-band append, so the buttons swap nothing.
+// Kinds are shown in place with `.static = true`. Options: every button asks /demo/toast/show
+// for one toast. The toast is an out-of-band append, so the buttons swap nothing.
 fn showButton(comptime k: []const u8) ui.Button {
     return ui.button(.{ .label = "Show", .size = .small, .z = .{ .post = "/demo/toast/show?k=" ++ k, .swap = .none } });
 }
 
 fn kinds(w: *Writer) Writer.Error!void {
-    try ui.card(.{ .title = "Kinds", .subtitle = "The kind sets the icon and its color.", .body = zw.view("{a}{b}{c}{d}", .{
-        .a = ui.setting(.{ .label = "Info", .description = ".kind = .info (the default)", .control = showButton("info") }),
-        .b = ui.setting(.{ .label = "Success", .description = ".kind = .success", .control = showButton("success") }),
-        .c = ui.setting(.{ .label = "Warning", .description = ".kind = .warning", .control = showButton("warning") }),
-        .d = ui.setting(.{ .label = "Error", .description = ".kind = .@\"error\", announced at once", .control = showButton("error") }),
-    }) }).render(w);
+    try zw.view("<div class=\"demo-toast-kinds\">{a}{b}{c}{d}</div>", .{
+        .a = ui.toast(.{ .text = "A software update is available", .static = true }),
+        .b = ui.toast(.{ .text = "Message sent", .kind = .success, .static = true }),
+        .c = ui.toast(.{ .text = "Storage is almost full", .kind = .warning, .static = true }),
+        .d = ui.toast(.{ .text = "Couldn't connect to the server", .kind = .@"error", .static = true }),
+    }).render(w);
 }
 
 fn options(w: *Writer) Writer.Error!void {
@@ -123,10 +124,6 @@ fn options(w: *Writer) Writer.Error!void {
 fn show(c: *zw.Ctx) !void {
     const k = c.query("k") orelse "";
     const eql = std.mem.eql;
-    if (eql(u8, k, "info")) return c.page(ui.toast(.{ .text = "A software update is available" }));
-    if (eql(u8, k, "success")) return c.page(ui.toast(.{ .text = "Message sent", .kind = .success }));
-    if (eql(u8, k, "warning")) return c.page(ui.toast(.{ .text = "Storage is almost full", .kind = .warning }));
-    if (eql(u8, k, "error")) return c.page(ui.toast(.{ .text = "Couldn't connect to the server", .kind = .@"error" }));
     // The Retry button asks for the next toast; z.js closes this one when the action is pressed.
     if (eql(u8, k, "failed")) return c.page(ui.toast(.{
         .text = "Upload failed",
