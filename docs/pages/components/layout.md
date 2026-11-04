@@ -2,6 +2,8 @@
 
 The root of every page: the document shell, a glass title bar and the content column. It loads `zw.css` and `z.js`, so pages need nothing else.
 
+A layout is a whole document, so each demo below is a real page in a frame. Here is a Notes app: a sidebar, a toolbar and a list that scrolls under the title bar.
+
 ```demo
 layout
 ```
@@ -16,6 +18,59 @@ try c.page(ui.layout(.{
     .footer = "Made with zigworks",
     .title_align = .center,
 }));
+```
+
+A sidebar turns the page into an app:
+
+```zig
+try c.page(ui.layout(.{
+    .title = "Notes",
+    .sidebar = ui.sidebar(.{ .current = "/all", .sections = &.{
+        .{ .title = "iCloud", .links = &.{.{ .label = "All Notes", .href = "/all" }} },
+    } }),
+    .body = notes,
+}));
+```
+
+## Title bar
+
+`.title_align` places the title, `.brand` turns it into a link to `/`, and `.toolbar` fills the trailing edge. With a sidebar, the title bar gains a button that opens it on narrow screens. `.head` adds raw HTML to `<head>`; here it makes the brand link leave the frame.
+
+```demo
+layout-titles
+```
+
+## Footer, language and skip link
+
+`.footer` sits under the page below a hairline. `.lang` sets the document language, `.skip_label` translates the skip link, and `.skip_link = false` removes it.
+
+```demo
+layout-chrome
+```
+
+## Updating the page from a response
+
+The title bar is part of the page, so z.js can update it. Give a toolbar badge an `id`, and answer a request with the same badge and `.oob = true`. Toasts work the same way.
+
+```demo
+layout-live
+```
+
+```zig
+// POST /reminders: append the row, replace the badge, show a toast.
+try c.page(zw.view("{row}{badge}{toast}", .{
+    .row = row,
+    .badge = ui.badge(.{ .count = n, .id = "remaining", .oob = true }),
+    .toast = ui.toast(.{ .text = "Reminder added", .kind = .success }),
+}));
+```
+
+## In a real app
+
+A settings window: a centered title, a sidebar, cards, setting rows and a footer.
+
+```demo
+layout-settings
 ```
 
 ## Props
