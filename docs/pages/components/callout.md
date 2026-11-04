@@ -74,7 +74,7 @@ fn check(c: *zw.Ctx) !void {
 
 | Prop | Type | Default | Notes |
 |---|---|---|---|
-| `kind` | enum | `.note` | `.note` (blue), `.tip` (green), `.warning` (orange), `.important` (purple), `.caution` (red) |
+| `kind` | enum | `.note` | `.note` (blue), `.tip` (green), `.warning` (orange), `.important` (violet, a blend of the accent and red), `.caution` (red) |
 | `title` | string | `""` | bold lead-in, followed by the body on the same line |
 | `body` | component | required | a string or any component |
 | `icon` | bool | `true` | show the kind's icon |
@@ -85,4 +85,6 @@ fn check(c: *zw.Ctx) !void {
 - The callout is a `role="note"`. The kind is shown by color and icon; put it in `title` too when the distinction matters ("Caution: ...").
 - When a handler swaps a callout into a status area, give the area `aria-live="polite"` so screen readers announce the new message.
 - Keep a callout to a sentence or two. Long text belongs in the page.
-- Markdown fences support `[!NOTE]`, `[!TIP]` and `[!WARNING]` and always show the icon.
+- A callout has no dismiss button and no live-region role of its own. To announce a swapped-in message, wrap it in an `aria-live="polite"` area as the demos do; for a dismissable message use a toast.
+- Handlers can name the kind through the callout's props type, for example `@FieldType(@TypeOf(ui.callout(.{ .body = "" }).data), "kind")`.
+- Markdown fences support `[!NOTE]`, `[!TIP]`, `[!WARNING]`, `[!IMPORTANT]` and `[!CAUTION]` and always show the icon.
