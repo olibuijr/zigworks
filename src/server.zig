@@ -84,10 +84,16 @@ fn connection(comptime app: anytype, state: *const State, stream: Io.net.Stream)
     var r = stream.reader(io, &recv);
     var w = stream.writer(io, &send);
     var server = http.Server.init(&r.interface, &w.interface);
+    requests(app, state, &server);
+}
+
+/// Answers requests until the connection closes or fails.
+fn requests(comptime app: anytype, state: *const State, server: *http.Server) void {
     var arena: std.heap.ArenaAllocator = .init(state.gpa);
     defer arena.deinit();
     while (server.reader.state == .ready) {
-        _ = arena.reset(.retain_capacity);
+        // Bounded so one large static file doesn't pin its memory for the whole keep-alive connection.
+        _ = arena.reset(.{ .retain_with_limit = 256 * 1024 });
         var req = server.receiveHead() catch |err| switch (err) {
             error.HttpConnectionClosing => return,
             else => return log.debug("closing connection: {t}", .{err}),
