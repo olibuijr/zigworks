@@ -19,7 +19,7 @@ fn save(c: *zw.Ctx) !void {
 }
 ```
 
-With an action. The action fires like any `z` attributes. The toast leaves by itself when its action is pressed, so `z` only has to say what the action does. This one puts a deleted row back:
+With an action. The action fires like any `z` attributes. z.js closes the toast when its action is pressed, so `z` only has to say what the action does and needs no `.swap = .delete`. This one puts a deleted row back:
 
 ```zig
 ui.toast(.{
@@ -31,10 +31,14 @@ ui.toast(.{
 
 ## Kinds
 
-`kind` picks the icon and its color. Errors are announced to screen readers at once, the other kinds politely.
+`kind` picks the icon and its color. Errors are announced to screen readers at once, the other kinds politely. These are shown in place with `static: true`, so all four fit on the page:
 
 ```demo
 toast-kinds
+```
+
+```zig
+ui.toast(.{ .text = "Message sent", .kind = .success, .static = true })
 ```
 
 ## Action, sticky and long text
@@ -72,7 +76,7 @@ fn invite(c: *zw.Ctx) !void {
 }
 ```
 
-An error here is a normal response with an error toast, not an error status: z.js leaves the page alone when a request fails.
+An error here is a normal response with an error toast, not an error status: z.js only logs a failed request (non-2xx) to the console and shows nothing. A form with `z-post` also resets after any successful response, so the mistyped address is cleared here too; `z-keep` on the form keeps its values, but then a sent address stays too.
 
 ## Props
 
@@ -83,6 +87,7 @@ An error here is a normal response with an error toast, not an error status: z.j
 | `action` | string | `""` | label of a button inside the toast, such as "Undo" |
 | `z` | `ui.Z` | `.{}` | what the action button does (same fields as a button's `.z`) |
 | `sticky` | bool | `false` | no auto-dismiss; a close button is shown |
+| `static` | bool | `false` | render the toast in place in the page instead of appending it to the toast area; for docs and previews |
 
 ## Notes
 
@@ -92,3 +97,5 @@ An error here is a normal response with an error toast, not an error status: z.j
 - A sticky toast is closed with its close button, which works without JavaScript.
 - On touch screens the action and close buttons grow to 44px.
 - A toast is added to the `#zw-toasts` area of the layout, so the response must reach z.js. Keep the request's `swap` as it is, or use `.swap = .none` when nothing else changes.
+- `static` renders only the toast, without the `#zw-toasts` append and without the entrance animation. It never leaves by itself, so use it for previews, not for notifications.
+- A failed request (non-2xx) shows no toast on its own. To tell people a save failed, answer with status 200 and an error toast.
