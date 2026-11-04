@@ -295,15 +295,38 @@ fn toggle(w: *Writer) Writer.Error!void {
 }
 
 fn segmented(w: *Writer) Writer.Error!void {
-    try ui.segmented(.{ .name = "view", .label = "View", .z = save, .options = &.{ .{ .value = "icons", .label = "Icons", .selected = true }, .{ .value = "list", .label = "List" }, .{ .value = "columns", .label = "Columns" } } }).render(w);
+    const grid = "<svg viewBox=\"0 0 16 16\"><path d=\"M2 2h5v5H2zm7 0h5v5H9zM2 9h5v5H2zm7 0h5v5H9z\"/></svg>";
+    const rows = "<svg viewBox=\"0 0 16 16\"><path d=\"M2 3h12v2H2zm0 4h12v2H2zm0 4h12v2H2z\"/></svg>";
+    try zw.view("<div class=\"zw-stack\" style=\"width:100%\">{a}{b}{c}{d}</div>", .{
+        .a = ui.segmented(.{ .name = "view", .label = "View", .z = save, .options = &.{ .{ .value = "icons", .label = "Icons", .selected = true }, .{ .value = "list", .label = "List" }, .{ .value = "columns", .label = "Columns" } } }),
+        .b = ui.segmented(.{ .name = "view-icons", .label = "Layout", .icons_only = true, .z = save, .options = &.{ .{ .value = "grid", .label = "Grid", .icon = grid, .selected = true }, .{ .value = "rows", .label = "Rows", .icon = rows } } }),
+        .c = ui.segmented(.{ .name = "view-small", .label = "Range", .size = .small, .z = save, .options = &.{ .{ .value = "day", .label = "Day" }, .{ .value = "week", .label = "Week", .selected = true }, .{ .value = "month", .label = "Month" }, .{ .value = "year", .label = "Year", .disabled = true } } }),
+        .d = ui.segmented(.{ .name = "view-full", .label = "Sort", .size = .large, .full = true, .z = save, .options = &.{ .{ .value = "name", .label = "Name", .icon = rows, .selected = true }, .{ .value = "kind", .label = "Kind", .icon = grid } } }),
+    }).render(w);
 }
 
 fn slider(w: *Writer) Writer.Error!void {
-    try ui.setting(.{ .label = "Volume", .control = ui.slider(.{ .name = "volume", .label = "Volume", .value = 70, .z = save }) }).render(w);
+    try zw.view("<div class=\"zw-stack\" style=\"width:100%\">{a}{b}{c}{d}</div>", .{
+        .a = ui.setting(.{ .label = "Volume", .control = ui.slider(.{ .name = "volume", .label = "Volume", .value = 70, .show_value = true, .unit = "%", .z = save }) }),
+        .b = ui.setting(.{ .label = "Quality", .control = ui.slider(.{ .name = "quality", .label = "Quality", .min = 0, .max = 4, .value = 2, .ticks = 4, .min_label = "Low", .max_label = "High", .z = save }) }),
+        .c = ui.setting(.{ .label = "Text size", .control = ui.slider(.{ .name = "text-size", .label = "Text size", .min = 10, .max = 20, .value = 13, .ticks = 10, .show_value = true, .unit = " pt", .z = save }) }),
+        .d = ui.setting(.{ .label = "Brightness", .control = ui.slider(.{ .name = "brightness", .label = "Brightness", .value = 40, .disabled = true }) }),
+    }).render(w);
 }
 
 fn picker(w: *Writer) Writer.Error!void {
-    try ui.picker(.{ .id = "demo-picker", .name = "sort", .label = "Sort by", .z = save, .options = &.{ .{ .value = "name", .label = "Name", .selected = true }, .{ .value = "date", .label = "Date Modified" }, .{ .value = "size", .label = "Size" } } }).render(w);
+    const doc = "<svg viewBox=\"0 0 16 16\"><path d=\"M3 1h6l4 4v10H3zm5 1v4h4z\"/></svg>";
+    const clock = "<svg viewBox=\"0 0 16 16\"><path d=\"M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm1 3v4l3 2-.8 1.2L7 9V4z\"/></svg>";
+    try zw.view("{a}{b}{c}", .{
+        .a = ui.picker(.{ .id = "demo-picker", .name = "sort", .label = "Sort by", .z = save, .options = &.{ .{ .value = "name", .label = "Name", .selected = true }, .{ .value = "date", .label = "Date Modified" }, .{ .value = "size", .label = "Size" } } }),
+        .b = ui.picker(.{ .id = "demo-picker-rich", .name = "group", .label = "Group by", .placeholder = "Group by…", .z = save, .options = &.{
+            .{ .value = "none", .label = "None", .description = "A flat list" },
+            .{ .value = "kind", .label = "Kind", .icon = doc, .heading = "Attributes", .description = "Documents, folders, images" },
+            .{ .value = "date", .label = "Date Added", .icon = clock },
+            .{ .value = "tags", .label = "Tags", .separated = true, .disabled = true },
+        } }),
+        .c = ui.picker(.{ .id = "demo-picker-off", .name = "sort-off", .label = "Sort by", .disabled = true, .options = &.{ .{ .value = "name", .label = "Name", .selected = true } } }),
+    }).render(w);
 }
 
 fn menu(w: *Writer) Writer.Error!void {
@@ -389,7 +412,12 @@ fn textarea(w: *Writer) Writer.Error!void {
 }
 
 fn stepper(w: *Writer) Writer.Error!void {
-    try ui.setting(.{ .label = "Copies", .control = ui.stepper(.{ .name = "copies", .label = "Copies", .value = 1, .min = 1, .max = 9, .z = save }) }).render(w);
+    try zw.view("<div class=\"zw-stack\" style=\"width:100%\">{a}{b}{c}{d}</div>", .{
+        .a = ui.setting(.{ .label = "Copies", .control = ui.stepper(.{ .name = "copies", .label = "Copies", .value = 1, .min = 1, .max = 9, .z = save }) }),
+        .b = ui.setting(.{ .label = "Cache size", .control = ui.stepper(.{ .name = "cache-gb", .label = "Cache size", .value = 4, .min = 1, .max = 32, .unit = "GB", .z = save }) }),
+        .c = ui.setting(.{ .label = "Hour", .control = ui.stepper(.{ .name = "hour", .label = "Hour", .value = 23, .min = 0, .max = 23, .wrap = true, .editable = false, .z = save }) }),
+        .d = ui.setting(.{ .label = "Retries", .control = ui.stepper(.{ .name = "retries", .label = "Retries", .value = 3, .min = 0, .max = 5, .disabled = true }) }),
+    }).render(w);
 }
 
 fn checkbox(w: *Writer) Writer.Error!void {

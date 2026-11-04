@@ -1,16 +1,24 @@
 //! Slider: native range input (keyboard, form value), fully restyled. The filled track follows
-//! the value via z.js (`--zw-fill`), so it renders correctly without JS too, just unfilled.
+//! the value via z.js (`--zw-fill`); the server writes the starting fill too, so it renders
+//! correctly without JS (the knob is then the native thumb). Optional tick marks, end labels and
+//! a value readout; the readout follows the thumb with z.js.
+const std = @import("std");
 const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
 
 pub const css =
-    \\.zw-slider{position:relative;display:flex;align-items:center;min-height:var(--control-h)}
-    \\.zw-slider input{appearance:none;flex:1;height:6px;margin:0;border-radius:3px;box-shadow:inset 0 .5px 1px rgba(0,0,0,.1);
+    \\.zw-slider{position:relative;display:flex;align-items:center;gap:10px;min-width:0;min-height:var(--control-h)}
+    \\.zw-slider-track{position:relative;display:flex;flex:1;align-items:center;min-width:0;min-height:var(--control-h)}
+    \\.zw-slider input{appearance:none;flex:1;width:100%;min-width:0;height:var(--control-h);margin:0;background:transparent;cursor:default}
+    \\.zw-slider input::-webkit-slider-runnable-track{height:6px;border-radius:3px;box-shadow:inset 0 .5px 1px rgba(0,0,0,.1);
     \\background:linear-gradient(var(--accent),var(--accent)) 0/var(--zw-fill,50%) 100% no-repeat,var(--fill-strong)}
-    \\.zw-slider input::-webkit-slider-thumb{appearance:none;width:28px;height:18px;border-radius:9px;background:var(--knob);box-shadow:0 0 0 .5px rgba(0,0,0,.06),0 2px 6px rgba(0,0,0,.18)}
+    \\.zw-slider input::-moz-range-track{height:6px;border-radius:3px;box-shadow:inset 0 .5px 1px rgba(0,0,0,.1);
+    \\background:linear-gradient(var(--accent),var(--accent)) 0/var(--zw-fill,50%) 100% no-repeat,var(--fill-strong)}
+    \\.zw-slider input::-webkit-slider-thumb{appearance:none;width:28px;height:18px;margin-top:-6px;border-radius:9px;background:var(--knob);box-shadow:0 0 0 .5px rgba(0,0,0,.06),0 2px 6px rgba(0,0,0,.18)}
     \\.zw-slider input::-moz-range-thumb{width:28px;height:18px;border:0;border-radius:9px;background:var(--knob);box-shadow:0 0 0 .5px rgba(0,0,0,.06),0 2px 6px rgba(0,0,0,.18)}
     \\.zw-slider input:focus-visible{outline:none}
     \\.zw-slider input:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3.5px color-mix(in srgb,var(--accent) 50%,transparent)}
+    \\.zw-slider input:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3.5px color-mix(in srgb,var(--accent) 50%,transparent)}
     \\.zw-slider-knob{display:none}
     \\.zw-js .zw-slider input::-webkit-slider-thumb{opacity:0}
     \\.zw-js .zw-slider input::-moz-range-thumb{opacity:0}
@@ -19,10 +27,16 @@ pub const css =
     \\transition:width var(--dur-bouncy) var(--spring-bouncy),height var(--dur-bouncy) var(--spring-bouncy),margin var(--dur-bouncy) var(--spring-bouncy),
     \\border-radius var(--dur-bouncy) var(--spring-bouncy),background-color var(--speed),box-shadow var(--speed)}
     \\.zw-slider input:focus-visible~.zw-slider-knob{box-shadow:0 0 0 3.5px color-mix(in srgb,var(--accent) 50%,transparent),0 2px 6px rgba(0,0,0,.18)}
-    \\.zw-slider input:active~.zw-slider-knob{width:40px;height:26px;margin:-13px 0 0 -6px;border-radius:13px;background:var(--glass-clear);
+    \\.zw-slider input:not(:disabled):active~.zw-slider-knob{width:40px;height:26px;margin:-13px 0 0 -6px;border-radius:13px;background:var(--glass-clear);
     \\box-shadow:var(--glass-rim),0 0 0 .5px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.18);-webkit-backdrop-filter:var(--glass-filter-clear);backdrop-filter:var(--glass-filter-clear);
     \\transition-duration:var(--dur-snappy);transition-timing-function:var(--spring-snappy)}
-    \\.zw-refract .zw-slider input:active~.zw-slider-knob{backdrop-filter:url(#zw-lens-thumb) var(--glass-filter-clear)}
+    \\.zw-refract .zw-slider input:not(:disabled):active~.zw-slider-knob{backdrop-filter:url(#zw-lens-thumb) var(--glass-filter-clear)}
+    \\.zw-slider-ticks{position:absolute;left:14px;right:13px;top:calc(50% + 9px);height:5px;pointer-events:none;
+    \\background:repeating-linear-gradient(90deg,var(--tertiary) 0 1px,transparent 1px calc((100% - 1px) / var(--ticks)))}
+    \\.zw-slider-end{flex:none;font:var(--callout);color:var(--secondary);white-space:nowrap}
+    \\.zw-slider-value{flex:none;min-width:3ch;text-align:end;font:var(--body);font-variant-numeric:tabular-nums;color:var(--secondary)}
+    \\.zw-slider.is-disabled{opacity:.4}
+    \\@media (pointer:coarse){.zw-slider,.zw-slider-track,.zw-slider input{min-height:44px}.zw-slider input{height:44px}}
     \\
 ;
 
@@ -34,12 +48,51 @@ pub const Props = struct {
     step: i64 = 1,
     value: i64 = 50,
     z: Z = .{},
+    /// Dim the slider and ignore input.
+    disabled: bool = false,
+    /// Tick marks: the number of intervals along the track (`4` draws 5 marks). `0` draws none.
+    /// Pick a count that divides the range by `step`, so the thumb lands on the marks.
+    ticks: u8 = 0,
+    /// Text before and after the track (`"Quiet"`, `"Loud"`). Plain text, escaped.
+    min_label: []const u8 = "",
+    max_label: []const u8 = "",
+    /// Show the current value to the right; z.js keeps it in sync while dragging.
+    show_value: bool = false,
+    /// Appended to the value readout (`"%"`, `" pt"`).
+    unit: []const u8 = "",
 };
 
-const src = "<label class=\"zw-slider\"><span class=\"zw-sr\">{label}</span><input type=\"range\" name=\"{name}\" min=\"{min}\" max=\"{max}\" step=\"{step}\" value=\"{value}\"{z}><span class=\"zw-slider-knob\" aria-hidden=\"true\"></span></label>";
+// The visible extras are aria-hidden: they sit inside the <label>, and the range input already announces its value.
+const src = "<label class=\"zw-slider{#if p.disabled} is-disabled{/if}\"><span class=\"zw-sr\">{p.label}</span>" ++
+    "{#if p.min_label}<span class=\"zw-slider-end\" aria-hidden=\"true\">{p.min_label}</span>{/if}" ++
+    "<span class=\"zw-slider-track\" style=\"--zw-f:calc({pm} / 1000)\"><input type=\"range\" name=\"{p.name}\" min=\"{p.min}\" max=\"{p.max}\" step=\"{p.step}\" value=\"{p.value}\" style=\"--zw-fill:calc({pm} * .1%)\"{#if p.disabled} disabled{/if}{p.z}>" ++
+    "<span class=\"zw-slider-knob\" aria-hidden=\"true\"></span>{#if p.ticks}<span class=\"zw-slider-ticks\" aria-hidden=\"true\" style=\"--ticks:{p.ticks}\"></span>{/if}</span>" ++
+    "{#if p.max_label}<span class=\"zw-slider-end\" aria-hidden=\"true\">{p.max_label}</span>{/if}" ++
+    "{#if p.show_value}<output class=\"zw-slider-value\" aria-hidden=\"true\" data-unit=\"{p.unit}\">{p.value}{p.unit}</output>{/if}</label>";
 
-pub const Slider = zv.View(src, Props);
+const Data = struct { p: Props, pm: i64 };
+
+pub const Slider = zv.View(src, Data);
 
 pub fn slider(p: Props) Slider {
-    return .{ .data = p };
+    return .{ .data = .{ .p = p, .pm = permille(p) } };
+}
+
+/// Where the value sits between min and max, 0 to 1000 (the starting fill, before z.js runs).
+fn permille(p: Props) i64 {
+    if (p.max <= p.min) return 0;
+    const v = std.math.clamp(p.value, p.min, p.max);
+    return @intCast(@divTrunc((@as(i128, v) - p.min) * 1000, @as(i128, p.max) - p.min));
+}
+
+test "slider fill, ticks, labels and value" {
+    try std.testing.expectEqual(@as(i64, 250), permille(.{ .name = "a", .label = "a", .min = 0, .max = 8, .value = 2 }));
+    try std.testing.expectEqual(@as(i64, 1000), permille(.{ .name = "a", .label = "a", .value = 500 }));
+    var buf: [2048]u8 = undefined;
+    var w: std.Io.Writer = .fixed(&buf);
+    try slider(.{ .name = "v", .label = "Volume", .ticks = 4, .min_label = "Quiet", .max_label = "Loud", .show_value = true, .unit = "%", .disabled = true }).render(&w);
+    const out = w.buffered();
+    for ([_][]const u8{ "zw-slider is-disabled", "--ticks:4", ">Quiet<", ">Loud<", ">50%</output>", " disabled", "--zw-fill:calc(500 * .1%)" }) |needle| {
+        try std.testing.expect(std.mem.find(u8, out, needle) != null);
+    }
 }
