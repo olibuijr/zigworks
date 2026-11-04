@@ -15,7 +15,7 @@ const cleanup = () => children.forEach((c) => c.kill());
 process.on('exit', cleanup);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function waitHttp(url, ms = 10000) {
+async function waitHttp(url, ms = 30000) { // CI machines can take a while to start Chrome
   for (const end = Date.now() + ms; Date.now() < end; await sleep(100)) {
     try { await fetch(url); return; } catch {}
   }
