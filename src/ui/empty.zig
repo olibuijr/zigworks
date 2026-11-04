@@ -24,23 +24,24 @@ pub const css =
 
 pub const Size = enum { regular, compact, large };
 
-/// Everything the template needs: the props and the flags `empty` works out from them.
-pub fn Data(comptime Action: type, comptime Secondary: type) type {
+pub fn Props(comptime Action: type, comptime Secondary: type) type {
     return struct {
         title: []const u8,
-        text: []const u8,
-        icon: []const u8,
-        size: Size,
-        actions: bool,
-        has_action: bool,
-        has_secondary: bool,
-        action: Action,
-        secondary: Secondary,
+        text: []const u8 = "",
+        icon: []const u8 = "",
+        size: Size = .regular,
+        action: ?Action = null,
+        secondary: ?Secondary = null,
     };
 }
 
-const src = "<div class=\"zw-empty zw-empty--{size}\">{#if icon}<div class=\"zw-empty-icon\" aria-hidden=\"true\">{icon}</div>{/if}<h3>{title}</h3>{#if text}<p>{text}</p>{/if}" ++
-    "{#if actions}<div class=\"zw-empty-actions\">{#if has_action}{action}{/if}{#if has_secondary}{secondary}{/if}</div>{/if}</div>";
+/// The props plus the flag `empty` works out from them.
+pub fn Data(comptime Action: type, comptime Secondary: type) type {
+    return struct { p: Props(Action, Secondary), actions: bool };
+}
+
+const src = "<div class=\"zw-empty zw-empty--{p.size}\">{#if p.icon}<div class=\"zw-empty-icon\" aria-hidden=\"true\">{p.icon}</div>{/if}<h3>{p.title}</h3>{#if p.text}<p>{p.text}</p>{/if}" ++
+    "{#if actions}<div class=\"zw-empty-actions\">{p.action}{p.secondary}</div>{/if}</div>";
 
 pub fn EmptyOf(comptime Action: type, comptime Secondary: type) type {
     return zv.View(src, Data(Action, Secondary));
@@ -51,51 +52,10 @@ pub fn Empty(comptime Action: type) type {
     return EmptyOf(Action, []const u8);
 }
 
-const names = [_][]const u8{ "title", "text", "icon", "size", "action", "secondary" };
-
-fn checkProps(comptime P: type) void {
-    comptime {
-        for (@typeInfo(P).@"struct".field_names) |n| {
-            var ok = false;
-            for (names) |k| ok = ok or std.mem.eql(u8, n, k);
-            if (!ok) @compileError("unknown prop '" ++ n ++ "' for empty");
-        }
-    }
-}
-
-fn opt(p: anytype, comptime name: []const u8, default: anytype) @TypeOf(default) {
-    return if (comptime @hasField(@TypeOf(p), name)) @field(p, name) else default;
-}
-
-fn SlotOf(comptime P: type, comptime name: []const u8) type {
-    return if (@hasField(P, name)) @FieldType(P, name) else []const u8;
-}
-
-/// True when the slot was given and is not an empty string.
-fn present(p: anytype, comptime name: []const u8) bool {
-    if (comptime @hasField(@TypeOf(p), name)) {
-        const v = @field(p, name);
-        return if (comptime @typeInfo(@TypeOf(v)) == .pointer) v.len > 0 else true;
-    } else return false;
-}
-
 /// `empty(.{ .icon = "✓", .title = "No Reminders", .text = "Add one to get started.", .action = ui.button(...) })`
-pub fn empty(p: anytype) EmptyOf(SlotOf(@TypeOf(p), "action"), SlotOf(@TypeOf(p), "secondary")) {
-    const P = @TypeOf(p);
-    checkProps(P);
-    const has_action = present(p, "action");
-    const has_secondary = present(p, "secondary");
-    return .{ .data = .{
-        .title = p.title,
-        .text = opt(p, "text", @as([]const u8, "")),
-        .icon = opt(p, "icon", @as([]const u8, "")),
-        .size = opt(p, "size", Size.regular),
-        .actions = has_action or has_secondary,
-        .has_action = has_action,
-        .has_secondary = has_secondary,
-        .action = if (comptime @hasField(P, "action")) p.action else "",
-        .secondary = if (comptime @hasField(P, "secondary")) p.secondary else "",
-    } };
+pub fn empty(p: anytype) EmptyOf(zv.Slot(@TypeOf(p), "action"), zv.Slot(@TypeOf(p), "secondary")) {
+    const q = zv.props(Props(zv.Slot(@TypeOf(p), "action"), zv.Slot(@TypeOf(p), "secondary")), p);
+    return .{ .data = .{ .p = q, .actions = zv.filled(q.action) or zv.filled(q.secondary) } };
 }
 
 test "empty renders icon, size and actions" {

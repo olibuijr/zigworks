@@ -29,36 +29,34 @@ pub const css =
 
 pub const Variant = enum { elevated, inset, plain };
 
-/// Everything a template needs: the props, the slots and the flags `card` works out from them.
-pub fn Data(comptime Body: type, comptime Acc: type, comptime Foot: type) type {
+pub fn Props(comptime Body: type, comptime Acc: type, comptime Foot: type) type {
     return struct {
-        id: []const u8,
-        title: []const u8,
-        subtitle: []const u8,
-        variant: Variant,
-        href: []const u8,
-        flush: bool,
-        z: Z,
-        tag: []const u8,
-        labelled: bool,
-        head: bool,
-        acc: bool,
-        foot: bool,
-        foot_text: bool,
+        id: []const u8 = "",
+        title: []const u8 = "",
+        subtitle: []const u8 = "",
+        variant: Variant = .elevated,
+        href: []const u8 = "",
+        flush: bool = false,
+        z: Z = .{},
+        accessory: ?Acc = null,
+        footer: ?Foot = null,
         body: Body,
-        accessory: Acc,
-        footer: Foot,
     };
 }
 
-const src = "<{tag} class=\"zw-card zw-card--{variant}{#if flush} zw-card--flush{/if}{#if href} zw-card--link{/if}\"" ++
-    "{#if id} id=\"{id}\"{/if}{#if href} href=\"{href}\"{/if}{#if labelled} aria-labelledby=\"{id}-title\"{/if}{z}>" ++
+/// The props plus the flags `card` works out from them.
+pub fn Data(comptime Body: type, comptime Acc: type, comptime Foot: type) type {
+    return struct { p: Props(Body, Acc, Foot), tag: []const u8, labelled: bool, head: bool, acc: bool, foot: bool, foot_text: bool };
+}
+
+const src = "<{tag} class=\"zw-card zw-card--{p.variant}{#if p.flush} zw-card--flush{/if}{#if p.href} zw-card--link{/if}\"" ++
+    "{#if p.id} id=\"{p.id}\"{/if}{#if p.href} href=\"{p.href}\"{/if}{#if labelled} aria-labelledby=\"{p.id}-title\"{/if}{p.z}>" ++
     "{#if head}<header class=\"zw-card-head\"><div class=\"zw-card-text\">" ++
-    "{#if title}<h2 class=\"zw-card-title\"{#if id} id=\"{id}-title\"{/if}>{title}</h2>{/if}" ++
-    "{#if subtitle}<p class=\"zw-card-sub\">{subtitle}</p>{/if}</div>" ++
-    "{#if acc}<div class=\"zw-card-acc\">{accessory}</div>{/if}</header>{/if}" ++
-    "{body}" ++
-    "{#if foot}<footer class=\"zw-card-foot{#if foot_text} zw-card-foot--text{/if}\">{footer}</footer>{/if}</{tag}>";
+    "{#if p.title}<h2 class=\"zw-card-title\"{#if p.id} id=\"{p.id}-title\"{/if}>{p.title}</h2>{/if}" ++
+    "{#if p.subtitle}<p class=\"zw-card-sub\">{p.subtitle}</p>{/if}</div>" ++
+    "{#if acc}<div class=\"zw-card-acc\">{p.accessory}</div>{/if}</header>{/if}" ++
+    "{p.body}" ++
+    "{#if foot}<footer class=\"zw-card-foot{#if foot_text} zw-card-foot--text{/if}\">{p.footer}</footer>{/if}</{tag}>";
 
 pub fn CardOf(comptime Body: type, comptime Acc: type, comptime Foot: type) type {
     return zv.View(src, Data(Body, Acc, Foot));
@@ -69,61 +67,20 @@ pub fn Card(comptime Body: type) type {
     return CardOf(Body, []const u8, []const u8);
 }
 
-const names = [_][]const u8{ "id", "title", "subtitle", "variant", "href", "flush", "z", "accessory", "footer", "body" };
-
-fn checkProps(comptime P: type) void {
-    comptime {
-        for (@typeInfo(P).@"struct".field_names) |n| {
-            var ok = false;
-            for (names) |k| ok = ok or std.mem.eql(u8, n, k);
-            if (!ok) @compileError("unknown prop '" ++ n ++ "' for card");
-        }
-    }
-}
-
-fn opt(p: anytype, comptime name: []const u8, default: anytype) @TypeOf(default) {
-    return if (comptime @hasField(@TypeOf(p), name)) @field(p, name) else default;
-}
-
-fn SlotOf(comptime P: type, comptime name: []const u8) type {
-    return if (@hasField(P, name)) @FieldType(P, name) else []const u8;
-}
-
-/// True when the slot was given and is not an empty string.
-fn present(p: anytype, comptime name: []const u8) bool {
-    if (comptime @hasField(@TypeOf(p), name)) {
-        const v = @field(p, name);
-        return if (comptime @typeInfo(@TypeOf(v)) == .pointer) v.len > 0 else true;
-    } else return false;
-}
-
 /// `card(.{ .title = "Storage", .subtitle = "Macintosh HD", .footer = "Updated just now", .body = ... })`
-pub fn card(p: anytype) CardOf(@FieldType(@TypeOf(p), "body"), SlotOf(@TypeOf(p), "accessory"), SlotOf(@TypeOf(p), "footer")) {
+pub fn card(p: anytype) CardOf(@FieldType(@TypeOf(p), "body"), zv.Slot(@TypeOf(p), "accessory"), zv.Slot(@TypeOf(p), "footer")) {
     const P = @TypeOf(p);
-    checkProps(P);
-    const id = opt(p, "id", @as([]const u8, ""));
-    const title = opt(p, "title", @as([]const u8, ""));
-    const subtitle = opt(p, "subtitle", @as([]const u8, ""));
-    const href = opt(p, "href", @as([]const u8, ""));
-    const acc = present(p, "accessory");
-    const Foot = SlotOf(P, "footer");
+    const Foot = zv.Slot(P, "footer");
+    const q = zv.props(Props(@FieldType(P, "body"), zv.Slot(P, "accessory"), Foot), p);
+    const acc = zv.filled(q.accessory);
     return .{ .data = .{
-        .id = id,
-        .title = title,
-        .subtitle = subtitle,
-        .variant = opt(p, "variant", Variant.elevated),
-        .href = href,
-        .flush = opt(p, "flush", false),
-        .z = opt(p, "z", Z{}),
-        .tag = if (href.len > 0) "a" else "section",
-        .labelled = id.len > 0 and title.len > 0 and href.len == 0,
-        .head = title.len > 0 or subtitle.len > 0 or acc,
+        .p = q,
+        .tag = if (q.href.len > 0) "a" else "section",
+        .labelled = q.id.len > 0 and q.title.len > 0 and q.href.len == 0,
+        .head = q.title.len > 0 or q.subtitle.len > 0 or acc,
         .acc = acc,
-        .foot = present(p, "footer"),
+        .foot = zv.filled(q.footer),
         .foot_text = @typeInfo(Foot) == .pointer,
-        .body = p.body,
-        .accessory = if (comptime @hasField(P, "accessory")) p.accessory else "",
-        .footer = if (comptime @hasField(P, "footer")) p.footer else "",
     } };
 }
 

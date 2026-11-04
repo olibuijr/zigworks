@@ -74,17 +74,12 @@ pub fn Tabs(comptime Panels: type) type {
                 try w.writeAll("<div class=\"zw-tab-panel\" role=\"tabpanel\" aria-label=\"");
                 try zv.writeEscaped(w, self.labels[i]);
                 try w.writeAll("\">");
-                try renderAny(w, @field(self.panels, name));
+                try zv.writeValue(w, @field(self.panels, name));
                 try w.writeAll("</div>");
             }
             try w.writeAll("</div>");
         }
     };
-}
-
-fn renderAny(w: *Writer, v: anytype) Writer.Error!void {
-    if (@TypeOf(v) == []const u8 or @typeInfo(@TypeOf(v)) == .pointer) return zv.writeEscaped(w, v);
-    return v.render(w);
 }
 
 pub fn tabs(p: anytype) Tabs(@TypeOf(p.panels)) {

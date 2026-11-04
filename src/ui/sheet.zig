@@ -34,14 +34,14 @@ pub const css =
 pub const Size = enum { small, medium, large };
 
 const src =
-    "<div class=\"zw-sheet zw-sheet--{p.size}{#if p.close} zw-sheet--closable{/if} zw-glass\" id=\"{p.id}\" popover role=\"dialog\" tabindex=\"-1\" aria-labelledby=\"{p.id}-title\"" ++
-    "{#if p.description} aria-describedby=\"{p.id}-desc\"{/if}{#if p.focus_first} data-focus-first{/if}>" ++
-    "{#if p.close}<button type=\"button\" class=\"zw-sheet-close\" popovertarget=\"{p.id}\" popovertargetaction=\"hide\" aria-label=\"{p.close_label}\">" ++
+    "<div class=\"zw-sheet zw-sheet--{size}{#if close} zw-sheet--closable{/if} zw-glass\" id=\"{id}\" popover role=\"dialog\" tabindex=\"-1\" aria-labelledby=\"{id}-title\"" ++
+    "{#if description} aria-describedby=\"{id}-desc\"{/if}{#if focus_first} data-focus-first{/if}>" ++
+    "{#if close}<button type=\"button\" class=\"zw-sheet-close\" popovertarget=\"{id}\" popovertargetaction=\"hide\" aria-label=\"{close_label}\">" ++
     "<svg viewBox=\"0 0 12 12\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M2 2l8 8M10 2l-8 8\"/></svg></button>{/if}" ++
-    "<h2 id=\"{p.id}-title\">{p.title}</h2>{#if p.description}<p class=\"zw-sheet-desc\" id=\"{p.id}-desc\">{p.description}</p>{/if}" ++
-    "{p.body}{#if has_footer}<div class=\"zw-sheet-actions\">{footer}</div>{/if}</div>";
+    "<h2 id=\"{id}-title\">{title}</h2>{#if description}<p class=\"zw-sheet-desc\" id=\"{id}-desc\">{description}</p>{/if}" ++
+    "{body}{#if footer}<div class=\"zw-sheet-actions\">{footer}</div>{/if}</div>";
 
-pub fn PropsWith(comptime Body: type) type {
+pub fn Props(comptime Body: type, comptime Footer: type) type {
     return struct {
         id: []const u8,
         title: []const u8,
@@ -51,46 +51,21 @@ pub fn PropsWith(comptime Body: type) type {
         close: bool = false,
         close_label: []const u8 = "Close",
         focus_first: bool = true,
+        footer: ?Footer = null,
     };
 }
 
-pub fn Props(comptime Body: type) type {
-    return PropsWith(Body);
-}
-
-fn Data(comptime Body: type, comptime Footer: type) type {
-    return struct { p: PropsWith(Body), footer: Footer, has_footer: bool };
-}
-
 pub fn SheetWith(comptime Body: type, comptime Footer: type) type {
-    return zv.View(src, Data(Body, Footer));
+    return zv.View(src, Props(Body, Footer));
 }
 
 pub fn Sheet(comptime Body: type) type {
     return SheetWith(Body, []const u8);
 }
 
-fn Slot(comptime P: type, comptime name: []const u8) type {
-    return if (@hasField(P, name)) @FieldType(P, name) else []const u8;
-}
-
 /// `sheet(.{ .id = "rename", .title = "Rename", .body = form, .size = .small, .description = "…", .close = true, .footer = buttons })`
-pub fn sheet(p: anytype) SheetWith(@FieldType(@TypeOf(p), "body"), Slot(@TypeOf(p), "footer")) {
-    const P = @TypeOf(p);
-    const Body = @FieldType(P, "body");
-    const D = PropsWith(Body);
-    inline for (@typeInfo(P).@"struct".field_names) |n| {
-        if (!@hasField(D, n) and !comptime std.mem.eql(u8, n, "footer")) @compileError("unknown prop '" ++ n ++ "' for sheet");
-    }
-    var d: D = .{ .id = p.id, .title = p.title, .body = p.body };
-    inline for (.{ "description", "size", "close", "close_label", "focus_first" }) |n| {
-        if (@hasField(P, n)) @field(d, n) = @field(p, n);
-    }
-    return .{ .data = .{
-        .p = d,
-        .footer = if (@hasField(P, "footer")) p.footer else "",
-        .has_footer = @hasField(P, "footer"),
-    } };
+pub fn sheet(p: anytype) SheetWith(@FieldType(@TypeOf(p), "body"), zv.Slot(@TypeOf(p), "footer")) {
+    return .{ .data = zv.props(Props(@FieldType(@TypeOf(p), "body"), zv.Slot(@TypeOf(p), "footer")), p) };
 }
 
 test "sheet defaults" {

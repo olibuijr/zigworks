@@ -45,6 +45,18 @@ pub fn props(comptime T: type, p: anytype) T {
     return out;
 }
 
+/// Type of the optional slot `name` in props of type `P`: the field's type if given, else `[]const u8`.
+/// Containers declare such a slot as `?Slot(P, name) = null` in their props, so `props` fills it.
+pub fn Slot(comptime P: type, comptime name: []const u8) type {
+    return if (@hasField(P, name)) @FieldType(P, name) else []const u8;
+}
+
+/// True when an optional slot was given and is not an empty string.
+pub fn filled(v: anytype) bool {
+    const x = v orelse return false;
+    return if (comptime isString(@TypeOf(x))) x.len > 0 else true;
+}
+
 /// Renders `component(item)` for every item: `zw.each(todos, todoRow)`.
 pub fn each(items: anytype, comptime component: anytype) Each(@TypeOf(items), component) {
     return .{ .items = items };
@@ -262,6 +274,11 @@ fn write(w: *Writer, v: anytype, escape: bool) Writer.Error!void {
     @compileError("template: cannot print " ++ @typeName(T) ++ " (give it a render(self, *Writer) method)");
 }
 
+/// Writes a value as `{expr}` does: strings escaped, components rendered.
+pub fn writeValue(w: *Writer, v: anytype) Writer.Error!void {
+    return write(w, v, true);
+}
+
 pub fn writeEscaped(w: *Writer, s: []const u8) Writer.Error!void {
     var start: usize = 0;
     for (s, 0..) |c, i| {
@@ -307,4 +324,11 @@ test "each, if, else, nesting, components" {
     try expectRender("<main><p>x&amp;y</p></main>", "<main>{body}</main>", .{ .body = inner });
     // outer variables stay visible inside loops; nested ifs inside each
     try expectRender("k:a k:b ", "{#each xs as x}{#if x}{p}:{x} {/if}{/each}", .{ .xs = @as([]const []const u8, &.{ "a", "", "b" }), .p = "k" });
+}
+
+test "optional slots" {
+    const P = struct { a: ?Slot(struct { a: u8 }, "a") = null, b: ?Slot(struct {}, "b") = null };
+    try std.testing.expect(@FieldType(P, "a") == ?u8 and @FieldType(P, "b") == ?[]const u8);
+    try std.testing.expect(!filled(@as(?[]const u8, null)) and !filled(@as(?[]const u8, "")));
+    try std.testing.expect(filled(@as(?[]const u8, "x")) and filled(@as(?u8, 0)));
 }
