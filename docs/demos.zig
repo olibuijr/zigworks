@@ -245,7 +245,16 @@ fn callout(w: *Writer) Writer.Error!void {
 }
 
 fn code(w: *Writer) Writer.Error!void {
-    try ui.code(.{ .src = "fn index(c: *zw.Ctx) !void {\n    try c.html(\"<h1>Hello, {name}</h1>\", .{ .name = \"Zig\" });\n}" }).render(w);
+    try zw.view("<div class=\"zw-stack\" style=\"width:100%;min-width:0\">{a}{b}{c}</div>", .{
+        .a = ui.code(.{ .src = "fn index(c: *zw.Ctx) !void {\n    try c.html(\"<h1>Hello, {name}</h1>\", .{ .name = \"Zig\" });\n}" }),
+        .b = ui.code(.{
+            .title = "handlers.zig",
+            .numbers = true,
+            .highlight = "2-3",
+            .src = "fn create(c: *zw.Ctx) !void {\n    const title = c.form(\"title\") orelse return;\n    try store.add(title);\n    try c.html(\"{row}\", .{ .row = row(title) });\n}",
+        }),
+        .c = ui.code(.{ .lang = "sh", .wrap = true, .copy = false, .src = "curl -fsSL https://example.com/install-zigworks.sh | sh -s -- --prefix /usr/local --with-docs --no-telemetry" }),
+    }).render(w);
 }
 
 fn table(w: *Writer) Writer.Error!void {
