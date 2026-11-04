@@ -66,7 +66,7 @@ ui.code(.{ .lang = "text", .copy = false, .src = "Read-only output." })
 
 - The Copy button is handled by z.js and confirms with "Copied". It copies the code only, never the line numbers.
 - Without `wrap`, code blocks scroll sideways and can be scrolled with the keyboard once focused.
-- Highlighted line numbers count from `start`. Parts that are not numbers or ranges are skipped.
+- Highlighted line numbers count from `start`. Parts that are not numbers or ranges are skipped, lines past the end of the source are skipped, and a range that runs past the end stops at the last line.
 - Only `zig` is highlighted. Any other `lang` is shown as plain text under that label; an empty `lang` shows "text", or just the file name when there is a `title`.
 - `wrap` turns off `numbers` and `highlight`, because bands and the gutter assume one row per line.
 - Fences in Markdown pages (` ```zig `) render this component with its defaults.

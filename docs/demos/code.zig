@@ -99,10 +99,10 @@ fn states(w: *Writer) Writer.Error!void {
     }) }).render(w);
     try zw.view(item, .{ .label = "Empty <code>lang</code>: just the file name", .block = ui.code(.{ .lang = "", .title = "Dockerfile", .src = "FROM scratch\nCOPY zig-out/bin/app /app\nENTRYPOINT [\"/app\"]" }) }).render(w);
     try zw.view(item, .{ .label = "Empty <code>src</code>", .block = ui.code(.{ .lang = "sh", .src = "", .copy = false }) }).render(w);
-    try zw.view(item, .{ .label = "Bad <code>highlight</code> parts are skipped: <code>2,x,4-3</code> marks line 2 only", .block = ui.code(.{
+    try zw.view(item, .{ .label = "Bad <code>highlight</code> parts are skipped: <code>2,x,4-3</code> marks line 2 only. Past the end: <code>9</code> is skipped and <code>3-9</code> stops at line 3", .block = ui.code(.{
         .lang = "sh",
         .numbers = true,
-        .highlight = "2,x,4-3",
+        .highlight = "2,x,4-3,3-9,9",
         .src = "zig build\nzig build test\nzig build run",
     }) }).render(w);
 }
