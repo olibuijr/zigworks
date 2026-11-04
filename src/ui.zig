@@ -26,7 +26,9 @@ const Progress_ = @import("ui/progress.zig");
 const Search_ = @import("ui/search.zig");
 const Prose_ = @import("ui/prose.zig");
 
-const all = .{ Layout_, Card_, List_, Sheet_, Setting_, Button_, Field_, Check_, Toggle_, Segmented_, Slider_, Picker_, Menu_, Badge_, Island_, Sidebar_, Code_, Callout_, Table_, Progress_, Search_, Prose_ };
+const Glass_ = @import("ui/glass.zig");
+// Glass comes first: it is the shared material, and component rules after it refine it.
+const all = .{ Glass_, Layout_, Card_, List_, Sheet_, Setting_, Button_, Field_, Check_, Toggle_, Segmented_, Slider_, Picker_, Menu_, Badge_, Island_, Sidebar_, Code_, Callout_, Table_, Progress_, Search_, Prose_ };
 
 pub const Z = @import("ui/z.zig").Z;
 pub const Swap = @import("ui/z.zig").Swap;

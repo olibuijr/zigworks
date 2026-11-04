@@ -12,6 +12,9 @@ const app = .{
         .{ "GET /", home },
         .{ "GET /search", search },
         .{ "POST /demo", demoEcho },
+        .{ "POST /demo/todos", todoAdd },
+        .{ "POST /demo/toggle", todoToggle },
+        .{ "DELETE /demo/todo", todoDelete },
         .{ "GET /components/:name", component },
         .{ "GET /:page", guide },
     },
@@ -92,6 +95,24 @@ fn search(c: *zw.Ctx) !void {
 fn demoEcho(c: *zw.Ctx) !void {
     std.log.info("demo {s}", .{c.body});
     try c.send(.no_content, "text/plain", "");
+}
+
+// Home page todo demo: the server renders rows; the page holds the list.
+fn todoAdd(c: *zw.Ctx) !void {
+    const title = std.mem.trim(u8, c.form("title") orelse "", " ");
+    if (title.len == 0 or title.len > 200) return c.send(.no_content, "text/plain", "");
+    try c.page(try demos.todoRow(c.arena, false, title));
+}
+
+fn todoToggle(c: *zw.Ctx) !void {
+    const title = c.query("t") orelse return c.send(.bad_request, "text/plain", "missing t");
+    const done = std.mem.eql(u8, c.query("d") orelse "0", "1");
+    try c.page(try demos.todoRow(c.arena, !done, title));
+}
+
+fn todoDelete(c: *zw.Ctx) !void {
+    // An empty 200 lets z.js remove the row (204 would mean "change nothing").
+    try c.send(.ok, "text/html; charset=utf-8", "");
 }
 
 fn notFound(c: *zw.Ctx) !void {

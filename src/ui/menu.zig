@@ -4,13 +4,15 @@ const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
 
 pub const css =
-    \\.zw-menu{position-area:bottom span-right;position-try-fallbacks:flip-block,flip-inline;margin:4px 0;min-width:180px;padding:5px;border:0;border-radius:var(--radius);
-    \\color:var(--label);background:var(--glass);backdrop-filter:var(--material);-webkit-backdrop-filter:var(--material);
-    \\box-shadow:inset 0 0 0 .5px var(--glass-edge),0 0 0 .5px rgba(0,0,0,.15),0 10px 30px rgba(0,0,0,.18)}
-    \\.zw-menu:popover-open{animation:zw-pop 120ms ease-out}
-    \\@keyframes zw-pop{from{opacity:0;transform:scale(.97)}}
-    \\.zw-menu button,.zw-menu label{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:24px;padding:0 10px;border-radius:5px;font:var(--body);cursor:default}
+    \\.zw-menu{position-area:bottom span-right;position-try-fallbacks:flip-block,flip-inline;margin:6px 0;min-width:190px;padding:6px;border:0;border-radius:var(--radius);
+    \\color:var(--label);--glass:var(--glass-thick);transform-origin:top center;overflow:visible;
+    \\transition:opacity 180ms ease,scale var(--dur-bouncy) var(--spring-bouncy),translate var(--dur) var(--spring),display 300ms allow-discrete,overlay 300ms allow-discrete}
+    \\.zw-menu:not(:popover-open){opacity:0;scale:.9;translate:0 -6px;transition-duration:150ms}
+    \\@starting-style{.zw-menu:popover-open{opacity:0;scale:.84;translate:0 -10px}}
+    \\.zw-menu button,.zw-menu label{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:26px;padding:0 10px;border-radius:8px;font:var(--body);cursor:default;
+    \\transition:background-color 80ms,color 80ms}
     \\.zw-menu button:hover,.zw-menu button:focus-visible,.zw-menu label:hover,.zw-menu label:has(:focus-visible){background:var(--accent);color:var(--on-accent)}
+    \\.zw-menu button:active,.zw-menu label:active{background:color-mix(in srgb,var(--accent) 85%,#000)}
     \\.zw-menu .is-destructive{color:var(--red)}
     \\.zw-menu hr{border:0;border-top:1px solid var(--separator);margin:5px 10px}
     \\
@@ -30,7 +32,7 @@ pub const Props = struct {
     items: []const Item,
 };
 
-const src = "<div class=\"zw-menu\" id=\"{id}\" popover role=\"menu\" style=\"position-anchor:--{id}\">{#each items as it}" ++
+const src = "<div class=\"zw-menu zw-glass\" id=\"{id}\" popover role=\"menu\" style=\"position-anchor:--{id}\">{#each items as it}" ++
     "{#if it.separated}<hr>{/if}<button type=\"button\" role=\"menuitem\"{#if it.destructive} class=\"is-destructive\"{/if}{it.z}>{it.label}</button>{/each}</div>";
 
 pub const Menu = zv.View(src, Props);

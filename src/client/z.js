@@ -4,14 +4,15 @@
 // Response elements with z-oob and an id replace the element with that id, wherever it is.
 // Also wires ui components that need a touch of JS: picker label, slider fill, closing popovers.
 (() => {
+  document.documentElement.classList.add('zw-js'); // CSS: JS-drawn parts may replace native ones
   const verbs = ['get', 'post', 'put', 'patch', 'delete'];
   const sel = verbs.map((v) => `[z-${v}]`).join();
   const attr = (el, n) => el.getAttribute('z-' + n);
 
   const ask = (msg) => new Promise((done) => {
     const d = document.createElement('dialog');
-    d.className = 'zw-dialog';
-    d.innerHTML = '<p></p><div class="zw-row"><button class="zw-btn zw-btn--secondary" value="">Cancel</button><button class="zw-btn zw-btn--primary" value="1">OK</button></div>';
+    d.className = 'zw-dialog zw-glass';
+    d.innerHTML = '<p></p><div class="zw-row"><button class="zw-btn zw-btn--secondary zw-glass zw-press" value="">Cancel</button><button class="zw-btn zw-btn--primary zw-glass zw-press" value="1">OK</button></div>';
     d.querySelector('p').textContent = msg;
     d.onclick = (e) => { if (e.target.tagName === 'BUTTON') { done(!!e.target.value); d.close(); } };
     d.onclose = () => { done(false); d.remove(); };
@@ -54,7 +55,7 @@
       if (old) { unmount(old); old.replaceWith(o); mount(o); } else o.remove();
     }
     if (mode === 'none') return;
-    if (mode === 'delete') { unmount(t); return t.remove(); }
+    if (mode === 'delete') { unmount(t); return leave(t); }
     const nodes = [...tpl.content.children];
     const added = mode === 'beforeend' || mode === 'afterbegin';
     if (mode === 'outer') { unmount(t); t.replaceWith(tpl.content); }
@@ -62,8 +63,22 @@
     else if (mode === 'beforeend') t.append(tpl.content);
     else if (mode === 'afterbegin') t.prepend(tpl.content);
     else return console.error('z.js: unknown z-swap', mode);
-    // Only new content animates, so motion shows what changed.
-    for (const n of nodes) { if (added) n.classList.add('zw-enter'); mount(n); }
+    // Only new content animates, so motion shows what changed. Replaced content gets a brief
+    // `zw-swapped` hook (the check uses it to pop) that clears itself.
+    for (const n of nodes) {
+      n.classList.add(added ? 'zw-enter' : 'zw-swapped');
+      if (!added) setTimeout(() => n.classList.remove('zw-swapped'), 1000);
+      mount(n);
+    }
+  }
+
+  // Removed elements collapse and fade before they leave (instantly with Reduce Motion).
+  function leave(el) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return el.remove();
+    el.style.height = el.offsetHeight + 'px';
+    el.classList.add('zw-leave');
+    requestAnimationFrame(() => requestAnimationFrame(() => { el.style.height = '0px'; }));
+    setTimeout(() => el.remove(), 420);
   }
 
   // Islands: `export default function (el, props) { ...; return cleanup? }`
@@ -82,7 +97,12 @@
     root.querySelectorAll('.zw-slider input').forEach(fill);
   }
 
-  const fill = (i) => i.style.setProperty('--zw-fill', ((i.value - i.min) / (i.max - i.min)) * 100 + '%');
+  // Slider fill and knob position (the knob is drawn over the track so glass can refract it).
+  const fill = (i) => {
+    const f = (i.value - i.min) / (i.max - i.min);
+    i.style.setProperty('--zw-fill', f * 100 + '%');
+    i.parentElement.style.setProperty('--zw-f', f);
+  };
 
   function unmount(root) {
     for (const el of [root, ...root.querySelectorAll('[z-island]')]) {

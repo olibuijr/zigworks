@@ -81,10 +81,25 @@ async function open(url, { dark = false, width = 900, height = 900 } = {}) {
       for (const end = Date.now() + ms; Date.now() < end; await sleep(50)) if (await page.eval(expr)) return;
       throw new Error(`timeout: ${expr}`);
     },
-    async click(selector) {
+    async center(selector) {
       const box = await page.eval(`(() => { const r = document.querySelector(${JSON.stringify(selector)})?.getBoundingClientRect(); return r && { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
       if (!box) throw new Error(`no element: ${selector}`);
+      return box;
+    },
+    async click(selector) {
+      const box = await page.center(selector);
       for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: box.x, y: box.y, button: 'left', clickCount: 1 });
+    },
+    /** Hold the mouse down on an element (optionally dragging by dx), for pressed-state shots. */
+    async press(selector, dx = 0) {
+      const box = await page.center(selector);
+      await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: box.x, y: box.y });
+      await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: box.x, y: box.y, button: 'left', clickCount: 1 });
+      if (dx) await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: box.x + dx, y: box.y, button: 'left', buttons: 1 });
+      page.held = { x: box.x + dx, y: box.y };
+    },
+    async release() {
+      await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...page.held, button: 'left', clickCount: 1 });
     },
     async type(selector, text) {
       await page.eval(`document.querySelector(${JSON.stringify(selector)}).focus()`);
@@ -177,6 +192,7 @@ await test('gallery: controls, menu, picker, sheet', async () => {
     // menu opens anchored under its button
     await p.click('[popovertarget=more]');
     await p.waitFor(`document.getElementById('more').matches(':popover-open')`);
+    await sleep(800); // let the open spring settle
     const below = await p.eval(`document.getElementById('more').getBoundingClientRect().top >= document.querySelector('[popovertarget=more]').getBoundingClientRect().bottom - 1`);
     eq(below, true, 'menu anchored below button');
     await p.shot(`gallery-menu-${mode}`);
@@ -192,12 +208,45 @@ await test('gallery: controls, menu, picker, sheet', async () => {
     // switch and segmented change state
     await p.click('.zw-toggle:nth-of-type(2) input');
     eq(await p.eval(`document.querySelector('input[name=menubar]').checked`), true, 'switch on');
-    await p.click('.zw-seg label:nth-child(2)');
+    await p.click('.zw-seg label:nth-of-type(2)');
     eq(await p.eval(`document.querySelector('input[name=theme]:checked').value`), 'dark', 'segment selected');
     // sheet opens
     await p.click('[popovertarget=new-list].zw-btn--primary');
     await p.waitFor(`document.getElementById('new-list').matches(':popover-open')`);
     await p.shot(`gallery-sheet-${mode}`);
+    noErrors(p);
+    await p.close();
+  }
+});
+
+await test('glass: refraction lenses, pressed knobs, springs', async () => {
+  for (const dark of [false, true]) {
+    const mode = dark ? 'dark' : 'light';
+    const p = await open(gallery, { dark, height: 1100 });
+    eq(await p.eval(`document.documentElement.classList.contains('zw-refract')`), true, 'refraction on in Chromium');
+    const lensed = await p.eval(`getComputedStyle(document.querySelector('.zw-btn--primary')).getPropertyValue('--zw-lens')`);
+    if (!/url\(#zw-lens-\d+-\d+-\d+\)/.test(lensed)) throw new Error(`primary button has no lens: ${lensed}`);
+    const id = lensed.match(/#([\w-]+)/)[1];
+    eq(await p.eval(`!!document.getElementById('${id}')?.querySelector('feDisplacementMap')`), true, 'lens filter exists');
+    eq(await p.eval(`getComputedStyle(document.querySelector('.zw-btn--primary')).backdropFilter.includes('url(')`), true, 'backdrop-filter uses the lens');
+    eq(await p.eval(`!!document.getElementById('zw-lens-knob')`), true, 'knob lens');
+    eq(await p.eval(`getComputedStyle(document.documentElement).getPropertyValue('--spring-bouncy').trim().startsWith('linear(')`), true, 'spring tokens');
+    // Pressed states: the knob becomes a glass drop, the segmented pill swells.
+    await p.press('.zw-toggle:nth-of-type(1) input');
+    await sleep(1000);
+    await p.shot(`glass-toggle-pressed-${mode}`);
+    await p.release();
+    await p.press('.zw-slider input', 20);
+    await sleep(1000);
+    await p.shot(`glass-slider-pressed-${mode}`);
+    await p.release();
+    await p.press('.zw-seg label:nth-of-type(1)');
+    await sleep(2000); // headless Chromium applies :active to ancestors late
+    await p.shot(`glass-seg-pressed-${mode}`);
+    await p.release();
+    await sleep(800);
+    const pill = await p.eval(`getComputedStyle(document.querySelector('.zw-seg-pill')).translate`);
+    eq(['0px', '0%', 'none', '0px 0px', '0% 0px'].includes(pill), true, `pill slid to the first segment (${pill})`);
     noErrors(p);
     await p.close();
   }
@@ -244,6 +293,26 @@ await test('docs: every page renders its demos without errors', async () => {
       await d.close();
     }
   }
+});
+
+await test('docs: home todo demo adds, checks off and deletes', async () => {
+  const p = await open(docs, { width: 1280 });
+  const rows = () => p.eval(`document.querySelectorAll('#hero-list > li').length`);
+  eq(await rows(), 3, 'starts with three rows');
+  await p.type('#hero-list ~ * input, form[z-post="/demo/todos"] input[name=title]', 'Try zigworks');
+  await p.key('Enter');
+  await p.waitFor(`document.querySelectorAll('#hero-list > li').length === 4`);
+  eq(await p.eval(`document.querySelector('#hero-list > li:last-child').textContent.includes('Try zigworks')`), true, 'new row text');
+  await p.click('#hero-list > li:last-child .zw-check');
+  await p.waitFor(`document.querySelector('#hero-list > li:last-child .zw-check').getAttribute('aria-checked') === 'true'`);
+  await p.click('#hero-list > li:last-child .zw-check');
+  await p.waitFor(`document.querySelector('#hero-list > li:last-child .zw-check').getAttribute('aria-checked') === 'false'`);
+  await p.eval(`document.querySelector('#hero-list > li:first-child .zw-btn--destructive').style.opacity = 1`);
+  await p.click('#hero-list > li:first-child .zw-btn--destructive');
+  await p.waitFor(`document.querySelectorAll('#hero-list > li').length === 3`);
+  await p.shot('docs-todo-demo');
+  noErrors(p);
+  await p.close();
 });
 
 await test('docs: live search, copy button, pager', async () => {

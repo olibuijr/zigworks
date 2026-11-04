@@ -49,6 +49,6 @@ Palettes use AppKit's semantic names: `window`, `content`, `control`, `label`, `
 
 Reduce Transparency makes glass opaque, Increase Contrast strengthens separators, and Reduce Motion turns animation off. Focus rings are always visible for keyboard users.
 
-## Glass
+## Glass and motion
 
-Glass (translucency and blur) is only used on the functional layer: the title bar, menus, the sidebar on small screens and dialogs. Content surfaces stay opaque, as the HIG asks.
+Glass and spring tokens (`glass`, `glass_thick`, `glass_clear`, `glass_rim`, `glass_sheen`, `glass_filter`, `spring`, `spring_bouncy`, `dur`…) work like the rest. See [Liquid Glass](/glass) for how the material and its motion work.

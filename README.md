@@ -32,7 +32,8 @@ src/
   highlight.zig Zig syntax highlighting with std.zig.Tokenizer
   css.zig       design tokens -> CSS variables (macOS HIG defaults)
   static.zig    public/ files (JS modules, wasm, glb/gltf/hdr/ktx2, images, fonts)
-  client/z.js   browser runtime
+  client/z.js   browser runtime: requests, swaps, islands
+  client/glass.js  Liquid Glass runtime: refraction lenses, pointer light, press inertia
   client.zig    z.js + styles for what it creates
   ui.zig        component library index
   ui/*.zig      one component per file, each with its own css
@@ -123,7 +124,11 @@ zw.props(T, .{...})           // build props with defaults; missing/unknown prop
 
 ## Components (`zw.ui`)
 
-macOS HIG defaults. Glass only on the functional layer (title bar, menus, dialog); content is opaque.
+macOS HIG defaults with Liquid Glass on the functional layer (controls, menus, sheets, sidebar, search,
+dialog); content is opaque. Glass refracts what is behind it (SVG displacement lenses per element size,
+Chromium; blur elsewhere), has a specular rim and pointer light, and moves on spring curves: pressed
+controls stretch and spring back, knobs swell into clear drops. Classes for your own markup:
+`zw-glass`, `zw-glass--clear`, `zw-press`. See docs/pages/glass.md.
 No stock browser UI: pickers replace `<select>`, a custom dialog replaces `confirm()`.
 
 | Component | Props (defaults) | Type |
@@ -189,7 +194,10 @@ custom fences (the docs turn ```` ```demo ```` into live components). `zw.highli
 
 `css.Tokens` fields become CSS variables (`radius_control` becomes `--radius-control`). `light`/`dark`
 palettes use macOS semantic names (`window`, `content`, `label`, `secondary`, `separator`, `accent`...)
-and follow `prefers-color-scheme`. Reduce Transparency and Increase Contrast are honoured.
+plus the glass material (`glass`, `glass_thick`, `glass_clear`, `glass_rim`, `glass_shadow`, `glass_sheen`,
+`glass_glow`, `knob`) and follow `prefers-color-scheme`. Motion tokens are spring curves as CSS `linear()`:
+`spring`/`dur` (~2% overshoot), `spring_bouncy`/`dur_bouncy` (~20%), `spring_snappy`/`dur_snappy`.
+Reduce Transparency, Increase Contrast and Reduce Motion are honoured.
 
 ```zig
 .tokens = .{ .radius = "12px", .light = blk: { var p = zw.css.light; p.accent = "#5e5ce6"; break :blk p; } },

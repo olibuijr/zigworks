@@ -11,6 +11,8 @@ pub const css =
     \\.zw-demo--block>*+*{margin-top:12px}
     \\.zw-demo .zw-sidebar{display:block;position:static;height:auto;width:240px;inset:auto;border:0;border-radius:var(--radius-control);box-shadow:var(--shadow);background:var(--content)}
     \\.zw-demo .zw-card,.zw-demo .zw-list{flex:1}
+    \\.zw-demo .is-done{color:var(--secondary);text-decoration:line-through}
+    \\@media (hover:hover){#hero-list .zw-btn--destructive{opacity:0;transition:opacity var(--speed)}#hero-list li:hover .zw-btn--destructive,#hero-list li:focus-within .zw-btn--destructive{opacity:1}}
     \\
 ;
 
@@ -64,11 +66,51 @@ fn row(done: bool, title: []const u8) zw.View("<li>{c}<span class=\"zw-grow\">{t
     return .{ .data = .{ .c = ui.check(.{ .on = done, .label = title }), .t = title } };
 }
 
+// The home page todo works for real: rows are rendered by the server (POST /demo/todos,
+// /demo/toggle, DELETE /demo/todo in main.zig). State lives in the page, not on the server,
+// so every visitor gets a fresh list; the toggle URL carries the row's title and state.
+pub const TodoRow = zw.View(
+    \\<li>{check}<span class="zw-grow{#if done} is-done{/if}">{title}</span>{del}</li>
+, struct { check: ui.Check, title: []const u8, done: bool, del: ui.Button });
+
+pub fn todoRow(arena: std.mem.Allocator, done: bool, title: []const u8) !TodoRow {
+    const t = try encode(arena, title);
+    return .{ .data = .{
+        .check = ui.check(.{ .on = done, .label = title, .z = .{
+            .post = try std.fmt.allocPrint(arena, "/demo/toggle?d={d}&t={s}", .{ @intFromBool(done), t }),
+            .target = "closest li",
+            .swap = .outer,
+        } }),
+        .title = title,
+        .done = done,
+        .del = ui.button(.{ .label = "Delete", .variant = .destructive, .z = .{ .delete = "/demo/todo", .target = "closest li", .swap = .delete } }),
+    } };
+}
+
+/// Percent-encodes a query value.
+fn encode(arena: std.mem.Allocator, s: []const u8) ![]const u8 {
+    var out: std.ArrayList(u8) = .empty;
+    for (s) |ch| switch (ch) {
+        'a'...'z', 'A'...'Z', '0'...'9', '-', '.', '_', '~' => try out.append(arena, ch),
+        else => try out.print(arena, "%{X:0>2}", .{ch}),
+    };
+    return out.items;
+}
+
 fn hero(w: *Writer) Writer.Error!void {
-    try zw.view("<form class=\"zw-row\" style=\"margin-bottom:12px\">{f}{b}</form>{l}", .{
-        .f = ui.field(.{ .name = "title", .label = "New todo", .placeholder = "New todo" }),
-        .b = ui.button(.{ .label = "Add", .variant = .primary }),
-        .l = ui.list(.{ .id = "hero-list", .body = zw.view("{a}{b}{c}", .{ .a = row(true, "Read the docs"), .b = row(false, "zig build run"), .c = row(false, "Ship it") }) }),
+    var buf: [4096]u8 = undefined;
+    var fba: std.heap.FixedBufferAllocator = .init(&buf);
+    const a = fba.allocator();
+    const rows = .{
+        todoRow(a, true, "Read the docs") catch unreachable,
+        todoRow(a, false, "zig build run") catch unreachable,
+        todoRow(a, false, "Ship it") catch unreachable,
+    };
+    try zw.view("<form class=\"zw-row\" style=\"margin-bottom:12px\"{z}>{f}{b}</form>{l}", .{
+        .z = ui.Z{ .post = "/demo/todos", .target = "#hero-list", .swap = .beforeend },
+        .f = ui.field(.{ .name = "title", .label = "New todo", .placeholder = "New todo", .required = true }),
+        .b = ui.button(.{ .label = "Add", .variant = .primary, .type = .submit }),
+        .l = ui.list(.{ .id = "hero-list", .empty = "All done. Add another.", .body = zw.view("{a}{b}{c}", .{ .a = rows[0], .b = rows[1], .c = rows[2] }) }),
     }).render(w);
 }
 

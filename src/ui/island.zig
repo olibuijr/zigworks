@@ -5,7 +5,7 @@ const zv = @import("../view.zig");
 pub const css =
     \\.zw-island{position:relative;display:block;width:100%;border-radius:var(--radius);overflow:hidden;background:var(--content);box-shadow:var(--shadow)}
     \\.zw-island>canvas{display:block;width:100%;height:100%}
-    \\.zw-card .zw-island{box-shadow:none;border-radius:var(--radius-control)}
+    \\.zw-card .zw-island{box-shadow:none;border-radius:calc(var(--radius) - 6px)}
     \\
 ;
 

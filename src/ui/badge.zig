@@ -2,8 +2,9 @@
 const zv = @import("../view.zig");
 
 pub const css =
-    \\.zw-badge{display:inline-block;min-width:20px;padding:1px 7px;border-radius:6px;font:var(--callout);font-weight:600;font-variant-numeric:tabular-nums;text-align:center;
-    \\background:var(--fill);color:var(--secondary)}
+    \\.zw-badge{display:inline-block;min-width:22px;padding:2px 8px;border-radius:999px;font:var(--callout);font-weight:600;font-variant-numeric:tabular-nums;text-align:center;
+    \\background:var(--fill);color:var(--secondary);box-shadow:inset 0 0 0 .5px var(--separator)}
+    \\.zw-badge[z-oob]{animation:zw-pop var(--dur-bouncy) var(--spring-bouncy)}
     \\
 ;
 

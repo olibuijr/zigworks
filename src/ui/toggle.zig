@@ -5,14 +5,18 @@ const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
 
 pub const css =
-    \\.zw-toggle{cursor:default;user-select:none}
-    \\.zw-toggle input{appearance:none;flex:none;position:relative;width:38px;height:22px;margin:0;border-radius:11px;background:var(--fill-strong);
-    \\box-shadow:inset 0 0 0 .5px var(--separator);transition:background var(--speed)}
-    \\.zw-toggle input::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;
-    \\box-shadow:0 0 0 .5px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.2);transition:transform var(--speed) cubic-bezier(.3,.7,.4,1.2)}
+    \\.zw-toggle{cursor:default;user-select:none;-webkit-tap-highlight-color:transparent}
+    \\.zw-toggle input{appearance:none;flex:none;position:relative;width:46px;height:26px;margin:0;border-radius:13px;background:var(--fill-strong);overflow:visible;
+    \\box-shadow:inset 0 0 0 .5px var(--separator),inset 0 1px 2px rgba(0,0,0,.08);transition:background-color var(--speed)}
+    \\.zw-toggle input::after{content:"";position:absolute;top:2px;left:2px;width:28px;height:22px;border-radius:11px;background:var(--knob);
+    \\box-shadow:0 0 0 .5px rgba(0,0,0,.04),0 .5px 1px rgba(0,0,0,.12),0 2px 6px rgba(0,0,0,.16);
+    \\transition:translate var(--dur-bouncy) var(--spring-bouncy),inset var(--dur-bouncy) var(--spring-bouncy),width var(--dur-bouncy) var(--spring-bouncy),height var(--dur-bouncy) var(--spring-bouncy),
+    \\border-radius var(--dur-bouncy) var(--spring-bouncy),background-color var(--speed),box-shadow var(--speed)}
     \\.zw-toggle input:checked{background:var(--accent)}
-    \\.zw-toggle input:checked::after{transform:translateX(16px)}
-    \\.zw-toggle input:active::after{width:22px}.zw-toggle input:checked:active::after{transform:translateX(12px)}
+    \\.zw-toggle input:checked::after{translate:14px 0}
+    \\.zw-toggle:active input::after{top:-2px;left:-3px;width:38px;height:30px;border-radius:15px;background:var(--glass-clear);box-shadow:var(--glass-rim),0 0 0 .5px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.18);
+    \\-webkit-backdrop-filter:var(--glass-filter-clear);backdrop-filter:var(--glass-filter-clear);transition-duration:var(--dur-snappy);transition-timing-function:var(--spring-snappy)}
+    \\.zw-refract .zw-toggle:active input::after{backdrop-filter:url(#zw-lens-knob) var(--glass-filter-clear)}
     \\
 ;
 

@@ -11,8 +11,11 @@ pub fn dispatch(comptime routes: anytype, c: *Ctx) !bool {
     inline for (routes) |route| {
         const method, const pattern = comptime std.mem.cutScalar(u8, route[0], ' ') orelse
             @compileError("route must look like \"GET /path\", got \"" ++ route[0] ++ "\"");
-        const m = comptime std.meta.stringToEnum(http.Method, method) orelse
-            @compileError("unknown method in route \"" ++ route[0] ++ "\"");
+        const m = comptime blk: {
+            @setEvalBranchQuota(20_000); // stringToEnum sorts at comptime once per route
+            break :blk std.meta.stringToEnum(http.Method, method) orelse
+                @compileError("unknown method in route \"" ++ route[0] ++ "\"");
+        };
         if (comptime pattern.len == 0 or pattern[0] != '/') @compileError("route path must start with '/': " ++ route[0]);
         if ((c.method == m or (m == .GET and c.method == .HEAD)) and match(pattern, c.path, &c.params)) {
             try route[1](c);

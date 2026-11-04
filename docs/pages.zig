@@ -18,6 +18,7 @@ const sections = .{
         .{ "/interactivity", "interactivity" },
         .{ "/markdown", "markdown" },
         .{ "/theming", "theming" },
+        .{ "/glass", "glass" },
         .{ "/islands", "islands" },
         .{ "/testing", "testing" },
     } },

@@ -1,14 +1,18 @@
 //! The browser runtime (z.js) and the styles for the UI it creates. Served under /_zw/.
-pub const js = @embedFile("client/z.js");
+/// z.js (requests, swaps, islands) followed by glass.js (refraction, pointer light, inertia).
+pub const js = @embedFile("client/z.js") ++ "\n" ++ @embedFile("client/glass.js");
 
 pub const css =
-    \\.zw-busy{opacity:.5;pointer-events:none;transition:opacity var(--speed)}
-    \\.zw-enter{animation:zw-enter var(--speed) ease-out}
-    \\@keyframes zw-enter{from{opacity:0;transform:translateY(-3px)}}
-    \\.zw-dialog{margin:auto;border:1px solid var(--glass-edge);border-radius:16px;padding:20px;width:260px;color:var(--label);text-align:center;
-    \\background:var(--glass);backdrop-filter:var(--material);-webkit-backdrop-filter:var(--material);box-shadow:0 0 0 .5px rgba(0,0,0,.2),0 20px 50px rgba(0,0,0,.3)}
-    \\.zw-dialog::backdrop{background:rgba(0,0,0,.2)}
-    \\.zw-dialog p{font:var(--headline);margin-bottom:16px}
+    \\.zw-busy{opacity:.55;pointer-events:none;transition:opacity var(--speed)}
+    \\.zw-enter{animation:zw-enter var(--dur-bouncy) var(--spring-bouncy) both}
+    \\@keyframes zw-enter{from{opacity:0;translate:0 -10px;scale:.96}}
+    \\.zw-leave{opacity:0;scale:.97;transition:height var(--dur) var(--spring),opacity 200ms ease,scale 300ms ease}
+    \\.zw-dialog{margin:auto;border:0;border-radius:var(--radius-panel);padding:22px 20px 20px;width:280px;color:var(--label);text-align:center;--glass:var(--glass-thick);
+    \\transition:opacity 180ms ease,scale var(--dur-bouncy) var(--spring-bouncy),display 250ms allow-discrete,overlay 250ms allow-discrete}
+    \\@starting-style{.zw-dialog[open]{opacity:0;scale:.86}}
+    \\.zw-dialog::backdrop{background:rgba(0,0,0,.2);transition:background-color 250ms}
+    \\@starting-style{.zw-dialog[open]::backdrop{background:transparent}}
+    \\.zw-dialog p{font:var(--headline);margin-bottom:18px}
     \\.zw-dialog .zw-row{display:grid;grid-template-columns:1fr 1fr}
     \\
 ;

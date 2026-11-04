@@ -2,6 +2,26 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [SemVer](https://semver.org/).
 
+## [0.3.0] - 2026-11-04
+
+### Added
+- Liquid Glass material (`src/ui/glass.zig`): tint, blur, specular rim, sheen, pointer-following light; `zw-glass`, `zw-glass--clear`, `zw-press` classes.
+- `glass.js`: real refraction in Chromium. Each glass element gets an SVG displacement lens built from a rounded-rectangle signed distance field, cached per size.
+- Spring motion tokens as CSS `linear()` curves (`spring`, `spring_bouncy`, `spring_snappy` with durations), with a `cubic-bezier` fallback.
+- Press inertia: controls grow, stretch toward the pointer and spring back.
+- Switch and slider knobs swell into clear, magnifying glass drops while pressed.
+- Segmented controls get a sliding glass pill.
+- Menus, pickers, sheets, dialogs and the mobile sidebar spring out of their source and settle.
+- New list rows drop in, deleted rows collapse, completed checks pop, and out-of-band badges pop.
+- `zw-js` class on `<html>` when z.js runs.
+- Docs page "Liquid Glass" and a glass e2e test with pressed-state screenshots.
+
+### Changed
+- Buttons, search field and badges are capsules; the sidebar floats as a glass panel; the title bar is a scroll edge with soft blur instead of a bar with a line.
+- Larger, concentric radii (`radius` 14px, `radius_control` 8px, new `radius_panel` 20px).
+- The slider knob is drawn over the track (native thumb kept without JS).
+- The token `material` is replaced by `glass_filter` and `glass_filter_clear`.
+
 ## [0.2.0] - 2026-11-04
 
 ### Added

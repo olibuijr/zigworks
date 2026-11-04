@@ -4,15 +4,14 @@ const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
 
 pub const css =
-    \\.zw-btn{appearance:none;height:var(--control-h);padding:0 14px;border:0;border-radius:var(--radius-control);font:var(--body);font-weight:500;letter-spacing:-.08px;
-    \\cursor:default;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;user-select:none;transition:background var(--speed),filter var(--speed),box-shadow var(--speed)}
-    \\.zw-btn:active{filter:brightness(.9)}
-    \\.zw-btn:disabled{opacity:.4}
-    \\.zw-btn--primary{background:linear-gradient(var(--accent),color-mix(in srgb,var(--accent) 88%,#000));color:var(--on-accent);box-shadow:inset 0 .5px 0 rgba(255,255,255,.3),0 0 0 .5px color-mix(in srgb,var(--accent) 60%,#000),0 1px 2px rgba(0,0,0,.15)}
-    \\.zw-btn--secondary{background:var(--control);color:var(--label);box-shadow:var(--shadow)}
-    \\.zw-btn--plain{background:transparent;color:var(--accent);padding:0 8px}
-    \\.zw-btn--plain:hover{background:var(--fill)}
-    \\.zw-btn--destructive{background:transparent;color:var(--red);padding:0 8px}
+    \\.zw-btn{appearance:none;position:relative;height:var(--control-h);padding:0 15px;border:0;border-radius:999px;font:var(--body);font-weight:500;letter-spacing:-.08px;
+    \\color:var(--label);background:transparent;cursor:default;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;user-select:none;-webkit-tap-highlight-color:transparent}
+    \\.zw-btn:disabled{opacity:.4;pointer-events:none}
+    \\.zw-btn--primary{color:var(--on-accent);background:color-mix(in srgb,var(--accent) 88%,transparent);
+    \\box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -1px 1px rgba(0,0,0,.12),inset 0 0 0 .5px rgba(255,255,255,.22),0 0 0 .5px color-mix(in srgb,var(--accent) 70%,#000),0 4px 14px color-mix(in srgb,var(--accent) 32%,transparent)}
+    \\.zw-btn--plain{color:var(--accent);padding:0 10px}
+    \\.zw-btn--plain:hover,.zw-btn--plain[aria-expanded=true]{background:var(--fill)}
+    \\.zw-btn--destructive{color:var(--red);padding:0 10px}
     \\.zw-btn--destructive:hover{background:color-mix(in srgb,var(--red) 12%,transparent)}
     \\
 ;
@@ -32,12 +31,15 @@ pub const Props = struct {
     z: Z = .{},
 };
 
-const src = "<button class=\"zw-btn zw-btn--{variant}\" type=\"{type}\"{#if aria} aria-label=\"{aria}\"{/if}" ++
-    "{#if opens} popovertarget=\"{opens}\" style=\"anchor-name:--{opens}\"{/if}{#if disabled} disabled{/if}{z}>{label}</button>";
+const src = "<button class=\"zw-btn zw-btn--{p.variant}{#if glass} zw-glass{/if} zw-press\" type=\"{p.type}\"{#if p.aria} aria-label=\"{p.aria}\"{/if}" ++
+    "{#if p.opens} popovertarget=\"{p.opens}\" style=\"anchor-name:--{p.opens}\"{/if}{#if p.disabled} disabled{/if}{p.z}>{p.label}</button>";
 
-pub const Button = zv.View(src, Props);
+/// Primary and secondary buttons are glass; plain and destructive stay borderless.
+const Data = struct { p: Props, glass: bool };
+
+pub const Button = zv.View(src, Data);
 
 /// `button(.{ .label = "Save", .variant = .primary, .type = .submit })`
 pub fn button(p: Props) Button {
-    return .{ .data = p };
+    return .{ .data = .{ .p = p, .glass = p.variant == .primary or p.variant == .secondary } };
 }
