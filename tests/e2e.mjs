@@ -138,10 +138,11 @@ async function open(url, { dark = false, width = 900, height = 900 } = {}) {
 
 // --- tests ---------------------------------------------------------------
 const results = [];
+class Skip extends Error {} // thrown to skip a test whose outside dependency is missing
 async function test(name, fn) {
   const t0 = Date.now();
   try { await fn(); results.push([name, 'ok', Date.now() - t0]); }
-  catch (e) { results.push([name, 'FAIL', Date.now() - t0, e.message]); }
+  catch (e) { results.push([name, e instanceof Skip ? 'skip' : 'FAIL', Date.now() - t0, e.message]); }
 }
 const eq = (a, b, msg) => { if (a !== b) throw new Error(`${msg}: expected ${JSON.stringify(b)}, got ${JSON.stringify(a)}`); };
 /** Close the tab, then fail if the page logged errors. */
@@ -302,6 +303,9 @@ await test('glass: refraction lenses, pressed knobs, springs', () => modes(async
 }));
 
 await test('scene: three.js island renders', async () => {
+  const three = 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js'; // examples/scene's import map
+  const online = await fetch(three, { method: 'HEAD', signal: AbortSignal.timeout(3000) }).then((r) => r.ok, () => false);
+  if (!online) throw new Skip(`skipped: ${new URL(three).host} unreachable`);
   const p = await open(scene);
   await p.waitFor(`!!document.querySelector('.zw-island canvas')`, 15000);
   await sleep(1500);
@@ -427,8 +431,9 @@ await test('docs: mobile sidebar and island', async () => {
 cleanup();
 let failed = 0;
 for (const [name, status, ms, err] of results) {
-  console.log(`${status === 'ok' ? '✓' : '✗'} ${name} (${ms} ms)${err ? `\n    ${err.replaceAll('\n', '\n    ')}` : ''}`);
-  if (status !== 'ok') failed++;
+  console.log(`${{ ok: '✓', skip: '-' }[status] ?? '✗'} ${name} (${ms} ms)${err ? `\n    ${err.replaceAll('\n', '\n    ')}` : ''}`);
+  if (status === 'FAIL') failed++;
 }
-console.log(`\n${results.length - failed}/${results.length} passed · screenshots in ${shots}`);
+const skipped = results.filter((r) => r[1] === 'skip').length;
+console.log(`\n${results.length - failed - skipped}/${results.length} passed${skipped ? ` · ${skipped} skipped` : ''} · screenshots in ${shots}`);
 process.exit(failed ? 1 : 0);
