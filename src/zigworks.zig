@@ -1,0 +1,35 @@
+//! zigworks: a small, fast web framework in pure Zig, written for AI agents to read and extend.
+//!
+//!   server.zig  HTTP server (std.http), keep-alive, per-request arena
+//!   router.zig  comptime routes: "GET /todos/:id"
+//!   ctx.zig     request context: params, query, form, json, headers, responses
+//!   view.zig    Svelte-style templates compiled at comptime, auto-escaped
+//!   ui/         reusable components, each with its own CSS (macOS HIG defaults)
+//!   css.zig     design tokens -> CSS variables
+//!   client/     z.js: htmx-style attributes + islands (three.js etc.)
+//!   static.zig  public/ directory
+const std = @import("std");
+
+pub const version = "0.1.0";
+
+pub const serve = @import("server.zig").serve;
+pub const Options = @import("server.zig").Options;
+pub const Ctx = @import("ctx.zig").Ctx;
+pub const view = @import("view.zig").view;
+pub const View = @import("view.zig").View;
+pub const each = @import("view.zig").each;
+pub const Each = @import("view.zig").Each;
+pub const props = @import("view.zig").props;
+pub const render = @import("view.zig").render;
+pub const ui = @import("ui.zig");
+pub const css = @import("css.zig");
+pub const Tokens = css.Tokens;
+
+test {
+    _ = @import("view.zig");
+    _ = @import("router.zig");
+    _ = @import("ctx.zig");
+    _ = @import("static.zig");
+    _ = @import("css.zig");
+    _ = @import("ui.zig");
+}
