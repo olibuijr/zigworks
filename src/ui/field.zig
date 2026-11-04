@@ -1,4 +1,4 @@
-//! Text field. Native input, macOS look. The label is visually hidden but announced.
+//! Text field. Native input, macOS look. The label is visually hidden but announced (`show_label` draws it in the box).
 //! Optional help or error text sits under the box and is linked with `aria-describedby`;
 //! `prefix` and `suffix` (a currency sign, a unit) sit inside the box.
 //! `type = "search"` shows a styled clear button (WebKit and Blink); it is also used by search.zig.
@@ -19,12 +19,17 @@ pub const css =
     \\&:has(input:is([aria-invalid=true],:user-invalid)){box-shadow:0 0 0 1px var(--red)}
     \\&:has(input[aria-invalid=true]):focus-within{box-shadow:0 0 0 .5px var(--red),0 0 0 4px color-mix(in srgb,var(--red) 35%,transparent)}}
     \\.zw-affix{color:var(--secondary);white-space:nowrap;user-select:none}
+    \\.zw-field-label{color:var(--label)}
+    \\.zw-field-box:has(input.zw-busy)::after{content:"";flex:none;width:14px;height:14px;border:2px solid var(--tertiary);border-top-color:var(--secondary);border-radius:50%;animation:zw-field-spin .7s linear infinite}
+    \\@keyframes zw-field-spin{to{rotate:360deg}}
     \\.zw-help{display:block;margin:4px 11px 0;font:var(--callout);color:var(--secondary)}
     \\.zw-help--error{color:var(--red)}
+    \\.zw-field:has(>.zw-help--error){&>.zw-field-box{box-shadow:0 0 0 1px var(--red);&:focus-within{box-shadow:0 0 0 .5px var(--red),0 0 0 4px color-mix(in srgb,var(--red) 35%,transparent)}}}
     \\:is(.zw-field,.zw-search) input::-webkit-search-cancel-button{appearance:none;display:block;box-sizing:content-box;width:16px;height:16px;margin:0;border-radius:50%;
     \\background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='8' fill='%23888' fill-opacity='.7'/%3E%3Cpath d='m5.5 5.5 5 5m0-5-5 5' stroke='white' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center/16px no-repeat}
     \\@media (pointer:coarse){.zw-field-box{height:44px}
     \\:is(.zw-field,.zw-search) input::-webkit-search-cancel-button{padding:14px;margin:0 -10px 0 0;background-origin:content-box}}
+    \\@media (prefers-reduced-motion:reduce){.zw-field-box:has(input.zw-busy)::after{animation:none}}
     \\@media (forced-colors:active){.zw-field-box{border:1px solid ButtonText;&:focus-within{outline:2px solid Highlight}}}
     \\
 ;
@@ -32,6 +37,8 @@ pub const css =
 pub const Props = struct {
     name: []const u8,
     label: []const u8,
+    /// Draw the label inside the box before the input instead of hiding it (a form row such as "Name  Ada").
+    show_label: bool = false,
     placeholder: []const u8 = "",
     value: []const u8 = "",
     /// `email`, `password`, `number`, `url`, `search`...
@@ -57,13 +64,19 @@ pub const Props = struct {
     pattern: []const u8 = "",
     /// Maximum length in characters; 0 means no limit.
     maxlength: u16 = 0,
+    /// For `type = "number"` (and dates): `step` (`"0.1"`, or `"any"` for decimals), `min` and `max`. Empty uses the browser default.
+    step: []const u8 = "",
+    min: []const u8 = "",
+    max: []const u8 = "",
+    /// A live request (`trigger = "input"`) shows a spinner in the box while it runs.
     z: Z = .{},
 };
 
-const src = "<div class=\"zw-field\"><label class=\"zw-field-box zw-input\"><span class=\"zw-sr\">{p.label}</span>" ++
+const src = "<div class=\"zw-field\"><label class=\"zw-field-box zw-input\"><span class=\"{#if p.show_label}zw-affix zw-field-label{:else}zw-sr{/if}\">{p.label}</span>" ++
     "{#if p.prefix}<span class=\"zw-affix\">{p.prefix}</span>{/if}" ++
     "<input name=\"{p.name}\" type=\"{p.type}\" value=\"{p.value}\" placeholder=\"{p.placeholder}\" autocomplete=\"{p.autocomplete}\"" ++
     "{#if p.inputmode} inputmode=\"{p.inputmode}\"{/if}{#if p.pattern} pattern=\"{p.pattern}\"{/if}{#if p.maxlength} maxlength=\"{p.maxlength}\"{/if}" ++
+    "{#if p.step} step=\"{p.step}\"{/if}{#if p.min} min=\"{p.min}\"{/if}{#if p.max} max=\"{p.max}\"{/if}" ++
     "{#if p.required} required{/if}{#if p.autofocus} autofocus{/if}{#if p.disabled} disabled{/if}{#if p.readonly} readonly{/if}" ++
     "{#if msg} aria-describedby=\"zw-{p.name}-msg\"{/if}{#if p.invalid} aria-invalid=\"true\"{/if}{p.z}>" ++
     "{#if p.suffix}<span class=\"zw-affix\">{p.suffix}</span>{/if}</label>" ++
@@ -91,6 +104,16 @@ test "plain field keeps its old attributes and has no message" {
     try std.testing.expect(std.mem.find(u8, out, "<input name=\"a\" type=\"text\" value=\"\" placeholder=\"\" autocomplete=\"off\" required>") != null);
     try std.testing.expect(std.mem.find(u8, out, "<small") == null);
     try std.testing.expect(std.mem.find(u8, out, "aria-describedby") == null);
+    try std.testing.expect(std.mem.find(u8, out, "<span class=\"zw-sr\">A</span>") != null);
+    try std.testing.expect(std.mem.find(u8, out, " step=") == null);
+}
+
+test "number limits and a visible label" {
+    var buf: [2048]u8 = undefined;
+    const out = try renderToBuf(&buf, field(.{ .name = "w", .label = "Weight", .type = "number", .step = "0.1", .min = "0", .max = "300", .show_label = true }));
+    try std.testing.expect(std.mem.find(u8, out, " step=\"0.1\" min=\"0\" max=\"300\"") != null);
+    try std.testing.expect(std.mem.find(u8, out, "<span class=\"zw-affix zw-field-label\">Weight</span>") != null);
+    try std.testing.expect(std.mem.find(u8, out, "zw-sr") == null);
 }
 
 test "help, error, affixes and passthrough attributes" {
