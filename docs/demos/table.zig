@@ -12,6 +12,7 @@ pub const demos = [_]d.Demo{
     .{ "table-states", true, states },
     .{ "table-live", true, live },
     .{ "table-files", true, filesDemo },
+    .{ "table-rich", true, rich },
     .{ "table-invoice", true, invoice },
 };
 /// Extra CSS for these demos (scope it under a demo-specific class).
@@ -27,6 +28,7 @@ pub const routes = .{
     .{ "GET /demo/table/log", logRoute },
     .{ "GET /demo/table/files", filesRoute },
     .{ "POST /demo/table/pay", payRoute },
+    .{ "POST /demo/table/remind", remindRoute },
 };
 
 // Hero: a Finder-style list view.
@@ -152,7 +154,8 @@ fn logRoute(c: *zw.Ctx) !void {
 }
 
 // Files: two segmented controls pick the sort and the filter; the form asks the server for the
-// matching table and swaps it in. Cells are plain strings, so the server formats sizes and dates.
+// matching table and swaps it in (the table's own `id` is the target). Cells are plain strings, so
+// the server formats sizes and dates; `sort_col` marks the sorted header for assistive tech.
 const File = struct { name: []const u8, kind: []const u8, kb: u32, days: u8 };
 const files = [_]File{
     .{ .name = "Budget.numbers", .kind = "document", .kb = 1240, .days = 0 },
@@ -198,7 +201,10 @@ fn filesTable(a: std.mem.Allocator, order: Order, kind: []const u8) !ui.Table {
         row.* = cells;
     }
     return ui.table(.{
+        .id = "demo-table-files",
         .caption = try std.fmt.allocPrint(a, "{d} items", .{n}),
+        .sort_col = @intFromEnum(order),
+        .sort_desc = order != .name,
         .head = &.{ "Name", "Size", "Modified" },
         .aligns = &.{ .left, .right, .left },
         .rows = rows,
@@ -212,8 +218,8 @@ fn filesDemo(w: *Writer) Writer.Error!void {
     var buf: [4096]u8 = undefined;
     var fba: std.heap.FixedBufferAllocator = .init(&buf);
     const t = filesTable(fba.allocator(), .name, "all") catch return error.WriteFailed;
-    try zw.view("<form class=\"demo-table-bar\"{z}>{sort}{kind}</form><div id=\"demo-table-files\">{t}</div>", .{
-        .z = ui.Z{ .get = "/demo/table/files", .trigger = "change", .target = "#demo-table-files", .swap = .inner },
+    try zw.view("<form class=\"demo-table-bar\"{z}>{sort}{kind}</form>{t}", .{
+        .z = ui.Z{ .get = "/demo/table/files", .trigger = "change", .target = "#demo-table-files", .swap = .outer },
         .sort = ui.segmented(.{ .name = "sort", .label = "Sort by", .size = .small, .options = &.{
             .{ .value = "name", .label = "Name", .selected = true },
             .{ .value = "size", .label = "Size" },
@@ -248,8 +254,8 @@ fn invoice(w: *Writer) Writer.Error!void {
                 &.{ "Hosting, annual", "1", "$120.00" },
                 &.{ "Domain renewal", "2", "$24.00" },
                 &.{ "Support plan", "1", "$60.00" },
-                &.{ "Total", "", "$204.00" },
             },
+            .foot = &.{ "Total", "", "$204.00" },
             .row_header = true,
         }),
         .footer = zw.view("{a}{b}", .{
@@ -264,4 +270,43 @@ fn payRoute(c: *zw.Ctx) !void {
         .b = ui.badge(.{ .id = "demo-table-status", .oob = true, .text = "Paid", .tone = .green }),
         .t = ui.toast(.{ .text = "Invoice 1042 marked as paid", .kind = .success }),
     });
+}
+
+// Rich cells: columns marked in `.html` take trusted markup, so rows can hold a badge and a button.
+// Here the markup is rendered into one stack buffer; a route would use `std.Io.Writer.Allocating`.
+fn grab(out: *Writer, comp: anytype) Writer.Error![]const u8 {
+    const start = out.end;
+    try comp.render(out);
+    return out.buffered()[start..];
+}
+
+fn rich(w: *Writer) Writer.Error!void {
+    var buf: [4096]u8 = undefined;
+    var out: Writer = .fixed(&buf);
+    const r0 = [_][]const u8{ "Ada Lovelace", try grab(&out, ui.badge(.{ .text = "Active", .tone = .green })), try grab(&out, remind("ada")) };
+    const r1 = [_][]const u8{ "Grace Hopper", try grab(&out, ui.badge(.{ .text = "Away", .tone = .orange })), try grab(&out, remind("grace")) };
+    const r2 = [_][]const u8{ "Alan Turing", try grab(&out, ui.badge(.{ .text = "Offline" })), try grab(&out, remind("alan")) };
+    try ui.table(.{
+        .caption = "Team",
+        .head = &.{ "Name", "Status", "Actions" },
+        .rows = &.{ &r0, &r1, &r2 },
+        .html = &.{ false, true, true },
+        .aligns = &.{ .left, .left, .right },
+        .row_header = true,
+        .selected = 1,
+    }).render(w);
+}
+
+fn remind(comptime who: []const u8) ui.Button {
+    return ui.button(.{
+        .label = "Remind",
+        .variant = .plain,
+        .size = .small,
+        .z = .{ .post = "/demo/table/remind?name=" ++ who, .swap = .none },
+    });
+}
+
+fn remindRoute(c: *zw.Ctx) !void {
+    const text = try std.fmt.allocPrint(c.arena, "Reminder sent to {s}", .{c.query("name") orelse "everyone"});
+    try c.html("{t}", .{ .t = ui.toast(.{ .text = text, .kind = .success }) });
 }
