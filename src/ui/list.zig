@@ -6,28 +6,28 @@ const std = @import("std");
 const zv = @import("../view.zig");
 
 pub const css =
-    \\.zw-list{list-style:none;padding:0;background:var(--content);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-    \\.zw-list>li{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 8px 6px 12px;position:relative;transition:background-color var(--speed)}
-    \\.zw-list>li+li::before{content:"";position:absolute;top:0;left:44px;right:0;border-top:1px solid var(--separator)}
-    \\.zw-list>li.zw-leave{min-height:0;padding-block:0;overflow:hidden}
-    \\.zw-list :focus-visible{outline-offset:-3px}
-    \\.zw-list:empty::after{content:attr(data-empty);display:block;padding:32px var(--space);text-align:center;color:var(--secondary);animation:zw-fade var(--dur) ease}
+    \\.zw-list{list-style:none;padding:0;background:var(--content);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;
+    \\  &>li{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 8px 6px 12px;position:relative;transition:background-color var(--speed);
+    \\    &+li::before{content:"";position:absolute;inset:0 0 auto 44px;border-top:1px solid var(--separator)}
+    \\    &.zw-leave{min-height:0;padding-block:0;overflow:hidden}
+    \\    &[aria-selected=true]{background:var(--accent);color:var(--on-accent);
+    \\      &::before,&+li::before{opacity:0}}
+    \\    &[aria-disabled=true]{opacity:.4;pointer-events:none}}
+    \\  & :focus-visible{outline-offset:-3px}
+    \\  &:empty::after{content:attr(data-empty);display:block;padding:32px var(--space);text-align:center;color:var(--secondary);animation:zw-fade var(--dur) ease}}
     \\@keyframes zw-fade{from{opacity:0}}
     \\.zw-list--flat{background:none;box-shadow:none;border-radius:0}
-    \\.zw-list--sep-full>li+li::before{left:12px}
     \\.zw-list--sep-none>li+li::before{display:none}
-    \\.zw-list>li[aria-selected=true]{background:var(--accent);color:var(--on-accent)}
-    \\.zw-list>li[aria-selected=true]+li::before,.zw-list>li[aria-selected=true]::before{opacity:0}
-    \\.zw-list>li[aria-disabled=true]{opacity:.4;pointer-events:none}
-    \\.zw-list--nav>li{padding:0}
-    \\.zw-list--nav>li+li::before{left:12px}
-    \\.zw-list--nav>li>a{flex:1;align-self:stretch;display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px;color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}
-    \\.zw-list--nav>li>a::after{content:"";flex:none;margin-left:auto;width:7px;height:7px;border:solid var(--tertiary);border-width:2px 2px 0 0;rotate:45deg}
-    \\.zw-list--nav>li>a:hover{text-decoration:none}
-    \\.zw-list--nav>li>a:active{background:var(--fill-strong)}
-    \\@media (hover:hover){.zw-list--nav>li>a:hover{background:var(--fill)}.zw-list--reveal .zw-btn--destructive{opacity:0;transition:opacity var(--speed)}
-    \\.zw-list--reveal>li:hover .zw-btn--destructive,.zw-list--reveal>li:focus-within .zw-btn--destructive{opacity:1}}
-    \\.zw-list-group{display:block}
+    \\.zw-list--sep-full>li+li::before,.zw-list--nav>li+li::before{left:12px}
+    \\.zw-list--nav>li{padding:0;
+    \\  &>a{flex:1;align-self:stretch;display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px;color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent;
+    \\    &::after{content:"";flex:none;margin-left:auto;width:7px;height:7px;border:solid var(--tertiary);border-width:2px 2px 0 0;rotate:45deg}
+    \\    &:active{background:var(--fill-strong)}
+    \\    @media (hover:hover){&:hover{background:var(--fill)}}}}
+    \\@media (hover:hover){
+    \\  .zw-list--reveal{
+    \\    & .zw-btn--destructive{opacity:0;transition:opacity var(--speed)}
+    \\    &>li:is(:hover,:focus-within) .zw-btn--destructive{opacity:1}}}
     \\.zw-list-head,.zw-list-foot{font:var(--callout);color:var(--secondary);padding:0 var(--space)}
     \\.zw-list-head{font-weight:600;margin-bottom:6px}
     \\.zw-list-foot{margin-top:6px}
