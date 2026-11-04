@@ -101,12 +101,14 @@ fn variants(w: *Writer) Writer.Error!void {
     try cell(ui.avatar(.{ .name = "Grace Hopper", .size = 56, .hue = 25 }), ".hue = 25").render(w);
     try cell(ui.avatar(.{ .name = "Grace Hopper", .size = 56, .hue = 145 }), ".hue = 145").render(w);
     try cell(ui.avatar(.{ .name = "Grace Hopper", .size = 56, .hue = 265 }), ".hue = 265").render(w);
+    try cell(ui.avatar(.{ .name = "Grace Hopper", .size = 56, .neutral = true }), ".neutral").render(w);
+    try cell(ui.avatar(.{ .size = 56 }), "no name").render(w);
 
     try w.writeAll("</div><p class=\"demo-avatar-cap\">Content</p><div class=\"demo-avatar-grid\">");
     try cell(ui.avatar(.{ .name = "Alan Turing", .size = 56 }), "initials").render(w);
     try cell(ui.avatar(.{ .name = "Alan Turing", .size = 56, .src = photo("e0a050") }), ".src").render(w);
     try cell(ui.avatar(.{ .name = "Zig Software Foundation", .size = 56, .shape = .rounded, .src = photo("4cb782") }), ".src, .rounded").render(w);
-    try cell(ui.avatar(.{ .name = "", .size = 56, .more = 5 }), ".more = 5").render(w);
+    try cell(ui.avatar(.{ .size = 56, .more = 5 }), ".more = 5").render(w);
     try w.writeAll("</div>");
 }
 
@@ -131,14 +133,24 @@ fn states(w: *Writer) Writer.Error!void {
     try cell(ui.avatar(.{ .name = "Plato", .size = 56 }), "one word").render(w);
     try cell(ui.avatar(.{ .name = "Ásta Sigurðardóttir", .size = 56 }), "first two words").render(w);
     try cell(ui.avatar(.{ .name = "Ada King Lovelace", .size = 56 }), "third word ignored").render(w);
+    try cell(ui.avatar(.{ .name = "Émile \u{1F44D}\u{1F3FD}", .size = 56 }), "marks and emoji stay whole").render(w);
+
+    try w.writeAll("</div><p class=\"demo-avatar-cap\">Small avatar with a presence dot</p><div class=\"demo-avatar-grid\">");
+    try cell(ui.avatar(.{ .name = "Ada Lovelace", .size = 24, .status = .online }), ".size = 24").render(w);
 
     try w.writeAll("</div><p class=\"demo-avatar-cap\">Stack and overflow</p><div class=\"demo-avatar-grid\">");
-    try ui.avatar(.{ .name = "", .size = 56, .more = 3 }).render(w);
+    try ui.avatar(.{ .size = 56, .more = 3 }).render(w);
     try zw.view("<div class=\"zw-avatars\">{a}{b}{c}{d}</div>", .{
         .a = ui.avatar(.{ .name = "Ada Lovelace", .size = 40 }),
         .b = ui.avatar(.{ .name = "Grace Hopper", .size = 40 }),
         .c = ui.avatar(.{ .name = "Alan Turing", .size = 40, .src = photo("e0a050") }),
-        .d = ui.avatar(.{ .name = "", .size = 40, .more = 12 }),
+        .d = ui.avatar(.{ .size = 40, .more = 12 }),
+    }).render(w);
+    // Avatars inside wrappers (here a tooltip) overlap the same way.
+    try zw.view("<div class=\"zw-avatars\">{a}{b}{c}</div>", .{
+        .a = ui.tooltip(.{ .text = "Ada Lovelace", .body = ui.avatar(.{ .name = "Ada Lovelace", .size = 40 }) }),
+        .b = ui.tooltip(.{ .text = "Grace Hopper", .body = ui.avatar(.{ .name = "Grace Hopper", .size = 40 }) }),
+        .c = ui.tooltip(.{ .text = "Anonymous", .body = ui.avatar(.{ .size = 40 }) }),
     }).render(w);
     try w.writeAll("</div>");
 }
