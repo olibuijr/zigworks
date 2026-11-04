@@ -4,9 +4,10 @@
 //! The clear button is the browser's own `type=search` one, restyled (field.zig); Firefox has none.
 const std = @import("std");
 const zv = @import("../view.zig");
+const kbd = @import("kbd.zig");
 
 pub const css =
-    \\.zw-search{position:relative;flex:0 1 240px;min-width:0;
+    \\.zw-search{position:relative;flex:0 1 auto;width:240px;max-width:100%;min-width:0;
     \\& input{appearance:none;width:100%;height:30px;padding:0 12px 0 30px;border:0;border-radius:999px;font:var(--body);color:var(--label);outline:none;
     \\background:var(--glass) no-repeat 11px 50%/12px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23888' stroke-width='2'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='m11 11 4 4'/%3E%3C/svg%3E");
     \\transition:box-shadow var(--speed);
@@ -17,6 +18,15 @@ pub const css =
     \\.zw-search--large input{height:36px;padding-left:34px;background-position:13px 50%;background-size:14px}
     \\.zw-search--noclear input::-webkit-search-cancel-button{display:none}
     \\.zw-search--hint input{padding-right:44px}
+    \\.zw-search--hint.zw-search--pc input{padding-right:58px}
+    \\.zw-search input:disabled{opacity:.45;cursor:not-allowed}
+    \\.zw-search input:disabled~.zw-search-hint{opacity:0}
+    \\.zw-search input[readonly]{background-color:var(--fill)}
+    \\.zw-search input[aria-invalid=true]{box-shadow:var(--glass-rim),0 0 0 1px var(--red);&:focus{box-shadow:var(--glass-rim),0 0 0 3.5px color-mix(in srgb,var(--red) 35%,transparent)}}
+    \\.zw-search input.zw-busy{opacity:1;pointer-events:auto}
+    \\.zw-search:has(input.zw-busy)::after{content:"";position:absolute;right:34px;top:50%;translate:0 -50%;width:14px;height:14px;border-radius:50%;pointer-events:none;animation:zw-spin .9s linear infinite;
+    \\background:conic-gradient(transparent 10%,var(--secondary));mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px))}
+    \\.zw-search--noclear:has(input.zw-busy)::after{right:12px}
     \\.zw-search-hint{position:absolute;right:11px;top:50%;translate:0 -50%;font:var(--callout);color:var(--secondary);text-transform:uppercase;pointer-events:none;transition:opacity var(--speed)}
     \\.zw-results{position:absolute;top:calc(100% + 8px);right:0;width:min(360px,calc(100vw - 32px));max-height:60vh;overflow:auto;z-index:20;padding:6px;border-radius:var(--radius);
     \\--glass:var(--glass-thick);transform-origin:top right;
@@ -27,8 +37,11 @@ pub const css =
     \\& small{color:inherit;opacity:.8}}}
     \\& p{padding:10px;color:var(--secondary);font:var(--callout)}}
     \\@starting-style{.zw-results{opacity:0;scale:.9;translate:0 -8px}}
+    \\.zw-search--flow .zw-results{position:static;width:auto;max-height:240px;margin-top:8px;transform-origin:top}
     \\.zw-results:empty,.zw-search:not(:focus-within) .zw-results{display:none;opacity:0}
     \\@media (pointer:coarse){.zw-search input{height:44px;padding-left:34px;background-position:13px 50%;background-size:14px}
+    \\.zw-search:has(input.zw-busy)::after{right:48px}
+    \\.zw-search--noclear:has(input.zw-busy)::after{right:12px}
     \\.zw-results a{min-height:44px;display:flex;flex-direction:column;justify-content:center}}
     \\@media (forced-colors:active){.zw-search input{border:1px solid ButtonText;&:focus{outline:2px solid Highlight}}}
     \\
@@ -57,22 +70,33 @@ pub const Props = struct {
     /// Shortest query the form submits without JS (native `minlength`). 0 means no minimum.
     min_length: u8 = 0,
     autofocus: bool = false,
+    /// Not editable and dimmed; the shortcut hint is hidden.
+    disabled: bool = false,
+    /// Shows the text but cannot be edited (still focusable and submitted).
+    readonly: bool = false,
+    /// Red ring and `aria-invalid`. Explain the problem in text next to the field.
+    invalid: bool = false,
+    /// `.pc` draws the shortcut hint as `Ctrl+K` instead of `⌘K`. The key works with either modifier.
+    platform: kbd.Platform = .mac,
+    /// Show the results in the page flow under the field instead of a floating panel. Use it where a
+    /// popover would be clipped, such as inside a sheet.
+    inline_results: bool = false,
 };
 
-const src = "<form class=\"zw-search zw-search--{p.size}{#if !p.clear} zw-search--noclear{/if}{#if p.shortcut} zw-search--hint{/if}\" role=\"search\" action=\"{p.action}\" method=\"get\">" ++
+const src = "<form class=\"zw-search zw-search--{p.size}{#if !p.clear} zw-search--noclear{/if}{#if p.shortcut} zw-search--hint{/if}{#if pc} zw-search--pc{/if}{#if p.inline_results} zw-search--flow{/if}\" role=\"search\" action=\"{p.action}\" method=\"get\">" ++
     "<input class=\"zw-glass\" type=\"search\" name=\"{p.name}\" value=\"{p.value}\" aria-label=\"{p.label}\" placeholder=\"{p.placeholder}\" autocomplete=\"off\" enterkeyhint=\"search\" aria-controls=\"{p.id}\"" ++
-    "{#if p.min_length} minlength=\"{p.min_length}\"{/if}{#if p.autofocus} autofocus{/if}" ++
+    "{#if p.min_length} minlength=\"{p.min_length}\"{/if}{#if p.autofocus} autofocus{/if}{#if p.disabled} disabled{/if}{#if p.readonly} readonly{/if}{#if p.invalid} aria-invalid=\"true\"{/if}" ++
     "{#if p.shortcut} aria-keyshortcuts=\"Meta+{p.shortcut} Control+{p.shortcut}\" data-shortcut=\"{p.shortcut}\"{/if}" ++
     " z-get=\"{p.action}\" z-trigger=\"input\" z-target=\"#{p.id}\">" ++
-    "{#if p.shortcut}<kbd class=\"zw-search-hint\" aria-hidden=\"true\">&#8984;{p.shortcut}</kbd>{/if}" ++
+    "{#if p.shortcut}<kbd class=\"zw-search-hint\" aria-hidden=\"true\">{#if pc}Ctrl+{/if}{#if !pc}&#8984;{/if}{p.shortcut}</kbd>{/if}" ++
     "<div class=\"zw-results zw-glass\" id=\"{p.id}\" aria-live=\"polite\"></div></form>";
 
-const Data = struct { p: Props };
+const Data = struct { p: Props, pc: bool };
 
 pub const Search = zv.View(src, Data);
 
 pub fn search(p: Props) Search {
-    return .{ .data = .{ .p = p } };
+    return .{ .data = .{ .p = p, .pc = p.platform == .pc } };
 }
 
 test "defaults render the original markup plus the new attributes" {
@@ -88,7 +112,7 @@ test "defaults render the original markup plus the new attributes" {
 }
 
 test "variants" {
-    var buf: [2048]u8 = undefined;
+    var buf: [4096]u8 = undefined;
     var w: std.Io.Writer = .fixed(&buf);
     try search(.{ .action = "/s", .size = .large, .clear = false, .shortcut = "k", .min_length = 2, .value = "a\"b" }).render(&w);
     const out = w.buffered();
@@ -97,4 +121,25 @@ test "variants" {
     try std.testing.expect(std.mem.find(u8, out, "aria-keyshortcuts=\"Meta+k Control+k\" data-shortcut=\"k\"") != null);
     try std.testing.expect(std.mem.find(u8, out, "value=\"a&quot;b\"") != null);
     try std.testing.expect(std.mem.find(u8, out, "<kbd class=\"zw-search-hint\" aria-hidden=\"true\">&#8984;k</kbd>") != null);
+}
+
+test "states, platform hint and in-flow results" {
+    var buf: [4096]u8 = undefined;
+    var w: std.Io.Writer = .fixed(&buf);
+    try search(.{ .action = "/s", .disabled = true, .readonly = true, .invalid = true, .shortcut = "k", .platform = .pc, .inline_results = true }).render(&w);
+    const out = w.buffered();
+    try std.testing.expect(std.mem.find(u8, out, " disabled") != null);
+    try std.testing.expect(std.mem.find(u8, out, " readonly") != null);
+    try std.testing.expect(std.mem.find(u8, out, "aria-invalid=\"true\"") != null);
+    try std.testing.expect(std.mem.find(u8, out, "zw-search--hint zw-search--pc zw-search--flow") != null);
+    try std.testing.expect(std.mem.find(u8, out, ">Ctrl+k</kbd>") != null);
+    try std.testing.expect(std.mem.find(u8, out, "&#8984;") == null);
+    var plain: [2048]u8 = undefined;
+    var w2: std.Io.Writer = .fixed(&plain);
+    try search(.{ .action = "/s" }).render(&w2);
+    const base = w2.buffered();
+    try std.testing.expect(std.mem.find(u8, base, "disabled") == null);
+    try std.testing.expect(std.mem.find(u8, base, "readonly") == null);
+    try std.testing.expect(std.mem.find(u8, base, "aria-invalid") == null);
+    try std.testing.expect(std.mem.find(u8, base, "zw-search--flow") == null);
 }

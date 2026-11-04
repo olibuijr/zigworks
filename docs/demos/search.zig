@@ -25,7 +25,7 @@ pub const css =
     \\& code{flex:0 0 18ch}
     \\& .zw-search{flex:1 1 220px}}
     \\.demo-search-meta{flex:none;font:var(--callout);color:var(--secondary)}
-    \\.demo-search-quick .zw-results{position:static;width:auto;max-height:240px;margin-top:8px}
+    \\.demo-search-quick .zw-search{width:100%}
     \\
 ;
 /// Server routes these demos need, e.g. `.{ "POST /demo/search/x", handler }`.
@@ -144,13 +144,15 @@ fn sizes(w: *Writer) Writer.Error!void {
             "<div class=\"demo-search-row\"><code>size = .regular</code>{b}</div>" ++
             "<div class=\"demo-search-row\"><code>size = .large</code>{c}</div>" ++
             "<div class=\"demo-search-row\"><code>clear = false</code>{e}</div>" ++
-            "<div class=\"demo-search-row\"><code>shortcut = \"j\"</code>{f}</div>",
+            "<div class=\"demo-search-row\"><code>shortcut = \"j\"</code>{f}</div>" ++
+            "<div class=\"demo-search-row\"><code>platform = .pc</code>{g}</div>",
         .{
             .a = ui.search(.{ .action = "/demo/search/find", .id = "demo-search-small", .label = "Search (small)", .placeholder = "Small, 24px", .size = .small }),
             .b = ui.search(.{ .action = "/demo/search/find", .id = "demo-search-regular", .label = "Search (regular)", .placeholder = "Regular, 30px" }),
             .c = ui.search(.{ .action = "/demo/search/find", .id = "demo-search-large", .label = "Search (large)", .placeholder = "Large, 36px", .size = .large }),
             .e = ui.search(.{ .action = "/demo/search/find", .id = "demo-search-noclear", .label = "Search (no clear button)", .placeholder = "Type, no clear button", .clear = false }),
             .f = ui.search(.{ .action = "/demo/search/find", .id = "demo-search-hint", .label = "Search (shortcut)", .placeholder = "Search", .shortcut = "j" }),
+            .g = ui.search(.{ .action = "/demo/search/find", .id = "demo-search-pc", .label = "Search (Ctrl hint)", .placeholder = "Search", .shortcut = "y", .platform = .pc }),
         },
     ).render(w);
 }
@@ -163,7 +165,10 @@ fn states(w: *Writer) Writer.Error!void {
         "<div class=\"demo-search-row\"><code>value = \"lemon\"</code>{a}</div>" ++
             "{list}" ++
             "<div class=\"demo-search-row\"><code>min_length = 3</code>{b}</div>" ++
-            "<div class=\"demo-search-row\"><code>no matches</code>{c}</div>",
+            "<div class=\"demo-search-row\"><code>no matches</code>{c}</div>" ++
+            "<div class=\"demo-search-row\"><code>disabled = true</code>{d}</div>" ++
+            "<div class=\"demo-search-row\"><code>readonly = true</code>{e}</div>" ++
+            "<div class=\"demo-search-row\"><code>invalid = true</code>{f}</div>",
         .{
             .a = ui.search(.{ .action = "/demo/search/find", .id = "demo-search-prefilled", .name = "term", .value = "lemon", .label = "Search notes", .placeholder = "Search notes" }),
             .list = ui.list(.{
@@ -173,6 +178,9 @@ fn states(w: *Writer) Writer.Error!void {
             }),
             .b = ui.search(.{ .action = "/demo/search/find?min=3", .id = "demo-search-min", .label = "Search (three letters)", .placeholder = "Type at least 3 letters", .min_length = 3 }),
             .c = ui.search(.{ .action = "/demo/search/find?in=archive", .id = "demo-search-archive", .label = "Search the archive", .placeholder = "Search the archive" }),
+            .d = ui.search(.{ .action = "/demo/search/find", .id = "demo-search-disabled", .label = "Search (disabled)", .placeholder = "Search is unavailable", .disabled = true }),
+            .e = ui.search(.{ .action = "/demo/search/find", .id = "demo-search-readonly", .label = "Search (read only)", .value = "lemon", .readonly = true }),
+            .f = ui.search(.{ .action = "/demo/search/find", .id = "demo-search-invalid", .label = "Search (invalid)", .placeholder = "Search", .value = "??", .invalid = true }),
         },
     ).render(w);
 }
@@ -194,6 +202,7 @@ fn quick(w: *Writer) Writer.Error!void {
                     .placeholder = "Open note",
                     .clear = false,
                     .autofocus = true,
+                    .inline_results = true,
                 }),
             }),
         }),
