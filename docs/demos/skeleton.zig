@@ -59,13 +59,14 @@ fn mailRow(m: Mail) MailRow {
     return .{ .data = .{ .avatar = ui.avatar(.{ .name = m.from, .size = 36 }), .from = m.from, .subject = m.subject, .time = m.time } };
 }
 
-/// Three message-shaped skeletons. The wrapper asks for the real list as soon as it is on the
-/// page and swaps it in for itself.
+/// Three message-shaped skeletons. The first one asks for the real list as soon as it is on
+/// the page and swaps it in for the rows; the skeleton is not dimmed while it waits.
 const InboxLoading = struct {
     pub fn render(_: InboxLoading, w: *Writer) Writer.Error!void {
-        try w.writeAll("<div class=\"demo-skeleton-load\" z-get=\"/demo/skeleton/inbox\" z-trigger=\"load\" z-target=\"#demo-skeleton-inbox\" z-swap=\"inner\"><div class=\"demo-skeleton-rows\">");
-        for (0..3) |_| try ui.skeleton(.{ .shape = .media, .lines = 2, .size = 36, .label = "Loading message" }).render(w);
-        try w.writeAll("</div></div>");
+        try w.writeAll("<div class=\"demo-skeleton-rows\">");
+        const z: ui.Z = .{ .get = "/demo/skeleton/inbox", .trigger = "load", .target = "#demo-skeleton-inbox", .swap = .inner };
+        for (0..3) |i| try ui.skeleton(.{ .shape = .media, .lines = 2, .size = 36, .label = "Loading message", .z = if (i == 0) z else .{} }).render(w);
+        try w.writeAll("</div>");
     }
 };
 
@@ -89,7 +90,7 @@ fn skeleton(w: *Writer) Writer.Error!void {
 // ---- Shapes and sizes ----
 
 fn shapes(w: *Writer) Writer.Error!void {
-    try zw.view("<div class=\"demo-skeleton-grid\">{a}{b}{c}{d}{e}{f}{g}</div>", .{
+    try zw.view("<div class=\"demo-skeleton-grid\">{a}{b}{c}{d}{e}{f}{g}{h}</div>", .{
         .a = ui.card(.{ .title = "Lines", .subtitle = "default: .lines = 3", .body = ui.skeleton(.{ .label = "Loading text" }) }),
         .b = ui.card(.{ .title = "Short last line", .subtitle = ".lines = 2, .last_width = 30", .body = ui.skeleton(.{ .lines = 2, .last_width = 30 }) }),
         .c = ui.card(.{ .title = "Single line", .subtitle = ".lines = 1", .body = ui.skeleton(.{ .lines = 1 }) }),
@@ -105,6 +106,7 @@ fn shapes(w: *Writer) Writer.Error!void {
             }),
         }),
         .f = ui.card(.{ .title = "Media", .subtitle = ".shape = .media, .lines = 2, .size = 44", .body = ui.skeleton(.{ .shape = .media, .lines = 2, .size = 44, .label = "Loading contact" }) }),
+        .h = ui.card(.{ .title = "Line height and gap", .subtitle = ".lines = 2, .line_height = 17, .gap = 5", .body = ui.skeleton(.{ .lines = 2, .line_height = 17, .gap = 5, .label = "Loading headline" }) }),
         .g = ui.card(.{ .title = "Compact media", .subtitle = ".shape = .media, .lines = 1, .size = 28", .body = ui.skeleton(.{ .shape = .media, .lines = 1, .size = 28, .label = "Loading contact" }) }),
     }).render(w);
 }
