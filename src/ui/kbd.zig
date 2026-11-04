@@ -6,15 +6,17 @@ const Writer = std.Io.Writer;
 const writeEscaped = @import("../view.zig").writeEscaped;
 
 pub const css =
-    \\.zw-kbd{display:inline-flex;align-items:center;gap:3px;vertical-align:1px;white-space:nowrap;font:500 11px/1 var(--font)}
-    \\.zw-kbd kbd{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:5px;font:inherit;color:var(--secondary);
-    \\background:var(--content);box-shadow:0 0 0 .5px var(--separator),0 1px 0 var(--fill-strong)}
+    \\.zw-kbd{display:inline-flex;align-items:center;gap:3px;vertical-align:1px;white-space:nowrap;font:500 11px/1 var(--font);
+    \\& kbd{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:5px;font:inherit;color:var(--secondary);
+    \\background:var(--content);box-shadow:0 0 0 .5px var(--separator),0 1px 0 var(--fill-strong)}}
     \\.zw-kbd__j{color:var(--tertiary)}
-    \\.zw-kbd--small{font-size:10px}.zw-kbd--small kbd{min-width:16px;height:16px;padding:0 4px;border-radius:4px}
-    \\.zw-kbd--large{font-size:13px}.zw-kbd--large kbd{min-width:26px;height:26px;padding:0 7px;border-radius:7px}
-    \\.zw-kbd--plain{gap:1px;color:var(--secondary);vertical-align:baseline}
-    \\.zw-kbd--plain kbd{min-width:0;height:auto;padding:0;border-radius:0;color:inherit;background:none;box-shadow:none}
-    \\.zw-kbd--plain .zw-kbd__j{padding:0 2px}
+    \\.zw-kbd--small{font-size:10px;
+    \\& kbd{min-width:16px;height:16px;padding:0 4px;border-radius:4px}}
+    \\.zw-kbd--large{font-size:13px;
+    \\& kbd{min-width:26px;height:26px;padding:0 7px;border-radius:7px}}
+    \\.zw-kbd--plain{gap:1px;color:var(--secondary);vertical-align:baseline;
+    \\& kbd{min-width:0;height:auto;padding:0;border-radius:0;color:inherit;background:none;box-shadow:none}
+    \\& .zw-kbd__j{padding:0 2px}}
     \\@media (prefers-contrast:more){.zw-kbd kbd{color:var(--label);box-shadow:0 0 0 1px var(--secondary)}.zw-kbd--plain kbd{box-shadow:none}}
     \\
 ;
