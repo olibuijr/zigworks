@@ -6,21 +6,21 @@ const Writer = std.Io.Writer;
 const writeEscaped = @import("../view.zig").writeEscaped;
 
 pub const css =
-    \\.zw-table-wrap{overflow-x:auto;border-radius:var(--radius-control);box-shadow:inset 0 0 0 .5px var(--separator)}
-    \\.zw-table{width:100%;border-collapse:collapse;font:var(--body)}
-    \\.zw-table caption{caption-side:top;padding:8px 12px;text-align:left;font:var(--callout);color:var(--secondary);border-bottom:1px solid var(--separator)}
-    \\.zw-table th{font:var(--callout);font-weight:600;color:var(--secondary);text-align:left;background:var(--fill)}
-    \\.zw-table thead th{white-space:nowrap}
-    \\.zw-table tbody th{font:var(--body);font-weight:600;color:var(--label);background:transparent}
-    \\.zw-table th,.zw-table td{padding:7px 12px;border-bottom:1px solid var(--separator);vertical-align:top}
-    \\.zw-table tr:last-child td,.zw-table tr:last-child th{border-bottom:0}
-    \\.zw-table code{white-space:nowrap}
-    \\.zw-table .zw-ta-center{text-align:center}
-    \\.zw-table .zw-ta-right{text-align:right;font-variant-numeric:tabular-nums}
+    \\.zw-table-wrap{overflow-x:auto;border-radius:var(--radius-control);box-shadow:inset 0 0 0 .5px var(--separator);
+    \\  @media (forced-colors:active){box-shadow:none;border:1px solid CanvasText}}
+    \\.zw-table{width:100%;border-collapse:collapse;font:var(--body);
+    \\  & caption{padding:8px 12px;text-align:left;font:var(--callout);color:var(--secondary);border-bottom:1px solid var(--separator)}
+    \\  & th{font:var(--callout);font-weight:600;color:var(--secondary);text-align:left;background:var(--fill)}
+    \\  & thead th{white-space:nowrap}
+    \\  & tbody th{font:var(--body);font-weight:600;color:var(--label);background:transparent}
+    \\  & :is(th,td){padding:7px 12px;border-bottom:1px solid var(--separator);vertical-align:top}
+    \\  & tr:last-child :is(td,th){border-bottom:0}
+    \\  & code{white-space:nowrap}
+    \\  & .zw-ta-center{text-align:center}
+    \\  & .zw-ta-right{text-align:right;font-variant-numeric:tabular-nums}
+    \\  & .zw-table-empty{padding:28px 12px;text-align:center;color:var(--secondary)}}
     \\.zw-table--striped tbody tr:nth-child(even){background:var(--fill)}
-    \\.zw-table--compact th,.zw-table--compact td{padding:3px 10px}
-    \\.zw-table .zw-table-empty{padding:28px 12px;text-align:center;color:var(--secondary)}
-    \\@media (forced-colors:active){.zw-table-wrap{box-shadow:none;border:1px solid CanvasText}}
+    \\.zw-table--compact :is(th,td){padding:3px 10px}
     \\
 ;
 

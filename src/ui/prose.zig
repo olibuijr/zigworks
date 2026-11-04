@@ -6,23 +6,23 @@
 //! Reading text is a step up from the 13px control font, and lines stay under ~75 characters.
 
 pub const css =
-    \\.zw-prose{font:15px/1.6 var(--font);letter-spacing:-.15px;color:var(--label);max-width:72ch}
-    \\.zw-prose>*+*{margin-top:14px}
-    \\.zw-prose :is(h2,h3,h4){scroll-margin-top:68px}
-    \\.zw-prose .zw-table{font-size:13px}
-    \\.zw-prose>:where(.zw-code,.zw-demo){margin-top:16px}
+    \\.zw-prose{font:15px/1.6 var(--font);letter-spacing:-.15px;color:var(--label);max-width:72ch;
+    \\>*+*{margin-top:14px}
+    \\:is(h2,h3,h4){scroll-margin-top:68px}
+    \\.zw-table{font-size:13px}
+    \\>:where(.zw-code,.zw-demo){margin-top:16px}}
     \\@scope (.zw-prose) to (.zw-not-prose){:scope{
     \\h1{font:700 30px/36px var(--font);letter-spacing:-.6px;margin-bottom:6px}
     \\h2{font:700 21px/28px var(--font);letter-spacing:-.4px;margin-top:36px;padding-top:4px}
     \\h3{font:600 16px/22px var(--font);letter-spacing:-.2px;margin-top:26px}
     \\h4{font:var(--headline);margin-top:20px}
     \\:is(h2,h3,h4)+*{margin-top:8px}
-    \\:is(ul,ol):not([class]){padding-left:22px}
-    \\:is(ul,ol):not([class])>li+li{margin-top:4px}
-    \\:is(ul,ol):not([class])>li::marker{color:var(--tertiary)}
+    \\:is(ul,ol):not([class]){padding-left:22px;
+    \\>li+li{margin-top:4px}
+    \\>li::marker{color:var(--tertiary)}}
     \\:not(pre)>code{font:.86em var(--mono);padding:1px 5px;border-radius:5px;background:var(--fill)}
-    \\a{text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--accent) 35%,transparent);text-underline-offset:2px}
-    \\a:hover{text-decoration-color:var(--accent)}
+    \\a{text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--accent) 35%,transparent);text-underline-offset:2px;
+    \\&:hover{text-decoration-color:var(--accent)}}
     \\hr{border:0;border-top:1px solid var(--separator);margin:28px 0}
     \\}}
     \\

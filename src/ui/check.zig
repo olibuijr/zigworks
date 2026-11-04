@@ -5,21 +5,25 @@ const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
 
 pub const css =
-    \\.zw-check{--zw-d:22px;--zw-tint:var(--accent);appearance:none;position:relative;flex:none;width:var(--zw-d);height:var(--zw-d);border-radius:50%;border:1.5px solid var(--tertiary);background:transparent;cursor:default;padding:0;
-    \\display:grid;place-items:center;-webkit-tap-highlight-color:transparent;
-    \\transition:background-color var(--speed),border-color var(--speed),box-shadow var(--speed),scale var(--dur-bouncy) var(--spring-bouncy)}
-    \\.zw-check--small{--zw-d:18px}.zw-check--large{--zw-d:28px}
-    \\.zw-check--red{--zw-tint:var(--red)}.zw-check--orange{--zw-tint:var(--orange)}.zw-check--green{--zw-tint:var(--green)}
-    \\.zw-check:not(:disabled):hover{border-color:var(--secondary)}
-    \\.zw-check:not(:disabled):active{scale:.8;transition-duration:var(--dur-snappy)}
-    \\.zw-check:not([aria-checked=true]):not(:disabled):hover{border-color:var(--zw-tint)}
-    \\.zw-check:disabled{opacity:.4;pointer-events:none}
-    \\.zw-check[aria-checked=true]{border-color:transparent;background:radial-gradient(circle at 50% 20%,color-mix(in srgb,var(--zw-tint) 70%,#fff),var(--zw-tint) 70%);
-    \\box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 1px rgba(0,0,0,.12),0 2px 6px color-mix(in srgb,var(--zw-tint) 35%,transparent)}
-    \\.zw-check[aria-checked=true]::after{content:"";width:calc(var(--zw-d)*.23);height:calc(var(--zw-d)*.45);border:solid var(--on-accent);border-width:0 calc(var(--zw-d)*.09) calc(var(--zw-d)*.09) 0;rotate:45deg;translate:0 -1px}
+    \\.zw-check{--zw-d:22px;--zw-tint:var(--accent);appearance:none;position:relative;flex:none;display:grid;place-items:center;width:var(--zw-d);height:var(--zw-d);padding:0;
+    \\border:1.5px solid var(--tertiary);border-radius:50%;background:transparent;cursor:default;-webkit-tap-highlight-color:transparent;
+    \\transition:background-color var(--speed),border-color var(--speed),box-shadow var(--speed),scale var(--dur-bouncy) var(--spring-bouncy);
+    \\&:disabled{opacity:.4;pointer-events:none}
+    \\&:not(:disabled){
+    \\&:hover{border-color:var(--secondary)}
+    \\&:active{scale:.8;transition-duration:var(--dur-snappy)}
+    \\&:not([aria-checked=true]):hover{border-color:var(--zw-tint)}}
+    \\&[aria-checked=true]{border-color:transparent;background:radial-gradient(circle at 50% 20%,color-mix(in srgb,var(--zw-tint) 70%,#fff),var(--zw-tint) 70%);
+    \\box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 1px rgba(0,0,0,.12),0 2px 6px color-mix(in srgb,var(--zw-tint) 35%,transparent);
+    \\&::after{content:"";width:calc(var(--zw-d)*.23);height:calc(var(--zw-d)*.45);border:solid var(--on-accent);border-width:0 calc(var(--zw-d)*.09) calc(var(--zw-d)*.09) 0;rotate:45deg;translate:0 -1px}
+    \\&.zw-swapped,.zw-swapped &{animation:zw-pop var(--dur-bouncy) var(--spring-bouncy)}
+    \\.zw-swapped &::after{animation:zw-tick var(--dur) var(--spring-bouncy)}}}
+    \\.zw-check--small{--zw-d:18px}
+    \\.zw-check--large{--zw-d:28px}
+    \\.zw-check--red{--zw-tint:var(--red)}
+    \\.zw-check--orange{--zw-tint:var(--orange)}
+    \\.zw-check--green{--zw-tint:var(--green)}
     \\@media (pointer:coarse){.zw-check::before{content:"";position:absolute;inset:calc((var(--zw-d) - 44px)/2)}}
-    \\.zw-swapped .zw-check[aria-checked=true],.zw-check.zw-swapped[aria-checked=true]{animation:zw-pop var(--dur-bouncy) var(--spring-bouncy)}
-    \\.zw-swapped .zw-check[aria-checked=true]::after{animation:zw-tick var(--dur) var(--spring-bouncy)}
     \\@keyframes zw-tick{from{scale:.2;opacity:0}}
     \\
 ;

@@ -7,18 +7,19 @@ const Writer = std.Io.Writer;
 const zv = @import("../view.zig");
 
 pub const css =
-    \\.zw-tabs{display:flex;flex-direction:column;align-items:center;gap:14px}
+    \\.zw-tabs{display:flex;flex-direction:column;align-items:center;gap:14px;
+    \\&>.zw-seg label{&:has(:disabled){pointer-events:none}
+    \\@media (max-width:480px){padding:0 8px}
+    \\@media (pointer:coarse){height:40px}}}
     \\.zw-tabs--full{align-items:stretch}
-    \\.zw-tabs>.zw-seg label:has(:disabled){pointer-events:none}
     \\.zw-tab-badge{flex:none;min-width:18px;padding:0 6px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:12px;line-height:18px;font-weight:600;font-variant-numeric:tabular-nums;text-align:center}
-    \\@media (max-width:480px){.zw-tabs>.zw-seg label{padding:0 8px}}
-    \\@media (pointer:coarse){.zw-tabs>.zw-seg label{height:40px}}
     \\.zw-tab-panel{display:none;width:100%}
-    \\.zw-tabs:has(>.zw-seg label:nth-of-type(1) :checked)>.zw-tab-panel:nth-of-type(1),.zw-tabs:has(>.zw-seg label:nth-of-type(2) :checked)>.zw-tab-panel:nth-of-type(2),
-    \\.zw-tabs:has(>.zw-seg label:nth-of-type(3) :checked)>.zw-tab-panel:nth-of-type(3),.zw-tabs:has(>.zw-seg label:nth-of-type(4) :checked)>.zw-tab-panel:nth-of-type(4),
-    \\.zw-tabs:has(>.zw-seg label:nth-of-type(5) :checked)>.zw-tab-panel:nth-of-type(5),.zw-tabs:has(>.zw-seg label:nth-of-type(6) :checked)>.zw-tab-panel:nth-of-type(6),
-    \\.zw-tabs:has(>.zw-seg label:nth-of-type(7) :checked)>.zw-tab-panel:nth-of-type(7),.zw-tabs:has(>.zw-seg label:nth-of-type(8) :checked)>.zw-tab-panel:nth-of-type(8)
-    \\{display:block;animation:zw-tab-in var(--dur) var(--spring)}
+    \\.zw-tabs{
+    \\&:has(>.zw-seg label:nth-of-type(1) :checked)>.zw-tab-panel:nth-of-type(1),&:has(>.zw-seg label:nth-of-type(2) :checked)>.zw-tab-panel:nth-of-type(2),
+    \\&:has(>.zw-seg label:nth-of-type(3) :checked)>.zw-tab-panel:nth-of-type(3),&:has(>.zw-seg label:nth-of-type(4) :checked)>.zw-tab-panel:nth-of-type(4),
+    \\&:has(>.zw-seg label:nth-of-type(5) :checked)>.zw-tab-panel:nth-of-type(5),&:has(>.zw-seg label:nth-of-type(6) :checked)>.zw-tab-panel:nth-of-type(6),
+    \\&:has(>.zw-seg label:nth-of-type(7) :checked)>.zw-tab-panel:nth-of-type(7),&:has(>.zw-seg label:nth-of-type(8) :checked)>.zw-tab-panel:nth-of-type(8)
+    \\{display:block;animation:zw-tab-in var(--dur) var(--spring)}}
     \\@keyframes zw-tab-in{from{opacity:0;translate:0 6px}}
     \\
 ;

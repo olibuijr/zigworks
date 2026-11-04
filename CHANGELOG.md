@@ -5,6 +5,11 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 **Releasing:** bump the version in `build.zig.zon`, `src/zigworks.zig` (`version`) and the README
 install snippet (`#vX.Y.Z`), rename `[Unreleased]` to the version and date, then tag `vX.Y.Z`.
 
+## [0.5.2] - 2026-11-04
+
+### Changed
+- Component CSS trimmed with native CSS nesting, merged rules and removed dead or duplicate declarations: zw.css 80.8 KB to 74524 bytes (15644 bytes gzipped). Nothing looks or behaves differently: every docs demo and every e2e state screenshot matches 0.5.1 pixel for pixel.
+
 ## [0.5.1] - 2026-11-04
 
 Codebase hygiene: less code, fewer surprises, same API.

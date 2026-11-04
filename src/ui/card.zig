@@ -9,21 +9,23 @@ pub const css =
     \\.zw-card{background:var(--content);border-radius:var(--radius);box-shadow:var(--shadow);padding:var(--space)}
     \\.zw-card--inset{background:var(--fill);box-shadow:none}
     \\.zw-card--plain{background:none;box-shadow:none;padding-inline:0}
-    \\.zw-card--flush{padding:0;overflow:hidden}
-    \\.zw-card--flush .zw-list{box-shadow:none;border-radius:0}
+    \\.zw-card--flush{padding:0;overflow:hidden;
+    \\  & .zw-list{box-shadow:none;border-radius:0}
+    \\  &>.zw-card-head{margin:0;padding:var(--space) var(--space) 10px}
+    \\  &>.zw-card-foot{margin-top:0;padding:12px var(--space)}}
     \\.zw-card-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-bottom:10px}
     \\.zw-card-text{flex:1 1 12ch;min-width:0}
-    \\.zw-card-title{font:var(--headline);color:var(--secondary);margin:0}
+    \\.zw-card-title{font:var(--headline);color:var(--secondary)}
     \\.zw-card-sub{font:var(--callout);color:var(--secondary);margin-top:2px}
     \\.zw-card-acc{flex:none;display:flex;align-items:center;gap:8px}
     \\.zw-card-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px;margin-top:var(--space);padding-top:12px;border-top:1px solid var(--separator)}
     \\.zw-card-foot--text{justify-content:flex-start;font:var(--callout);color:var(--secondary)}
-    \\.zw-card--flush>.zw-card-head{margin:0;padding:var(--space) var(--space) 10px}
-    \\.zw-card--flush>.zw-card-foot{margin-top:0;padding:12px var(--space)}
-    \\.zw-card--link{display:block;color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:background-color var(--speed)}
-    \\.zw-card--link:hover{text-decoration:none}
-    \\@media (hover:hover){.zw-card--link:hover{background-color:color-mix(in srgb,var(--content) 94%,var(--label))}.zw-card--inset.zw-card--link:hover{background-color:var(--fill-strong)}}
-    \\.zw-card--link:active,.zw-card--inset.zw-card--link:active{background-color:var(--fill-strong)}
+    \\.zw-card--link{display:block;color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:background-color var(--speed);
+    \\  &:hover{text-decoration:none}
+    \\  @media (hover:hover){
+    \\    &:hover{background-color:color-mix(in srgb,var(--content) 94%,var(--label))}
+    \\    &.zw-card--inset:hover{background-color:var(--fill-strong)}}
+    \\  &:active{background-color:var(--fill-strong)}}
     \\
 ;
 

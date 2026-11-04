@@ -6,21 +6,20 @@ const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
 
 pub const css =
-    \\.zw-checkbox{display:inline-flex;align-items:flex-start;gap:8px;padding:4px 0;cursor:default;user-select:none;-webkit-tap-highlight-color:transparent}
-    \\.zw-checkbox input{appearance:none;flex:none;display:grid;place-items:center;width:16px;height:16px;margin:0;border-radius:4.5px;background:var(--content);
-    \\box-shadow:inset 0 0 0 1px var(--tertiary),0 .5px 1px rgba(0,0,0,.06);transition:background-color var(--speed),box-shadow var(--speed),scale var(--dur-bouncy) var(--spring-bouncy)}
-    \\.zw-checkbox input::after{content:"";width:4px;height:8px;margin-top:-2px;border:solid var(--on-accent);border-width:0 1.75px 1.75px 0;rotate:45deg;scale:0;
-    \\transition:scale var(--dur-bouncy) var(--spring-bouncy)}
-    \\.zw-checkbox input:checked,.zw-checkbox input[data-mixed]:not(:checked),.zw-checkbox input:indeterminate{background:linear-gradient(color-mix(in srgb,var(--accent) 80%,#fff),var(--accent));box-shadow:inset 0 .5px 0 rgba(255,255,255,.4),0 0 0 .5px color-mix(in srgb,var(--accent) 70%,#000)}
-    \\.zw-checkbox input:checked::after{scale:1}
-    \\.zw-checkbox input[data-mixed]:not(:checked)::after,.zw-checkbox input:indeterminate:not(:checked)::after{width:8px;height:0;margin:0;border-width:0 0 2px;rotate:0;scale:1}
-    \\.zw-checkbox:active input{scale:.85;transition-duration:var(--dur-snappy)}
-    \\.zw-checkbox input[aria-invalid=true]:not(:checked){box-shadow:inset 0 0 0 1.5px var(--red)}
-    \\.zw-checkbox input[aria-invalid=true]:focus-visible{outline-color:color-mix(in srgb,var(--red) 50%,transparent)}
+    \\.zw-checkbox{display:inline-flex;align-items:flex-start;gap:8px;padding:4px 0;cursor:default;user-select:none;-webkit-tap-highlight-color:transparent;
+    \\&:active input{scale:.85;transition-duration:var(--dur-snappy)}
+    \\input{appearance:none;flex:none;display:grid;place-items:center;width:16px;height:16px;border-radius:4.5px;background:var(--content);
+    \\box-shadow:inset 0 0 0 1px var(--tertiary),0 .5px 1px rgba(0,0,0,.06);transition:background-color var(--speed),box-shadow var(--speed),scale var(--dur-bouncy) var(--spring-bouncy);
+    \\&::after{content:"";width:4px;height:8px;margin-top:-2px;border:solid var(--on-accent);border-width:0 1.75px 1.75px 0;rotate:45deg;scale:0;transition:scale var(--dur-bouncy) var(--spring-bouncy)}
+    \\&:is(:checked,[data-mixed],:indeterminate){background:linear-gradient(color-mix(in srgb,var(--accent) 80%,#fff),var(--accent));box-shadow:inset 0 .5px 0 rgba(255,255,255,.4),0 0 0 .5px color-mix(in srgb,var(--accent) 70%,#000)}
+    \\&:checked::after{scale:1}
+    \\&:is([data-mixed],:indeterminate):not(:checked)::after{width:8px;height:0;margin:0;border-width:0 0 2px;rotate:0;scale:1}
+    \\&[aria-invalid=true]:not(:checked){box-shadow:inset 0 0 0 1.5px var(--red)}
+    \\&[aria-invalid=true]:focus-visible{outline-color:color-mix(in srgb,var(--red) 50%,transparent)}}}
     \\.zw-checkbox__txt{display:flex;flex-direction:column;min-width:0}
     \\.zw-checkbox__desc{font:var(--callout);color:var(--secondary)}
     \\.zw-checkbox--disabled{opacity:.4;pointer-events:none}
-    \\@media (pointer:coarse){.zw-checkbox{min-height:44px;padding:14px 0;box-sizing:border-box}}
+    \\@media (pointer:coarse){.zw-checkbox{min-height:44px;padding:14px 0}}
     \\
 ;
 

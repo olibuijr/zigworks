@@ -4,21 +4,21 @@
 const std = @import("std");
 const zv = @import("../view.zig");
 
+// Fades in with list.zig's zw-fade keyframes.
 pub const css =
-    \\.zw-empty{display:flex;flex-direction:column;align-items:center;gap:6px;padding:36px var(--space);text-align:center;animation:zw-empty-in var(--dur) ease}
-    \\.zw-empty h3{font:var(--title3);font-weight:600;color:var(--label)}
-    \\.zw-empty p{color:var(--secondary);max-width:36ch}
+    \\.zw-empty{display:flex;flex-direction:column;align-items:center;gap:6px;padding:36px var(--space);text-align:center;animation:zw-fade var(--dur) ease;
+    \\  & h3{font:var(--title3);font-weight:600;color:var(--label)}
+    \\  & p{color:var(--secondary);max-width:36ch}}
     \\.zw-empty-icon{font-size:40px;line-height:1;color:var(--tertiary);margin-bottom:4px;user-select:none}
     \\.zw-empty-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin-top:10px}
-    \\.zw-empty--compact{padding:16px var(--space);gap:4px}
-    \\.zw-empty--compact h3{font:var(--body);font-weight:600}
-    \\.zw-empty--compact .zw-empty-icon{font-size:28px}
-    \\.zw-empty--large{padding:72px var(--space);gap:8px}
-    \\.zw-empty--large h3{font:var(--title2);font-weight:700}
-    \\.zw-empty--large p{font:var(--title3);max-width:44ch}
-    \\.zw-empty--large .zw-empty-icon{font-size:56px}
-    \\@media (max-width:599px){.zw-empty--large{padding-block:48px}}
-    \\@keyframes zw-empty-in{from{opacity:0}}
+    \\.zw-empty--compact{padding:16px var(--space);gap:4px;
+    \\  & h3{font:var(--body);font-weight:600}
+    \\  & .zw-empty-icon{font-size:28px}}
+    \\.zw-empty--large{padding:72px var(--space);gap:8px;
+    \\  & h3{font:var(--title2);font-weight:700}
+    \\  & p{font:var(--title3);max-width:44ch}
+    \\  & .zw-empty-icon{font-size:56px}
+    \\  @media (max-width:599px){padding-block:48px}}
     \\
 ;
 

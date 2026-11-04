@@ -10,10 +10,10 @@ pub const css =
     \\.zw-badge--accent{--tone:var(--accent)}.zw-badge--red{--tone:var(--red)}.zw-badge--green{--tone:var(--green)}.zw-badge--orange{--tone:var(--orange)}
     \\.zw-badge:is(.zw-badge--accent,.zw-badge--red,.zw-badge--green,.zw-badge--orange){color:color-mix(in srgb,var(--tone) 85%,var(--label));background:color-mix(in srgb,var(--tone) 14%,transparent);
     \\box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--tone) 28%,transparent)}
-    \\.zw-badge--solid,.zw-badge--solid:is(.zw-badge--accent,.zw-badge--red,.zw-badge--green,.zw-badge--orange){color:#fff;background:var(--tone);box-shadow:inset 0 .5px 0 rgba(255,255,255,.35),0 0 0 .5px rgba(0,0,0,.08)}
+    \\.zw-badge.zw-badge--solid{color:#fff;background:var(--tone);box-shadow:inset 0 .5px 0 rgba(255,255,255,.35),0 0 0 .5px rgba(0,0,0,.08)}
     \\.zw-badge--small{min-width:16px;padding:1px 6px;font:var(--footnote);font-weight:600}
-    \\.zw-badge.zw-badge--dot{vertical-align:middle;min-width:0;width:8px;height:8px;padding:0;background:var(--tone);box-shadow:0 0 0 .5px rgba(0,0,0,.1)}
-    \\.zw-badge.zw-badge--dot.zw-badge--small{width:6px;height:6px}
+    \\.zw-badge.zw-badge--dot{vertical-align:middle;min-width:0;width:8px;height:8px;padding:0;background:var(--tone);box-shadow:0 0 0 .5px rgba(0,0,0,.1);
+    \\&.zw-badge--small{width:6px;height:6px}}
     \\.zw-badge[hidden]{display:none}
     \\.zw-badge[z-oob]{animation:zw-pop var(--dur-bouncy) var(--spring-bouncy)}
     \\@media (prefers-contrast:more){.zw-badge:not(.zw-badge--solid,.zw-badge--dot){box-shadow:inset 0 0 0 1px var(--secondary);color:var(--label)}}

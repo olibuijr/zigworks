@@ -7,28 +7,23 @@ const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
 
 pub const css =
-    \\.zw-picker{display:inline-block;max-width:100%}
-    \\.zw-picker--full{display:block}.zw-picker--full>.zw-btn{width:100%}
-    \\.zw-picker>.zw-btn{min-width:120px;max-width:100%;justify-content:space-between;gap:10px;padding:0 12px 0 15px}
-    \\.zw-picker>.zw-btn::after{content:"";flex:none;width:5px;height:5px;margin-top:-3px;border:solid var(--secondary);border-width:0 1.5px 1.5px 0;rotate:45deg;transition:rotate var(--dur) var(--spring)}
-    \\.zw-picker:has(:popover-open)>.zw-btn::after{rotate:225deg;margin-top:3px}
-    \\.zw-picker-value{min-width:0;overflow:hidden;text-overflow:ellipsis}
-    \\.zw-picker-value.is-placeholder{color:var(--secondary)}
-    \\.zw-picker:has(:checked) .zw-picker-value.is-placeholder{color:inherit}
-    \\.zw-picker input{position:absolute;opacity:0;pointer-events:none}
-    \\.zw-picker .zw-menu{position-area:bottom;min-width:anchor-size(width);max-width:calc(100vw - 16px);max-height:min(60vh,360px);overflow-y:auto;overscroll-behavior:contain}
-    \\.zw-picker .zw-menu label{padding-left:26px;position:relative}
-    \\.zw-picker .zw-menu label:has(:checked)::before{content:"";position:absolute;left:11px;top:50%;width:4px;height:8px;margin-top:-6px;border:solid currentColor;border-width:0 1.5px 1.5px 0;rotate:45deg}
-    \\.zw-pick-icon{display:inline-flex;flex:none;width:16px;height:16px}
-    \\.zw-pick-icon svg{width:100%;height:100%;fill:currentColor}
-    \\.zw-pick-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    \\.zw-pick-text[data-desc]::after{content:attr(data-desc);display:block;font:var(--callout);opacity:.65}
-    \\.zw-picker .zw-menu label:has([data-desc]){height:auto;min-height:34px;padding-block:4px}
-    \\.zw-picker .zw-menu label:has(:disabled){opacity:.4}
-    \\.zw-picker .zw-menu label:has(:disabled):hover,.zw-picker .zw-menu label:has(:disabled):active{background:none;color:var(--label)}
-    \\.zw-picker .zw-menu-heading{padding:8px 10px 2px;font:var(--callout);font-weight:600;color:var(--secondary)}
-    \\.zw-picker .zw-menu-heading:first-child{padding-top:2px}
-    \\@media (pointer:coarse){.zw-picker .zw-menu label{height:44px}.zw-picker .zw-menu label:has([data-desc]){min-height:52px}}
+    \\.zw-picker{display:inline-block;max-width:100%;
+    \\&>.zw-btn{min-width:120px;max-width:100%;justify-content:space-between;gap:10px;padding:0 12px 0 15px;
+    \\&::after{content:"";flex:none;width:5px;height:5px;margin-top:-3px;border:solid var(--secondary);border-width:0 1.5px 1.5px 0;rotate:45deg;transition:rotate var(--dur) var(--spring)}}
+    \\&:has(:popover-open)>.zw-btn::after{rotate:225deg;margin-top:3px}
+    \\&:has(:checked) .zw-picker-value.is-placeholder{color:inherit}
+    \\& input{position:absolute;opacity:0;pointer-events:none}
+    \\.zw-menu{position-area:bottom;min-width:anchor-size(width);max-width:calc(100vw - 16px);max-height:min(60vh,360px);overflow-y:auto;overscroll-behavior:contain;
+    \\& label{padding-left:26px;position:relative;
+    \\&:has(:checked)::before{content:"";position:absolute;left:11px;top:50%;width:4px;height:8px;margin-top:-6px;border:solid currentColor;border-width:0 1.5px 1.5px 0;rotate:45deg}
+    \\&:has([data-desc]){height:auto;min-height:34px;padding-block:4px;@media (pointer:coarse){min-height:52px}}
+    \\&:has(:disabled){opacity:.4;&:is(:hover,:active){background:none;color:var(--label)}}
+    \\@media (pointer:coarse){height:44px}}}
+    \\.zw-menu-heading{padding:8px 10px 2px;font:var(--callout);font-weight:600;color:var(--secondary);&:first-child{padding-top:2px}}}
+    \\.zw-picker--full{display:block;&>.zw-btn{width:100%}}
+    \\.zw-picker-value{min-width:0;overflow:hidden;text-overflow:ellipsis;&.is-placeholder{color:var(--secondary)}}
+    \\.zw-pick-icon{display:inline-flex;flex:none;width:16px;height:16px;& svg{width:100%;height:100%;fill:currentColor}}
+    \\.zw-pick-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;&[data-desc]::after{content:attr(data-desc);display:block;font:var(--callout);opacity:.65}}
     \\
 ;
 

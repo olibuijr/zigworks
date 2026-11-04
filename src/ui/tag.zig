@@ -9,24 +9,24 @@ const Z = @import("z.zig").Z;
 pub const css =
     \\.zw-tag{--tone:var(--accent);position:relative;display:inline-flex;align-items:center;height:24px;border-radius:999px;font:var(--callout);font-weight:500;white-space:nowrap;max-width:100%;
     \\color:color-mix(in srgb,var(--tone) 85%,var(--label));background:color-mix(in srgb,var(--tone) 13%,transparent);box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--tone) 25%,transparent);
-    \\transition:background-color var(--speed),color var(--speed),box-shadow var(--speed),opacity var(--speed)}
+    \\transition:background-color,color,box-shadow,opacity;transition-duration:var(--speed)}
     \\.zw-tag--gray{--tone:var(--secondary)}.zw-tag--red{--tone:var(--red)}.zw-tag--green{--tone:var(--green)}.zw-tag--orange{--tone:var(--orange)}
-    \\.zw-tag--small{height:20px;font:var(--footnote);font-weight:500}
-    \\.zw-tag--large{height:28px;font:var(--body);font-weight:500}
-    \\.zw-tag__main{display:inline-flex;align-items:center;gap:4px;height:100%;padding:0 10px;border-radius:inherit;color:inherit;text-decoration:none;cursor:default;
-    \\-webkit-tap-highlight-color:transparent}
-    \\.zw-tag--small .zw-tag__main{padding:0 8px}.zw-tag--large .zw-tag__main{padding:0 12px}
+    \\.zw-tag__main{display:inline-flex;align-items:center;gap:4px;height:100%;padding:0 10px;border-radius:inherit;color:inherit;text-decoration:none;cursor:default;-webkit-tap-highlight-color:transparent}
     \\.zw-tag__main:hover{text-decoration:none}
     \\a.zw-tag__main:hover{background:color-mix(in srgb,var(--tone) 12%,transparent)}
     \\.zw-tag__icon{flex:none;font-size:1.05em;line-height:1}
     \\.zw-tag:has(.zw-tag__x) .zw-tag__main{padding-right:4px}
     \\.zw-tag__x{appearance:none;position:relative;flex:none;display:grid;place-items:center;width:18px;height:18px;margin-right:3px;border:0;border-radius:50%;background:transparent;color:inherit;font:600 13px/1 var(--font);cursor:default;
     \\transition:background-color var(--speed),scale var(--dur-bouncy) var(--spring-bouncy)}
-    \\.zw-tag--small .zw-tag__x{width:16px;height:16px;margin-right:2px}
-    \\.zw-tag--large .zw-tag__x{width:20px;height:20px;margin-right:4px}
     \\.zw-tag__x:hover{background:color-mix(in srgb,var(--tone) 20%,transparent)}
     \\.zw-tag__x:active{scale:.85}
-    \\.zw-tag--chip{cursor:default;user-select:none}
+    \\.zw-tag--small{height:20px;font:var(--footnote);font-weight:500;
+    \\& .zw-tag__main{padding:0 8px}
+    \\& .zw-tag__x{width:16px;height:16px;margin-right:2px}}
+    \\.zw-tag--large{height:28px;font:var(--body);font-weight:500;
+    \\& .zw-tag__main{padding:0 12px}
+    \\& .zw-tag__x{width:20px;height:20px;margin-right:4px}}
+    \\.zw-tag--chip{user-select:none}
     \\.zw-tag--chip input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;appearance:none;cursor:default}
     \\.zw-tag--selected,.zw-tag:has(input:checked){color:var(--on-accent);background:var(--tone);box-shadow:inset 0 .5px 0 rgba(255,255,255,.35),0 0 0 .5px rgba(0,0,0,.08)}
     \\.zw-tag--selected a.zw-tag__main:hover{background:rgba(255,255,255,.12)}
@@ -34,7 +34,10 @@ pub const css =
     \\.zw-tag--disabled{opacity:.4;pointer-events:none}
     \\.zw-tag.zw-busy{opacity:.6}
     \\.zw-tags{display:flex;flex-wrap:wrap;gap:6px}
-    \\@media (pointer:coarse){.zw-tag__x::after,a.zw-tag__main::after{content:"";position:absolute;inset:-13px -8px}.zw-tag__main{position:relative}.zw-tag--chip::after{content:"";position:absolute;inset:-10px 0}}
+    \\@media (pointer:coarse){
+    \\.zw-tag__x::after,a.zw-tag__main::after{content:"";position:absolute;inset:-13px -8px}
+    \\.zw-tag__main{position:relative}
+    \\.zw-tag--chip::after{content:"";position:absolute;inset:-10px 0}}
     \\@media (prefers-contrast:more){.zw-tag:not(.zw-tag--selected){color:var(--label);box-shadow:inset 0 0 0 1px var(--secondary)}}
     \\
 ;

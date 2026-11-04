@@ -8,24 +8,23 @@ const zv = @import("../view.zig");
 
 pub const css =
     \\.zw-sheet{--w:480px;inset:0 0 auto;margin:calc(68px + env(safe-area-inset-top)) auto 0;width:min(var(--w),calc(100vw - 32px));max-height:calc(100dvh - 84px - env(safe-area-inset-top));padding:22px;border:0;border-radius:var(--radius-panel);color:var(--label);--glass:var(--glass-thick);
-    \\transform-origin:top center;transition:opacity 200ms ease,scale var(--dur-bouncy) var(--spring-bouncy),translate var(--dur) var(--spring),display 320ms allow-discrete,overlay 320ms allow-discrete}
+    \\transform-origin:top center;transition:opacity 200ms ease,scale var(--dur-bouncy) var(--spring-bouncy),translate var(--dur) var(--spring),display 320ms allow-discrete,overlay 320ms allow-discrete;
+    \\&:focus{outline:none}
+    \\&:not(:popover-open){opacity:0;scale:.94;translate:0 -12px;transition-duration:180ms}
+    \\h2{font:var(--headline);margin-bottom:14px;&:has(+.zw-sheet-desc){margin-bottom:4px}}}
     \\.zw-sheet--small{--w:360px}
     \\.zw-sheet--large{--w:640px}
-    \\.zw-sheet:focus{outline:none}
-    \\.zw-sheet:not(:popover-open){opacity:0;scale:.94;translate:0 -12px;transition-duration:180ms}
     \\@starting-style{.zw-sheet:popover-open{opacity:0;scale:.9;translate:0 -28px}}
     \\.zw-sheet::backdrop{background:rgba(0,0,0,.18);transition:background-color 250ms,display 320ms allow-discrete,overlay 320ms allow-discrete}
     \\.zw-sheet:not(:popover-open)::backdrop{background:transparent}
     \\@starting-style{.zw-sheet:popover-open::backdrop{background:transparent}}
-    \\.zw-sheet h2{font:var(--headline);margin-bottom:14px}
-    \\.zw-sheet h2:has(+.zw-sheet-desc){margin-bottom:4px}
     \\.zw-sheet-desc{font:var(--body);color:var(--secondary);margin-bottom:14px}
     \\.zw-sheet--closable h2{padding-right:36px}
     \\.zw-sheet-close{appearance:none;position:absolute;top:16px;right:16px;display:grid;place-items:center;width:28px;height:28px;padding:0;border:0;border-radius:50%;
-    \\color:var(--secondary);background:var(--fill);cursor:default;-webkit-tap-highlight-color:transparent;transition:background-color var(--speed),scale var(--dur-bouncy) var(--spring-bouncy)}
-    \\.zw-sheet-close svg{width:12px;height:12px}
-    \\@media (hover:hover){.zw-sheet-close:hover{background:var(--fill-strong);color:var(--label)}}
-    \\.zw-sheet-close:active{scale:.9;transition-duration:var(--dur-snappy)}
+    \\color:var(--secondary);background:var(--fill);cursor:default;-webkit-tap-highlight-color:transparent;transition:background-color var(--speed),scale var(--dur-bouncy) var(--spring-bouncy);
+    \\svg{width:12px;height:12px}
+    \\@media (hover:hover){&:hover{background:var(--fill-strong);color:var(--label)}}
+    \\&:active{scale:.9;transition-duration:var(--dur-snappy)}}
     \\@media (pointer:coarse){.zw-sheet-close{top:10px;right:10px;width:44px;height:44px}.zw-sheet--closable h2{padding-right:48px}}
     \\.zw-sheet-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:20px}
     \\

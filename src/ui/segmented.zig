@@ -6,29 +6,33 @@ const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
 
 pub const css =
-    \\.zw-seg{--seg-h:var(--control-h);position:relative;display:inline-grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);flex:none;max-width:100%;margin:0;padding:2px;border:0;border-radius:999px;
-    \\min-width:0;background:var(--fill);box-shadow:inset 0 .5px 1px rgba(0,0,0,.08)}
-    \\.zw-seg--small{--seg-h:22px}.zw-seg--large{--seg-h:36px}
+    \\.zw-seg{--seg-h:var(--control-h);position:relative;display:inline-grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);flex:none;min-width:0;max-width:100%;padding:2px;border:0;border-radius:999px;
+    \\background:var(--fill);box-shadow:inset 0 .5px 1px rgba(0,0,0,.08);
+    \\& label{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;height:calc(var(--seg-h) - 4px);padding:0 14px;border-radius:999px;
+    \\font:var(--body);font-weight:500;color:var(--label);cursor:default;user-select:none;-webkit-tap-highlight-color:transparent;transition:opacity var(--speed);
+    \\&:has(:focus-visible){outline:var(--focus-ring);outline-offset:-1px}
+    \\&:has(:disabled){opacity:.4}}
+    \\& input{position:absolute;inset:0;opacity:0}}
+    \\.zw-seg--small{--seg-h:22px;& label{padding:0 10px;font:var(--callout);font-weight:500}}
+    \\.zw-seg--large{--seg-h:36px;& label{padding:0 18px;font:var(--title3);font-weight:500}}
     \\.zw-seg--full{display:grid;width:100%}
-    \\.zw-seg label{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;height:calc(var(--seg-h) - 4px);padding:0 14px;border-radius:999px;
-    \\font:var(--body);font-weight:500;color:var(--label);cursor:default;user-select:none;-webkit-tap-highlight-color:transparent;transition:opacity var(--speed)}
-    \\.zw-seg--small label{padding:0 10px;font:var(--callout);font-weight:500}
-    \\.zw-seg--large label{padding:0 18px;font:var(--title3);font-weight:500}
-    \\.zw-seg input{position:absolute;inset:0;opacity:0;margin:0}
-    \\.zw-seg label:has(:focus-visible){outline:var(--focus-ring);outline-offset:-1px}
     \\.zw-seg-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     \\.zw-seg-icon{display:inline-flex;flex:none;width:16px;height:16px}
     \\.zw-seg-icon svg{width:100%;height:100%;fill:currentColor}
-    \\.zw-seg--icons .zw-seg-icon+.zw-seg-text{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-    \\.zw-seg--icons label{padding:0 12px}
-    \\.zw-seg label:has(:disabled){opacity:.4}
-    \\.zw-seg-pill{position:absolute;top:2px;bottom:2px;left:2px;width:calc((100% - 4px) / var(--n));border-radius:999px;--glass:color-mix(in srgb,var(--control-raised) 80%,transparent);
-    \\translate:calc(var(--i,0) * 100%) 0;transition:translate var(--dur-bouncy) var(--spring-bouncy),scale var(--dur-bouncy) var(--spring-bouncy)}
-    \\.zw-seg:not(:has(:checked)) .zw-seg-pill{opacity:0}
-    \\.zw-seg:has(label:not(:has(:disabled)):active) .zw-seg-pill{scale:1.06 1.16;transition-duration:var(--dur-snappy),var(--dur-snappy)}
-    \\.zw-seg:has(label:nth-of-type(2) :checked){--i:1}.zw-seg:has(label:nth-of-type(3) :checked){--i:2}.zw-seg:has(label:nth-of-type(4) :checked){--i:3}
-    \\.zw-seg:has(label:nth-of-type(5) :checked){--i:4}.zw-seg:has(label:nth-of-type(6) :checked){--i:5}.zw-seg:has(label:nth-of-type(7) :checked){--i:6}
-    \\.zw-seg:has(label:nth-of-type(8) :checked){--i:7}
+    \\.zw-seg--icons{& .zw-seg-icon+.zw-seg-text{position:absolute;width:1px;height:1px;clip:rect(0 0 0 0)}
+    \\& label{padding:0 12px}}
+    \\.zw-seg-pill{position:absolute;inset:2px auto 2px 2px;width:calc((100% - 4px) / var(--n));border-radius:999px;--glass:color-mix(in srgb,var(--control-raised) 80%,transparent);
+    \\translate:calc(var(--i,0) * 100%) 0;transition:var(--dur-bouncy) var(--spring-bouncy);transition-property:translate,scale}
+    \\.zw-seg{
+    \\&:not(:has(:checked)) .zw-seg-pill{opacity:0}
+    \\&:has(label:not(:has(:disabled)):active) .zw-seg-pill{scale:1.06 1.16;transition-duration:var(--dur-snappy)}
+    \\&:has(label:nth-of-type(2) :checked){--i:1}
+    \\&:has(label:nth-of-type(3) :checked){--i:2}
+    \\&:has(label:nth-of-type(4) :checked){--i:3}
+    \\&:has(label:nth-of-type(5) :checked){--i:4}
+    \\&:has(label:nth-of-type(6) :checked){--i:5}
+    \\&:has(label:nth-of-type(7) :checked){--i:6}
+    \\&:has(label:nth-of-type(8) :checked){--i:7}}
     \\@media (pointer:coarse){.zw-seg.zw-seg{--seg-h:44px}}
     \\
 ;
