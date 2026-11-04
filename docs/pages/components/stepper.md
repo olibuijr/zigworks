@@ -31,7 +31,7 @@ ui.stepper(.{ .name = "hour", .label = "Hour", .value = 23, .min = 0, .max = 23,
 
 ## States
 
-At `min` the − button turns off, and at `max` the + button does. A wrapping stepper never turns its buttons off. `disabled` dims the stepper and ignores input; a disabled `ui.setting` row does the same to everything in it.
+At `min` the − button turns off, and at `max` the + button does. A wrapping stepper never turns its buttons off. `invalid` puts a red ring on the field, for a value the server rejected. `disabled` dims the stepper and ignores input; a disabled `ui.setting` row does the same to everything in it.
 
 ```demo
 stepper-states
@@ -75,10 +75,13 @@ stepper-alarm
 | `disabled` | bool | `false` | dimmed; field and buttons ignore input |
 | `editable` | bool | `true` | `false` makes the field read-only: only the buttons change it, and they become Tab stops |
 | `wrap` | bool | `false` | at `max` the + button goes to `min`, and the other way round; the buttons never disable (needs z.js) |
+| `invalid` | bool | `false` | red ring on the field and `aria-invalid`; use it after the server rejects the value |
 
 ## Notes
 
 - Without JavaScript the buttons do nothing, but an editable field still takes typed numbers and arrow keys. A read-only field then cannot change, so use `editable = false` only on pages that load z.js.
 - With an editable field the buttons stay out of the Tab order, since the arrow keys already step the value.
-- Typed values are not clamped to `min` and `max` in the page. Check them on the server, as the cart does.
+- Typed values are not clamped to `min` and `max` in the page. A value outside the range (or off the `step` grid) gets a red ring once the user has typed in the field, but it is still submitted. Check it on the server, as the cart does, and re-render with `invalid = true` when you reject it.
+- With `wrap`, keep `max` on the step grid (`min + n * step`, such as max 55 with step 5). From an off-grid `max` the buttons snap to the nearest grid value instead of reaching it.
+- While a `z` request is in flight the field and the buttons dim, but they stay usable; the last change wins.
 - On touch screens the field and buttons are 44px tall.
