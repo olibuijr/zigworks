@@ -265,7 +265,11 @@ fn tabs(w: *Writer) Writer.Error!void {
 }
 
 fn textarea(w: *Writer) Writer.Error!void {
-    try ui.textarea(.{ .name = "notes", .label = "Notes", .placeholder = "Add notes. The field grows as you type." }).render(w);
+    try zw.view("{a}{b}{c}", .{
+        .a = ui.textarea(.{ .name = "notes", .label = "Notes", .placeholder = "Add notes. The field grows as you type." }),
+        .b = ui.textarea(.{ .name = "bio", .label = "Bio", .value = "Zig and glass.", .maxlength = 140, .help = "Shown on your profile.", .rows = 2, .grow = false, .resize = .vertical }),
+        .c = ui.textarea(.{ .name = "reason", .label = "Reason", .rows = 2, .invalid = "Tell us why.", .required = true }),
+    }).render(w);
 }
 
 fn stepper(w: *Writer) Writer.Error!void {
