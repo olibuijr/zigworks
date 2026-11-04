@@ -76,7 +76,7 @@ fn invite(c: *zw.Ctx) !void {
 }
 ```
 
-An error here is a normal response with an error toast, not an error status: z.js only logs a failed request (non-2xx) to the console and shows nothing. A form with `z-post` also resets after any successful response, so the mistyped address is cleared here too; `z-keep` on the form keeps its values, but then a sent address stays too.
+z.js applies the `z-oob` parts of an error response too, so a handler can answer with an error status (such as 422) and an error toast; nothing else is swapped. A form with `z-post` resets after a successful response; to keep the mistyped address after an error sent as a normal response, add the `z-keep` response header (`try c.setHeader("z-keep", "1")`).
 
 ## Props
 
@@ -98,4 +98,4 @@ An error here is a normal response with an error toast, not an error status: z.j
 - On touch screens the action and close buttons grow to 44px.
 - A toast is added to the `#zw-toasts` area of the layout, so the response must reach z.js. Keep the request's `swap` as it is, or use `.swap = .none` when nothing else changes.
 - `static` renders only the toast, without the `#zw-toasts` append and without the entrance animation. It never leaves by itself, so use it for previews, not for notifications.
-- A failed request (non-2xx) shows no toast on its own. To tell people a save failed, answer with status 200 and an error toast.
+- A failed request (non-2xx) shows no toast on its own. Include an error toast in the error response and z.js shows it.

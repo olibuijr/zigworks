@@ -74,7 +74,7 @@ ui.textarea(.{ .name = "reason", .label = "Reason", .value = text, .invalid = "A
 
 - `maxlength` is enforced by the browser and adds an `n / max` counter under the field. The server renders the count of the initial `value`; the counter turns red at the limit. It carries `data-count` so a script can keep it live as the user types.
 - The help or error text and the counter are linked with `aria-describedby`. While `invalid` is set it replaces `help`, turns red, is announced as an alert and sets `aria-invalid`. They use the ids `zw-<name>-msg` and `zw-<name>-count`, so names should be unique on a page.
-- Resetting a form clears the text but not the counter, because the script only updates it on `input`. After a successful post, swap in a fresh field (the comment demo does).
+- Resetting a form (including the automatic reset after a successful post) also resets the counter.
 - While a `z` request on the field is in flight, z.js dims it (`zw-busy`), so a field that saves or posts needs no `loading` prop of its own. A form shows the same state on the whole form.
 - `required` is the browser's own attribute: an empty submit is blocked and the browser shows its validation bubble, and `:user-invalid` turns the box red. The label is hidden by design, so mark the field in the `help` text or placeholder ("Required"). To show only your own message from the server, put `novalidate` on the form and render the field again with `invalid`. (The feedback demo leaves `required` off and validates on the server instead.)
 - Auto-grow uses CSS `field-sizing: content`. Browsers without it show a fixed `rows` height that scrolls.

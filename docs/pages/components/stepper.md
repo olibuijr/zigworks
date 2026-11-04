@@ -81,7 +81,7 @@ stepper-alarm
 
 - Without JavaScript the buttons do nothing, but an editable field still takes typed numbers and arrow keys. A read-only field then cannot change, so use `editable = false` only on pages that load z.js.
 - With an editable field the buttons stay out of the Tab order, since the arrow keys already step the value.
-- Typed values are not clamped to `min` and `max` in the page. A value outside the range (or off the `step` grid) gets a red ring once the user has typed in the field, but it is still submitted. Check it on the server, as the cart does, and re-render with `invalid = true` when you reject it.
+- With z.js, a typed value outside `min` and `max` is clamped when the field changes, before any `z` request sends it. A value off the `step` grid still gets a red ring and is sent as typed, so check it on the server, as the cart does, and re-render with `invalid = true` when you reject it.
 - With `wrap`, keep `max` on the step grid (`min + n * step`, such as max 55 with step 5). From an off-grid `max` the buttons snap to the nearest grid value instead of reaching it.
 - While a `z` request is in flight the field and the buttons dim, but they stay usable; the last change wins.
 - On touch screens the field and buttons are 44px tall.

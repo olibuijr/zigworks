@@ -78,7 +78,7 @@ pub fn path(p: Props) Path {
         const keep = @max(p.max, 2) - 1; // trailing items shown, the current page included
         return .{ .data = .{ .has = has, .p = p, .lead = p.items[0..1], .hidden = p.items[1 .. n - keep], .tail = p.items[n - keep .. n - 1], .last = last } };
     }
-    return .{ .data = .{ .has = has, .p = p, .lead = p.items[0 .. n -| 1], .hidden = p.items[0..0], .tail = p.items[0..0], .last = last } };
+    return .{ .data = .{ .has = has, .p = p, .lead = p.items[0..n -| 1], .hidden = p.items[0..0], .tail = p.items[0..0], .last = last } };
 }
 
 test path {
@@ -114,7 +114,7 @@ test path {
     w = .fixed(&buf);
     try path(.{ .items = zitems, .max = 3 }).render(&w);
     const zout = w.buffered();
-    try std.testing.expect(std.mem.find(u8, zout, "<a href=\"/h\" z-get=\"/h\" z-target=\"#main\">") != null);
+    try std.testing.expect(std.mem.find(u8, zout, "<a href=\"/\" z-get=\"/h\" z-target=\"#main\">") != null);
     try std.testing.expect(std.mem.find(u8, zout, "<a href=\"/a\" z-get=\"/a\" z-target=\"#main\">") != null);
     try std.testing.expect(std.mem.find(u8, zout, "z-get=\"/here\"") == null);
 

@@ -17,7 +17,7 @@ pub const css =
     \\&::after{content:"";width:calc(var(--zw-d)*.23);height:calc(var(--zw-d)*.45);border:solid var(--on-accent);border-width:0 calc(var(--zw-d)*.09) calc(var(--zw-d)*.09) 0;rotate:45deg;translate:0 -1px}
     \\&.zw-swapped,.zw-swapped &{animation:zw-pop var(--dur-bouncy) var(--spring-bouncy)}
     \\.zw-swapped &::after{animation:zw-tick var(--dur) var(--spring-bouncy)}}
-    \\&[aria-checked=mixed]::after{width:calc(var(--zw-d)*.5);height:0;border-width:0 0 calc(var(--zw-d)*.09);rotate:0;translate:0}
+    \\&[aria-checked=mixed]::after{width:calc(var(--zw-d)*.5);height:0;border-width:0 0 calc(var(--zw-d)*.09);rotate:0;translate:0}}
     \\.zw-check--small{--zw-d:18px}
     \\.zw-check--large{--zw-d:28px}
     \\.zw-check--red{--zw-tint:var(--red)}

@@ -206,7 +206,7 @@ const Lazy = struct {
             .label = "Project",
             .labels = &lazy_labels,
             .selected = l.sel,
-            .z = .{ .get = "/demo/tabs/lazy", .target = "closest .zw-tabs", .swap = .outer },
+            .z = ui.Z{ .get = "/demo/tabs/lazy", .target = "closest .zw-tabs", .swap = .outer },
             .panels = .{ l.panel(0), l.panel(1), l.panel(2) },
         }).render(w);
     }

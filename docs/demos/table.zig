@@ -203,7 +203,7 @@ fn filesTable(a: std.mem.Allocator, order: Order, kind: []const u8) !ui.Table {
     return ui.table(.{
         .id = "demo-table-files",
         .caption = try std.fmt.allocPrint(a, "{d} items", .{n}),
-        .sort_col = @intFromEnum(order),
+        .sort_col = @backingInt(order),
         .sort_desc = order != .name,
         .head = &.{ "Name", "Size", "Modified" },
         .aligns = &.{ .left, .right, .left },

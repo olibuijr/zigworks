@@ -16,10 +16,10 @@ pub const demos = [_]d.Demo{
 /// Extra CSS for these demos (scope it under a demo-specific class).
 pub const css =
     \\.demo-tag-add{margin-top:12px}
-    \\.demo-tag-rows{display:grid;grid-template-columns:max-content 1fr;gap:14px 16px;align-items:center;margin:0}
+    \\.demo-tag-rows{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:14px 16px;align-items:center;margin:0}
     \\.demo-tag-rows>dt{font:var(--callout);color:var(--secondary)}
-    \\.demo-tag-rows>dd{margin:0}
-    \\@media (max-width:599px){.demo-tag-rows{grid-template-columns:1fr;gap:6px}.demo-tag-rows>dd{margin-bottom:8px}}
+    \\.demo-tag-rows>dd{margin:0;min-width:0}
+    \\@media (max-width:599px){.demo-tag-rows{grid-template-columns:minmax(0,1fr);gap:6px}.demo-tag-rows>dd{margin-bottom:8px}}
     \\.demo-tag-filter{margin-bottom:12px}
     \\.demo-tag-star{color:var(--orange)}
     \\.demo-tag-issues>li{padding-block:10px}

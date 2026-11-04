@@ -22,8 +22,8 @@ pub const css =
     \\.demo-layout-fig figcaption{font:var(--callout);color:var(--secondary)}
     \\.demo-layout-frame{display:block;width:100%;height:240px;border:.5px solid var(--separator);border-radius:var(--radius-control);background:var(--window)}
     \\.demo-layout-frame--tall{height:400px}
-.demo-layout-scroll{overflow-x:auto;border-radius:var(--radius-control)}
-.demo-layout-scroll .demo-layout-frame{min-width:840px}
+    \\.demo-layout-scroll{overflow-x:auto;border-radius:var(--radius-control)}
+    \\.demo-layout-scroll .demo-layout-frame{min-width:840px}
     \\
 ;
 /// Server routes these demos need, e.g. `.{ "POST /demo/layout/x", handler }`.

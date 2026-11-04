@@ -32,7 +32,7 @@ pub const routes = .{
 };
 
 /// The `Kind` enum of `ui.callout` (it is not exported by name).
-const Kind = @FieldType(@TypeOf(ui.callout(.{ .body = "" }).data), "kind");
+const Kind = ui.CalloutKind;
 
 // Hero: a Settings pane. The callout explains why the controls below matter.
 fn callout(w: *Writer) Writer.Error!void {

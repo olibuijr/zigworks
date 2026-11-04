@@ -37,7 +37,9 @@ pub fn props(comptime T: type, p: anytype) T {
     const info = @typeInfo(T).@"struct";
     inline for (info.field_names, info.field_types, info.field_attrs) |n, F, attrs| {
         if (@hasField(P, n)) {
-            @field(out, n) = @field(p, n);
+            const V = @TypeOf(@field(p, n));
+            // A nested anonymous literal (`.z = .{ .post = "/x" }`) fills a struct prop the same way.
+            @field(out, n) = if (V != F and @typeInfo(F) == .@"struct" and @typeInfo(V) == .@"struct") props(F, @field(p, n)) else @field(p, n);
         } else if (comptime attrs.defaultValue(F)) |d| {
             @field(out, n) = d;
         } else @compileError("missing prop '" ++ n ++ "' for " ++ @typeName(T));

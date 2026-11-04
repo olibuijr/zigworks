@@ -16,7 +16,7 @@ pub const css =
     \\.zw-setting-desc{display:block;font:var(--callout);margin-top:1px}
     \\.zw-setting-desc,.zw-setting-value{color:var(--secondary)}
     \\.zw-setting-icon{flex:none;display:grid;place-items:center;width:28px;height:28px;margin-right:-4px;border-radius:7px;background:var(--tile,var(--accent));color:var(--on-accent);font-size:15px;line-height:1}
-    \.zw-setting-icon--red{--tile:var(--red)}.zw-setting-icon--green{--tile:var(--green)}.zw-setting-icon--orange{--tile:var(--orange)}.zw-setting-icon--gray{--tile:var(--secondary)}
+    \\.zw-setting-icon--red{--tile:var(--red)}.zw-setting-icon--green{--tile:var(--green)}.zw-setting-icon--orange{--tile:var(--orange)}.zw-setting-icon--gray{--tile:var(--secondary)}
     \\fieldset.zw-setting{border:0;padding:0;min-inline-size:0}
     \\.zw-setting--disabled{opacity:.4;pointer-events:none}
     \\a.zw-setting{color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:opacity var(--speed);

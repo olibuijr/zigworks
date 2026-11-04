@@ -36,8 +36,8 @@ pub const routes = .{
 };
 
 // The component does not export its enums, so take them from its props.
-const Size = @TypeOf(ui.check(.{ .on = false, .label = "" }).data.size);
-const Tint = @TypeOf(ui.check(.{ .on = false, .label = "" }).data.tint);
+const Size = ui.CheckSize;
+const Tint = ui.CheckTint;
 
 /// A check that flips itself: the URL carries the current state and the look.
 const Flip = struct {

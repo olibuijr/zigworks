@@ -20,6 +20,7 @@ export default function mount(el, { planets = 5 }) {
   resize();
 
   const draw = (t) => {
+    if (w < 24 || h < 24) { raf = requestAnimationFrame(draw); return; } // hidden (closed tab or sheet): wait for a size
     g.clearRect(0, 0, w, h);
     const cx = w / 2, cy = h / 2, max = Math.min(w, h) / 2 - 12;
     g.fillStyle = accent;

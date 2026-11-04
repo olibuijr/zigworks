@@ -35,19 +35,19 @@ fn safePath(path: []const u8) ?[]const u8 {
 pub fn mime(path: []const u8) []const u8 {
     const ext = std.fs.path.extension(path);
     const table = [_]struct { []const u8, []const u8 }{
-        .{ ".html", "text/html; charset=utf-8" },  .{ ".css", "text/css; charset=utf-8" },
+        .{ ".html", "text/html; charset=utf-8" },     .{ ".css", "text/css; charset=utf-8" },
         .{ ".js", "text/javascript; charset=utf-8" }, .{ ".mjs", "text/javascript; charset=utf-8" },
-        .{ ".json", "application/json" },           .{ ".map", "application/json" },
-        .{ ".wasm", "application/wasm" },           .{ ".svg", "image/svg+xml" },
-        .{ ".png", "image/png" },                   .{ ".jpg", "image/jpeg" },
-        .{ ".jpeg", "image/jpeg" },                 .{ ".gif", "image/gif" },
-        .{ ".webp", "image/webp" },                 .{ ".avif", "image/avif" },
-        .{ ".ico", "image/x-icon" },                .{ ".glb", "model/gltf-binary" },
-        .{ ".gltf", "model/gltf+json" },            .{ ".hdr", "image/vnd.radiance" },
-        .{ ".ktx2", "image/ktx2" },                 .{ ".woff2", "font/woff2" },
-        .{ ".txt", "text/plain; charset=utf-8" },   .{ ".mp4", "video/mp4" },
-        .{ ".webm", "video/webm" },                 .{ ".mp3", "audio/mpeg" },
-        .{ ".ogg", "audio/ogg" },                   .{ ".wav", "audio/wav" },
+        .{ ".json", "application/json" },             .{ ".map", "application/json" },
+        .{ ".wasm", "application/wasm" },             .{ ".svg", "image/svg+xml" },
+        .{ ".png", "image/png" },                     .{ ".jpg", "image/jpeg" },
+        .{ ".jpeg", "image/jpeg" },                   .{ ".gif", "image/gif" },
+        .{ ".webp", "image/webp" },                   .{ ".avif", "image/avif" },
+        .{ ".ico", "image/x-icon" },                  .{ ".glb", "model/gltf-binary" },
+        .{ ".gltf", "model/gltf+json" },              .{ ".hdr", "image/vnd.radiance" },
+        .{ ".ktx2", "image/ktx2" },                   .{ ".woff2", "font/woff2" },
+        .{ ".txt", "text/plain; charset=utf-8" },     .{ ".mp4", "video/mp4" },
+        .{ ".webm", "video/webm" },                   .{ ".mp3", "audio/mpeg" },
+        .{ ".ogg", "audio/ogg" },                     .{ ".wav", "audio/wav" },
     };
     for (table) |e| if (std.ascii.eqlIgnoreCase(ext, e[0])) return e[1];
     return "application/octet-stream";

@@ -180,7 +180,7 @@ fn find(w: *Writer) Writer.Error!void {
             .action = "/demo/kbd/find",
             .id = "demo-kbd-hits",
             .label = "Search commands",
-            .placeholder = "Search commands",
+            .placeholder = "Commands",
             .shortcut = "k",
         }),
     }).render(w);

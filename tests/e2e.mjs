@@ -65,6 +65,7 @@ async function open(url, { dark = false, width = 900, height = 900 } = {}) {
   const event = (method) => new Promise((resolve) => waiters.push({ method, resolve }));
   await send('Page.enable');
   await send('Runtime.enable');
+  await send('Page.bringToFront'); // a background tab may never paint, and screenshots then wait forever
   await send('Log.enable');
   await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 2, mobile: width < 600 });
   if (width < 600) await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
@@ -418,11 +419,10 @@ await test('docs: mobile sidebar and island', async () => {
   const p = await open(`${docs}/islands`, { width: 390, height: 800 });
   eq(await p.eval(`document.documentElement.scrollWidth <= innerWidth`), true, 'no horizontal scroll');
   await p.waitFor(`!!document.querySelector('.zw-island canvas')`);
-  await sleep(300);
-  const withCanvas = await p.grab('.zw-island');
-  await p.eval(`document.querySelector('.zw-island canvas').style.visibility = 'hidden'`);
-  if (withCanvas === await p.grab('.zw-island')) throw new Error('orbit island paints nothing');
-  await p.eval(`document.querySelector('.zw-island canvas').style.visibility = ''`);
+  // The chart island draws on a 2D canvas: count the pixels it painted.
+  const painted = `(() => { const c = document.querySelector('.zw-island canvas'); if (!c.width || !c.height) return 0;
+    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i]) n++; return n; })()`;
+  await p.waitFor(`${painted} > 1000`);
   await p.shot('docs-mobile');
   await p.click('.zw-sidebar-toggle');
   await p.waitFor(`document.getElementById('zw-sidebar').matches(':popover-open')`);
@@ -438,6 +438,57 @@ await test('docs: Enter in a change-triggered z form sends it instead of reloadi
   await sleep(300);
   eq(await p.eval(`window.__stay === 1 && location.search === ''`), true, 'page did not reload');
   await done(p);
+});
+await test('docs: z.js polling, error toasts, keep-open, stepper clamp, reset and search keys', async () => {
+  const p = await open(`${docs}/components/button`, { width: 1280 });
+  // A stubbed fetch answers by URL so the page needs no extra routes.
+  await p.eval(`window.__calls = []; window.fetch = async (u) => { __calls.push(u);
+    if (u.startsWith('/err')) return new Response('<div id="zw-toasts" z-oob="beforeend"><div class="zw-toast zw-toast--error">Nope</div></div><p id=x>swapped</p>', { status: 422 });
+    if (u === '/pollers') return new Response('<div z-get="/poll" z-trigger="every 200ms" z-swap="none"></div>');
+    if (u.startsWith('/open')) return new Response('<b>kept</b>', { headers: { 'z-keep-open': '1', 'z-keep': '1' } });
+    return new Response('ok'); }`);
+  // every 200ms polls once z.js swaps it in; swapping it out stops it
+  await p.eval(`document.body.insertAdjacentHTML('beforeend', '<div id=ph></div><button id=pin z-get="/pollers" z-target="#ph"></button><button id=pout z-get="/gone" z-target="#ph"></button>'); document.querySelector('#pin').click()`);
+  const polls = `__calls.filter((u) => u === '/poll').length`;
+  await p.waitFor(`${polls} >= 2`, 3000);
+  await p.eval(`document.querySelector('#pout').click()`);
+  await p.waitFor(`document.querySelector('#ph').textContent === 'ok'`);
+  const stopped = await p.eval(polls);
+  await sleep(500);
+  eq(await p.eval(polls), stopped, 'polling stops when the element leaves');
+  // error status: the oob toast shows, nothing else is swapped
+  await p.eval(`document.body.insertAdjacentHTML('beforeend', '<button id=eb z-post="/err" z-target="#et"></button><div id=et>before</div>'); document.querySelector('#eb').click()`);
+  await p.waitFor(`!!document.querySelector('#zw-toasts .zw-toast--error')`);
+  eq(await p.eval(`document.querySelector('#et').textContent`), 'before', 'error response swaps nothing but its oob parts');
+  p.errors.splice(0, p.errors.length, ...p.errors.filter((e) => !e.includes('422 POST /err'))); // z.js logs failed requests on purpose
+  // z-keep-open header keeps a popover open and the form keeps its value
+  await p.eval(`document.body.insertAdjacentHTML('beforeend', '<div id=pp popover><form id=pf z-post="/open" z-target="#po"><input name=a value=typed><button>Go</button></form><div id=po></div></div>'); document.querySelector('#pp').showPopover(); document.querySelector('#pf input').value = 'changed'; document.querySelector('#pf button').click()`);
+  await p.waitFor(`document.querySelector('#po').textContent === 'kept'`);
+  eq(await p.eval(`document.querySelector('#pp').matches(':popover-open') && document.querySelector('#pf input').value`), 'changed', 'popover open, form kept');
+  await done(p);
+  // stepper: a typed value above max is clamped on change
+  const s = await open(`${docs}/components/stepper`, { width: 1280 });
+  const i = `[...document.querySelectorAll('.zw-stepper input')].find((x) => x.max !== '' && !x.readOnly && !x.disabled)`;
+  await s.eval(`const i = ${i}; i.value = +i.max + 50; i.dispatchEvent(new Event('change', { bubbles: true }))`);
+  eq(await s.eval(`${i}.value === ${i}.max`), true, 'typed value clamped to max');
+  await done(s);
+  // textarea counter follows a form reset
+  const t = await open(`${docs}/components/textarea`, { width: 1280 });
+  await t.eval(`document.body.insertAdjacentHTML('beforeend', '<form id=rf>' + document.querySelector('.zw-textarea:has([data-count])').outerHTML + '</form>'); const ta = document.querySelector('#rf textarea'); ta.value += ' extra'; ta.dispatchEvent(new Event('input', { bubbles: true })); document.querySelector('#rf').reset()`);
+  await t.waitFor(`(() => { const ta = document.querySelector('#rf textarea'), c = document.querySelector('#rf [data-count]'); return c.textContent.startsWith([...ta.value].length + ' / '); })()`);
+  await done(t);
+  // search: ArrowDown moves from the field into its results and back up
+  const q = await open(`${docs}/components/search`, { width: 1280 });
+  await q.eval(`document.body.insertAdjacentHTML('beforeend', '<div class="zw-search" id=sx><input id=sxi><div class="zw-results"><a href="#1">One</a><a href="#2">Two</a></div></div>')`);
+  await q.click('#sxi');
+  await q.key('ArrowDown');
+  await q.waitFor(`document.activeElement?.textContent === 'One'`);
+  await q.key('ArrowDown');
+  await q.waitFor(`document.activeElement?.textContent === 'Two'`);
+  await q.key('ArrowUp');
+  await q.key('ArrowUp');
+  await q.waitFor(`document.activeElement?.id === 'sxi'`);
+  await done(q);
 });
 await test('docs: toasts and the confirm dialog animate out before they leave', async () => {
   const p = await open(`${docs}/components/toast`, { width: 1280 });

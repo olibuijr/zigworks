@@ -103,4 +103,4 @@ ui.progress(.{ .id = "dl", .oob = true, .value = 50, .label = "Download" })  // 
 - A swap replaces the element, so the new bar appears at its value without animating the width. To animate, change the value on the same element yourself (set `--v` on a bar, `--n` on a ring).
 - An indeterminate bar (`value = null`, `bar = true`) is `role="progressbar"` without `aria-valuenow`. `show_value` is ignored when there is no value; use `text`. With Reduce Motion it stays still as a faint full bar.
 - A ring shows its caption after the ring; there is no option to put it above or below. Put the ring in your own column layout for that. The percentage is inside the ring, so repeat it in `text` if the caption should carry the value too.
-- z.js has no polling trigger yet (`z-trigger="load"` fires once per mounted element), so drive live progress from user events, or reload the part with your own script.
+- To poll, give an element `z-trigger="every 2s"` (or `every 500ms`) with a `z-get`: z.js sends it on that interval while the page is visible and stops when the element is swapped out. Let the server answer without the trigger once the task is done.

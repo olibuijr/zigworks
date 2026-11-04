@@ -136,7 +136,7 @@ fn handle(comptime app: anytype, state: *const State, arena: std.mem.Allocator, 
         if (!c.responded) try c.send(.internal_server_error, "text/plain", "internal server error");
     };
     if (!c.responded) try c.send(.no_content, "text/plain", "");
-    log.info("{t} {s} {d}", .{ c.method, c.path, @intFromEnum(c.status) });
+    log.info("{t} {s} {d}", .{ c.method, c.path, @backingInt(c.status) });
 }
 
 fn route(comptime app: anytype, state: *const State, c: *Ctx) !void {

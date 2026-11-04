@@ -47,6 +47,7 @@ pub const css =
     \\.zw-sidebar::backdrop{background:rgba(0,0,0,.12)}}
     \\.zw-sidebar--footer{padding-bottom:0;
     \\&:popover-open,&.zw-sidebar--inline{display:flex;flex-direction:column}
+    \\&.zw-sidebar--inline{overflow-y:auto} /* the footer sticks inside the sidebar, never to the page */
     \\>*{flex:none}
     \\>.zw-sidebar-footer{position:sticky;bottom:0;margin-top:auto;background:color-mix(in srgb,var(--window) 55%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}}
     \\@media (pointer:coarse){.zw-sidebar{--row:44px;summary{min-height:44px}}}
