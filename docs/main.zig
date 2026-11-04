@@ -117,8 +117,7 @@ fn todoDelete(c: *zw.Ctx) !void {
 }
 
 fn toastDemo(c: *zw.Ctx) !void {
-    const err = std.mem.eql(u8, c.query("k") orelse "", "error");
-    try c.page(ui.toast(if (err) .{ .text = "Couldn't save: the disk is full", .kind = .@"error" } else .{ .text = "Saved", .kind = .success }));
+    try c.page(demos.toastFor(c.query("k") orelse ""));
 }
 
 fn notFound(c: *zw.Ctx) !void {

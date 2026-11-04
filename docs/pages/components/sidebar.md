@@ -12,7 +12,7 @@ sidebar
 ui.sidebar(.{
     .current = c.path,
     .size = .medium,
-    .footer = "<span class=\"zw-secondary\">Signed in as olibuijr</span>",
+    .footer = "<span class=\"zw-secondary\">Signed in as ada</span>",
     .sections = &.{
         .{ .title = "Mail", .links = &.{
             .{ .label = "Inbox", .href = "/inbox", .badge = "12", .icon = inbox_svg },

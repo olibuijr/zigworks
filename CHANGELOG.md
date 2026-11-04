@@ -2,6 +2,48 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [SemVer](https://semver.org/).
 
+## [0.5.0] - 2026-11-04
+
+Every component reviewed and extended. All new props have defaults, so existing code compiles unchanged.
+Each component's docs page lists its props and shows them in its demo.
+
+### Added
+- **Layout:** skip-to-content link, `footer` slot, centered title (`title_align`), `lang`.
+- **Sidebar:** link icons and badges, collapsible sections, `size`, pinned `footer`, inline mode.
+- **Sheet:** `size`, `description`, `footer`, close button, focus on the first field when opened.
+- **Card:** `subtitle`, header `accessory`, `footer`, `variant` (elevated/inset/plain), `flush`, link cards (`href`).
+- **List:** `header`/`footer` captions, `separators`, navigation rows with chevrons (`nav`), hover-revealed delete (`reveal`), `inset`.
+- **Setting:** `description`, `icon`, `disabled`, navigation rows (`href`); `control` is optional.
+- **Empty state:** `icon`, `size`, `secondary` action.
+- **Tabs:** per-tab `badges`, `disabled` tabs, `full_width`, `label`.
+- **Disclosure:** exclusive accordions (`name`), trailing `detail`, `.card` style.
+- **Path:** `separator`, collapsing long paths (`max`), item icons.
+- **Button:** `size`, `icon` (and icon-only), `loading`, links (`href`), `full`, `describedby`.
+- **Menu:** item icons, shortcut hints, checkmark items, disabled items, section headers, links, `alignment`, arrow-key navigation.
+- **Tooltip:** left and right sides, `delay`, `detail`, `shortcut`, `id`; hidden on touch screens.
+- **Field:** `help` and `invalid` messages, `prefix`/`suffix`, `disabled`, `readonly`, `inputmode`, `pattern`, `maxlength`.
+- **Textarea:** character counter (`maxlength`), `max_rows`, `grow`, `resize`, `help`/`invalid`, `disabled`, `readonly`.
+- **Search:** `size`, clear button, keyboard shortcut (⌘K), `min_length`, `name`, `value`.
+- **Check, checkbox, radio, toggle:** sizes, tints, descriptions, `disabled`; mixed checkboxes; horizontal radios; switch label side.
+- **Segmented:** `size`, `full`, icons, icon-only, disabled options.
+- **Slider:** tick marks, min/max labels, live value readout with unit, `disabled`.
+- **Stepper:** `unit`, `wrap`, `editable`, `disabled`.
+- **Picker:** placeholder, icons, descriptions, headings, separators, disabled options, `full`.
+- **Badge:** tones, sizes, `solid`, dot badges, counts with `max` (99+).
+- **Tag:** tones, sizes, icons, link tags, filter chips (`name`/`value`/`selected`), `disabled`.
+- **Avatar:** status dot, rounded shape, `hue`, `+N` overflow, stacked groups (`.zw-avatars`).
+- **Kbd:** PC key names (`platform`), sizes, `joiner` (e.g. "then"), `plain` menu style.
+- **Progress:** sizes, tones, captions, percentage, determinate rings.
+- **Skeleton:** shapes (lines, block, circle, media), `shimmer`.
+- **Toast:** `warning` kind, action button, `sticky`.
+- **Callout:** `important` and `caution` kinds (also in Markdown: `[!IMPORTANT]`, `[!CAUTION]`), `icon`, `compact`.
+- **Code:** file name caption, line numbers, highlighted lines, `wrap`, `copy`.
+- **Table:** column alignment, `caption`, `striped`, `compact`, row headers, empty text.
+- **Island:** `aspect` ratio, loading shimmer, no-JS fallback text.
+
+### Changed
+- The e2e browser behaves like a desktop with a mouse (hover styles are testable); all component unit tests now run.
+
 ## [0.4.2] - 2026-11-04
 
 ### Added

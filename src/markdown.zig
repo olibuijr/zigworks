@@ -2,7 +2,7 @@
 //! raw HTML is escaped and links only allow http(s), mailto, relative paths and #anchors.
 //!
 //! Blocks: # headings (with id anchors), paragraphs, - and 1. lists, ``` fences (lang), > quotes
-//! (`> [!NOTE]` / `[!TIP]` / `[!WARNING]` pick the callout kind), | tables |, --- rules.
+//! (`> [!NOTE]` / `[!TIP]` / `[!WARNING]` / `[!IMPORTANT]` / `[!CAUTION]` pick the callout kind), | tables |, --- rules.
 //! Inline: `code`, **bold**, *em*, [text](url).
 const std = @import("std");
 const Writer = std.Io.Writer;
@@ -179,7 +179,7 @@ fn isSeparator(l: []const u8) bool {
 }
 
 fn calloutKind(text: []const u8) ?[]const u8 {
-    const kinds = [_][2][]const u8{ .{ "[!NOTE]", "note" }, .{ "[!TIP]", "tip" }, .{ "[!WARNING]", "warning" } };
+    const kinds = [_][2][]const u8{ .{ "[!NOTE]", "note" }, .{ "[!TIP]", "tip" }, .{ "[!WARNING]", "warning" }, .{ "[!IMPORTANT]", "important" }, .{ "[!CAUTION]", "caution" } };
     for (kinds) |k| if (std.ascii.eqlIgnoreCase(text, k[0])) return k[1];
     return null;
 }

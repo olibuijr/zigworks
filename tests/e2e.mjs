@@ -34,6 +34,8 @@ const cdpPort = 9333;
 const browser = spawn(process.env.CHROMIUM ?? 'chromium', [
   '--headless=new', `--remote-debugging-port=${cdpPort}`, '--no-first-run', '--no-default-browser-check',
   '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--hide-scrollbars',
+  // Behave like a desktop with a mouse (headless reports no hover), so hover-only styles are testable.
+  '--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4',
   ...(process.env.CHROMIUM_FLAGS ?? '').split(' ').filter(Boolean), 'about:blank',
 ], { stdio: 'ignore' });
 children.push(browser);

@@ -42,7 +42,7 @@ pub const css =
     \\.zw-sidebar-footer{margin:12px -10px 0;padding:10px 20px 12px;font:var(--callout);color:var(--secondary);border-top:.5px solid var(--separator)}
     \\.zw-sidebar-toggle{display:none}
     \\.zw-sidebar--inline{display:block;width:240px;max-width:100%;border-radius:var(--radius-panel)}
-    \\@media (min-width:800px){.zw-sidebar:not(:popover-open){display:block;inset:auto;position:sticky;top:calc(60px + env(safe-area-inset-top));align-self:start;height:calc(100vh - 70px - env(safe-area-inset-top));margin:0 0 10px 10px;overflow-y:auto;width:auto;
+    \\@media (min-width:800px){.zw-sidebar[popover]:not(:popover-open){display:block;inset:auto;position:sticky;top:calc(60px + env(safe-area-inset-top));align-self:start;height:calc(100vh - 70px - env(safe-area-inset-top));margin:0 0 10px 10px;overflow-y:auto;width:auto;
     \\border-radius:var(--radius-panel)}}
     \\@media (max-width:799px){.zw-sidebar-toggle{display:inline-flex}
     \\.zw-sidebar[popover]{inset:calc(60px + env(safe-area-inset-top)) auto 10px 10px;width:min(290px,calc(100vw - 20px));height:auto;overflow-y:auto;border-radius:var(--radius-panel);

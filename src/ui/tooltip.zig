@@ -14,6 +14,7 @@ pub const css =
     \\.zw-tip--left>.zw-tip-text{bottom:auto;left:auto;top:50%;right:calc(100% + 8px);--px:0%;--py:-50%;--nx:4px;--ny:0px;transform-origin:right center}
     \\.zw-tip--right>.zw-tip-text{bottom:auto;top:50%;left:calc(100% + 8px);--px:0%;--py:-50%;--nx:-4px;--ny:0px;transform-origin:left center}
     \\.zw-tip:has(:focus-visible)>.zw-tip-text{opacity:1;--nx:0px;--ny:0px;scale:1;transition-delay:var(--zw-tip-delay,500ms)}
+    \\@media (hover:none){.zw-tip:not(:has(:focus-visible))>.zw-tip-text{display:none}}
     \\@media (hover:hover){.zw-tip:hover>.zw-tip-text{opacity:1;--nx:0px;--ny:0px;scale:1;transition-delay:var(--zw-tip-delay,500ms)}}
     \\.zw-tip-detail{display:block;margin-top:2px;color:var(--secondary)}
     \\.zw-tip-kbd{margin-left:8px;padding:0 4px;border-radius:4px;background:var(--fill);color:var(--secondary);font-weight:500}

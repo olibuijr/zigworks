@@ -146,7 +146,7 @@ fn sidebar(w: *Writer) Writer.Error!void {
     try ui.sidebar(.{
         .current = "#inbox",
         .inline_ = true,
-        .footer = "<span class=\"zw-secondary\">Signed in as olibuijr</span>",
+        .footer = "<span class=\"zw-secondary\">Signed in as ada</span>",
         .sections = &.{
             .{ .title = "Mail", .links = &.{
                 .{ .label = "Inbox", .href = "#inbox", .icon = inbox, .badge = "12" },
