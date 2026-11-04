@@ -198,7 +198,13 @@ fn check(w: *Writer) Writer.Error!void {
 }
 
 fn toggle(w: *Writer) Writer.Error!void {
-    try zw.view("{a}{b}", .{ .a = ui.toggle(.{ .name = "wifi", .label = "Wi-Fi", .on = true, .z = save }), .b = ui.toggle(.{ .name = "bt", .label = "Bluetooth", .z = save }) }).render(w);
+    try zw.view("{a}{b}{c}{d}{e}", .{
+        .a = ui.toggle(.{ .name = "wifi", .label = "Wi-Fi", .description = "Join known networks automatically", .on = true, .z = save }),
+        .b = ui.toggle(.{ .name = "bt", .label = "Bluetooth", .z = save }),
+        .c = ui.toggle(.{ .name = "small", .label = "Small switch", .size = .small, .on = true, .z = save }),
+        .d = ui.toggle(.{ .name = "mini", .label = "Mini switch, label after", .size = .mini, .label_side = .trailing, .on = true, .z = save }),
+        .e = ui.toggle(.{ .name = "lock", .label = "Managed by your administrator", .disabled = true, .on = true }),
+    }).render(w);
 }
 
 fn segmented(w: *Writer) Writer.Error!void {
