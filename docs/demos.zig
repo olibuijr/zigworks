@@ -340,5 +340,14 @@ fn kbd(w: *Writer) Writer.Error!void {
 }
 
 fn path(w: *Writer) Writer.Error!void {
-    try ui.path(.{ .items = &.{ .{ .label = "Docs", .href = "/" }, .{ .label = "Components", .href = "/components/layout" }, .{ .label = "Path" } } }).render(w);
+    try zw.view("<div class=\"zw-stack\" style=\"gap:10px\">{a}{b}</div>", .{
+        .a = ui.path(.{ .items = &.{ .{ .label = "Docs", .href = "/", .icon = "⌂" }, .{ .label = "Components", .href = "/components/layout" }, .{ .label = "Path" } } }),
+        .b = ui.path(.{ .separator = .slash, .max = 3, .items = &.{
+            .{ .label = "Home", .href = "/", .icon = "⌂" },
+            .{ .label = "Projects", .href = "/projects" },
+            .{ .label = "zigworks", .href = "/projects/zigworks" },
+            .{ .label = "docs", .href = "/projects/zigworks/docs" },
+            .{ .label = "Settings" },
+        } }),
+    }).render(w);
 }
