@@ -20,7 +20,6 @@ pub const css =
     \\& .zw-field{flex:1 1 140px}}
     \\.demo-field-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:18px 16px}
     \\.demo-field-cap{margin:0 0 6px 2px;font:var(--callout);color:var(--secondary)}
-    \\.demo-field-status{display:flex;align-items:center;gap:8px;margin:8px 11px 0}
     \\.demo-field-out{display:block;margin:8px 11px 0;font:var(--callout);color:var(--secondary);font-variant-numeric:tabular-nums}
     \\.demo-field-tags{margin-top:12px}
     \\
@@ -73,19 +72,20 @@ fn types(w: *Writer) Writer.Error!void {
         .c = cell("type = \"password\"", ui.field(.{ .name = "demo-field-t-password", .label = "Password", .placeholder = "Password", .type = "password", .autocomplete = "current-password" })),
         .e = cell("type = \"url\"", ui.field(.{ .name = "demo-field-t-url", .label = "Website", .placeholder = "https://", .type = "url", .inputmode = "url" })),
         .f = cell("type = \"search\"", ui.field(.{ .name = "demo-field-t-search", .label = "Search", .placeholder = "Search", .type = "search", .value = "zigworks" })),
-        .g = cell("type = \"number\", suffix = \"yr\"", ui.field(.{ .name = "demo-field-t-age", .label = "Age", .type = "number", .value = "34", .suffix = "yr", .inputmode = "numeric" })),
+        .g = cell("type = \"number\", step = \"0.1\", min, max", ui.field(.{ .name = "demo-field-t-weight", .label = "Weight", .type = "number", .value = "72.5", .step = "0.1", .min = "0", .max = "300", .suffix = "kg" })),
         .h = cell("prefix = \"$\", pattern = \"…\"", ui.field(.{ .name = "demo-field-t-price", .label = "Price", .placeholder = "0.00", .prefix = "$", .inputmode = "decimal", .pattern = "[0-9]+(\\.[0-9]{2})?" })),
         .i = cell("maxlength = 6, autocomplete = \"one-time-code\"", ui.field(.{ .name = "demo-field-t-code", .label = "Verification code", .placeholder = "000000", .inputmode = "numeric", .maxlength = 6, .pattern = "[0-9]{6}", .autocomplete = "one-time-code" })),
     }).render(w);
 }
 
 fn states(w: *Writer) Writer.Error!void {
-    try zw.view("<div class=\"demo-field-grid\">{a}{b}{c}{e}{f}{g}</div>", .{
+    try zw.view("<div class=\"demo-field-grid\">{a}{b}{c}{e}{f}{g}{h}</div>", .{
         .a = cell("placeholder only (empty)", ui.field(.{ .name = "demo-field-s-empty", .label = "Nickname", .placeholder = "Nickname" })),
         .b = cell("help", ui.field(.{ .name = "demo-field-s-help", .label = "Display name", .value = "Ada", .help = "Shown next to your messages." })),
         .c = cell("disabled", ui.field(.{ .name = "demo-field-s-disabled", .label = "Team", .value = "Analytical Engine", .disabled = true })),
         .e = cell("readonly", ui.field(.{ .name = "demo-field-s-readonly", .label = "Account ID", .value = "ZW-1042", .readonly = true, .help = "You can select and copy it." })),
         .f = cell("invalid (replaces help)", ui.field(.{ .name = "demo-field-s-invalid", .label = "Username", .value = "ab", .help = "3 to 20 characters.", .invalid = "Use at least 3 characters.", .maxlength = 20 })),
+        .h = cell("show_label", ui.field(.{ .name = "demo-field-s-label", .label = "Name", .show_label = true, .value = "Ada Lovelace", .autocomplete = "name" })),
         .g = cell("required, pattern: type letters, then leave", ui.field(.{ .name = "demo-field-s-native", .label = "ZIP code", .placeholder = "Digits only", .required = true, .pattern = "[0-9]{5}", .inputmode = "numeric", .help = "Five digits." })),
     }).render(w);
 }
@@ -94,7 +94,7 @@ fn states(w: *Writer) Writer.Error!void {
 fn live(w: *Writer) Writer.Error!void {
     try ui.card(.{
         .title = "Choose a username",
-        .body = zw.view("{f}<div id=\"demo-field-handle-status\" class=\"demo-field-status\" aria-live=\"polite\">{b}</div>", .{
+        .body = zw.view("{f}", .{
             .f = ui.field(.{
                 .name = "demo-field-handle",
                 .label = "Username",
@@ -103,9 +103,8 @@ fn live(w: *Writer) Writer.Error!void {
                 .pattern = "[a-z0-9]{3,20}",
                 .maxlength = 20,
                 .autocomplete = "username",
-                .z = .{ .get = "/demo/field/handle", .trigger = "input", .target = "#demo-field-handle-status", .swap = .inner },
+                .z = .{ .get = "/demo/field/handle", .trigger = "input", .target = "#zw-demo-field-handle-msg", .swap = .outer },
             }),
-            .b = ui.badge(.{ .text = "Type to check" }),
         }),
     }).render(w);
     try ui.card(.{
@@ -128,17 +127,21 @@ fn live(w: *Writer) Writer.Error!void {
 
 fn handle(c: *zw.Ctx) !void {
     const v = c.query("demo-field-handle") orelse "";
-    try c.page(handleBadge(v));
+    try c.page(handleMsg(v));
 }
 
-fn handleBadge(v: []const u8) ui.Badge {
-    if (v.len == 0) return ui.badge(.{ .text = "Type to check" });
-    for (v) |ch| if (!std.ascii.isLower(ch) and !std.ascii.isDigit(ch)) return ui.badge(.{ .text = "Use lowercase letters and numbers", .tone = .orange });
-    if (v.len < 3) return ui.badge(.{ .text = "Too short", .tone = .orange });
+// The reply replaces the field's own message element, so its text and red box change while the cursor stays put.
+const Msg = zw.View("<small id=\"zw-demo-field-handle-msg\" class=\"zw-help{#if bad} zw-help--error{/if}\"{#if bad} role=\"alert\"{/if}>{text}</small>", struct { text: []const u8, bad: bool });
+
+fn handleMsg(v: []const u8) Msg {
+    const help = "3 to 20 lowercase letters or numbers.";
+    if (v.len == 0) return .{ .data = .{ .text = help, .bad = false } };
+    for (v) |ch| if (!std.ascii.isLower(ch) and !std.ascii.isDigit(ch)) return .{ .data = .{ .text = "Use lowercase letters and numbers only.", .bad = true } };
+    if (v.len < 3) return .{ .data = .{ .text = "Too short: use at least 3 characters.", .bad = true } };
     for ([_][]const u8{ "ada", "admin", "guest", "root", "zig" }) |taken| {
-        if (std.mem.eql(u8, v, taken)) return ui.badge(.{ .text = "Already taken", .tone = .red });
+        if (std.mem.eql(u8, v, taken)) return .{ .data = .{ .text = "Already taken.", .bad = true } };
     }
-    return ui.badge(.{ .text = "Available", .tone = .green });
+    return .{ .data = .{ .text = "Available.", .bad = false } };
 }
 
 fn tip(c: *zw.Ctx) !void {

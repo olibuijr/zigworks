@@ -1,6 +1,6 @@
 # Field
 
-A text field in the macOS style. The label is announced to screen readers but not drawn, so give the field a placeholder that tells people what to type. Use it inside a form; z.js sends its value with the form.
+A text field in the macOS style. The label is announced to screen readers but not drawn by default, so give the field a placeholder that tells people what to type, or set `show_label` to draw the label inside the box. Use it inside a form; z.js sends its value with the form.
 
 ```demo
 field
@@ -8,7 +8,7 @@ field
 
 ## Types and affixes
 
-`type`, `inputmode` and `autocomplete` pick the right keyboard and autofill on phones. `prefix` and `suffix` put a unit inside the box. Each caption shows the props that make the field.
+`type`, `inputmode` and `autocomplete` pick the right keyboard and autofill on phones. `prefix` and `suffix` put a unit inside the box. `step`, `min` and `max` set the limits of a number field; `step = "0.1"` (or `"any"`) allows decimals. Each caption shows the props that make the field.
 
 ```demo
 field-types
@@ -16,7 +16,7 @@ field-types
 
 ## States
 
-`help` explains the field. `invalid` shows an error in its place and turns the box red. `disabled` dims the field and leaves it out of the form; `readonly` keeps it focusable and submitted. Without JavaScript, `required` and `pattern` still turn the box red once you leave it with a bad value. Click a field to see the focus ring.
+`help` explains the field. `invalid` shows an error in its place and turns the box red. `disabled` dims the field and leaves it out of the form; `readonly` keeps it focusable and submitted. Without JavaScript, `required` and `pattern` still turn the box red once you leave it with a bad value. `show_label` draws the label before the input. Click a field to see the focus ring.
 
 ```demo
 field-states
@@ -24,7 +24,7 @@ field-states
 
 ## Live fields
 
-Put a `z` on the field to react as people type. z.js sends `name=value` after a short pause and swaps the reply into the element named by `target`. Keep the target outside the field, so the cursor stays where it is.
+Put a `z` on the field to react as people type. z.js sends `name=value` after a short pause and swaps the reply into the element named by `target`. The field dims and shows a small spinner while the request runs. Keep the target outside the input, so the cursor stays where it is. The username field targets its own message, `#zw-<name>-msg` with `swap = .outer`, so the reply (a `<small>` with the same id, and `zw-help--error` when it is an error) changes the text and turns the box red.
 
 ```demo
 field-live
@@ -60,19 +60,20 @@ Help text, a unit and an error message:
 
 ```zig
 ui.field(.{
-    .name = "weight", .label = "Weight", .type = "number", .suffix = "kg", .inputmode = "decimal",
+    .name = "weight", .label = "Weight", .type = "number", .suffix = "kg", .step = "0.1", .min = "0", .max = "300",
     .help = "Your weight today.",
     .invalid = if (too_heavy) "Enter a value under 300." else "",
 })
 ```
 
-A field that checks its value while you type. The reply replaces the content of `#handle-status`:
+A field that checks its value while you type. The reply replaces its own message element (the field needs `help` or `invalid` so that element exists):
 
 ```zig
 ui.field(.{
-    .name = "handle", .label = "Username", .pattern = "[a-z0-9]{3,20}",
-    .z = .{ .get = "/handle", .trigger = "input", .target = "#handle-status", .swap = .inner },
+    .name = "handle", .label = "Username", .help = "3 to 20 characters.", .pattern = "[a-z0-9]{3,20}",
+    .z = .{ .get = "/handle", .trigger = "input", .target = "#zw-handle-msg", .swap = .outer },
 })
+// the handler answers: <small id="zw-handle-msg" class="zw-help zw-help--error" role="alert">Already taken.</small>
 ```
 
 ## Notes
@@ -81,8 +82,11 @@ ui.field(.{
 - `prefix` and `suffix` are read as part of the accessible name (for example "Weight kg").
 - Without JavaScript the browser still validates `required`, `pattern` and `maxlength` on submit, and a field turns red after the user leaves it with an invalid value.
 - `type = "search"` shows a clear button once there is text (Safari and Chrome; Firefox has none).
-- Number fields hide the browser's spin buttons. Use `ui.stepper` when you want buttons. The field has no `step`, `min` or `max`, so a number field accepts whole numbers only; for decimals use `inputmode = "decimal"` with a `pattern`.
+- Number fields hide the browser's spin buttons. Use `ui.stepper` when you want buttons. Without `step` a number field accepts whole numbers only, so set `step = "0.1"` or `"any"` for decimals.
+- While a live request runs, z.js adds `zw-busy` to the input; the field dims it and shows a spinner in the box (static with Reduce Motion).
+- A reply that swaps the message element changes its text and colour, and a `zw-help--error` message turns the box red, but `aria-invalid` is only set by rendering the field with `invalid`; the `role="alert"` message is still announced. To also update `aria-invalid`, answer with the whole field and accept that it loses focus, or use a separate status element.
 - With a `z` on the field itself (not on the form), z.js sends only that field, as `name=value`. `trigger = "input"` waits 250 ms after the last keystroke.
+- `show_label` draws the label in the box before the input (and before any `prefix`); for a label on the left of a whole row, with a description, use `ui.setting`.
 - Give each field a unique `name` on a page: the message id comes from it.
 - On touch screens the field is 44px tall and its text is at least 16px, so iOS does not zoom in.
 
@@ -92,6 +96,7 @@ ui.field(.{
 |---|---|---|---|
 | `name` | string | required | form field name |
 | `label` | string | required | always present, for screen readers |
+| `show_label` | bool | `false` | draw the label inside the box before the input instead of hiding it |
 | `placeholder` | string | `""` | an example, not the label |
 | `value` | string | `""` | |
 | `type` | string | `"text"` | `email`, `password`, `number`, `url`, `search`… |
@@ -107,4 +112,7 @@ ui.field(.{
 | `inputmode` | string | `""` | virtual keyboard: `numeric`, `decimal`, `tel`, `email`, `url`, `search` |
 | `pattern` | string | `""` | regular expression checked on submit |
 | `maxlength` | u16 | `0` | maximum characters; `0` means no limit |
-| `z` | `ui.Z` | none | on the input itself, for example a live `trigger = "input"` request |
+| `step` | string | `""` | number step: `"0.1"`, or `"any"` for decimals; empty uses the browser default |
+| `min` | string | `""` | smallest value of a number or date field |
+| `max` | string | `""` | largest value of a number or date field |
+| `z` | `ui.Z` | none | on the input itself, for example a live `trigger = "input"` request (shows a spinner while it runs) |
