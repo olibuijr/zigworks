@@ -42,23 +42,26 @@ const Tint = @TypeOf(ui.check(.{ .on = false, .label = "" }).data.tint);
 /// A check that flips itself: the URL carries the current state and the look.
 const Flip = struct {
     on: bool,
+    /// Shown as a dash; the next click checks it.
+    mixed: bool = false,
     label: []const u8,
     size: Size = .regular,
     tint: Tint = .accent,
 
     pub fn render(self: Flip, w: *Writer) Writer.Error!void {
         var buf: [256]u8 = undefined;
-        const url = std.fmt.bufPrint(&buf, "/demo/check/flip?d={d}&s={t}&c={t}&l={f}", .{
-            @intFromBool(self.on), self.size, self.tint, std.fmt.alt(std.Uri.Component{ .raw = self.label }, .formatEscaped),
+        const url = std.fmt.bufPrint(&buf, "/demo/check/flip?d={d}&m={d}&s={t}&c={t}&l={f}", .{
+            @intFromBool(self.on), @intFromBool(self.mixed), self.size, self.tint, std.fmt.alt(std.Uri.Component{ .raw = self.label }, .formatEscaped),
         }) catch "/demo/check/flip";
-        try ui.check(.{ .on = self.on, .label = self.label, .size = self.size, .tint = self.tint, .z = .{ .post = url, .swap = .outer } }).render(w);
+        try ui.check(.{ .on = self.on, .mixed = self.mixed, .label = self.label, .size = self.size, .tint = self.tint, .z = .{ .post = url, .swap = .outer } }).render(w);
     }
 };
 
 fn flipRoute(c: *zw.Ctx) !void {
     const was_on = std.mem.eql(u8, c.query("d") orelse "0", "1");
+    const was_mixed = std.mem.eql(u8, c.query("m") orelse "0", "1");
     try c.page(Flip{
-        .on = !was_on,
+        .on = was_mixed or !was_on,
         .label = c.query("l") orelse "Check",
         .size = std.meta.stringToEnum(Size, c.query("s") orelse "") orelse .regular,
         .tint = std.meta.stringToEnum(Tint, c.query("c") orelse "") orelse .accent,
@@ -151,11 +154,13 @@ fn states(w: *Writer) Writer.Error!void {
     try ui.list(.{ .id = "demo-check-states", .body = zw.view(
         \\<li>{a}<span class="zw-grow demo-check-text">Unchecked<small>Click it, or focus it and press Space</small></span></li>
         \\<li>{b}<span class="zw-grow demo-check-text">Checked<small>aria-checked is true</small></span></li>
+        \\<li>{m}<span class="zw-grow demo-check-text">Mixed<small>aria-checked is mixed; the next click checks it</small></span></li>
         \\<li>{c}<span class="zw-grow demo-check-text">Disabled<small>Waiting on a teammate</small></span></li>
         \\<li>{e}<span class="zw-grow demo-check-text">Disabled and checked<small>Completed by the list owner</small></span></li>
     , .{
         .a = Flip{ .on = false, .label = "Unchecked" },
         .b = Flip{ .on = true, .label = "Checked" },
+        .m = Flip{ .on = false, .mixed = true, .label = "Mixed" },
         .c = ui.check(.{ .on = false, .label = "Disabled", .disabled = true }),
         .e = ui.check(.{ .on = true, .label = "Disabled and checked", .disabled = true }),
     }) }).render(w);
