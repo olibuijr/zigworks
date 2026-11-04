@@ -5,6 +5,33 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 **Releasing:** bump the version in `build.zig.zon`, `src/zigworks.zig` (`version`) and the README
 install snippet (`#vX.Y.Z`), rename `[Unreleased]` to the version and date, then tag `vX.Y.Z`.
 
+## [0.7.0] - 2026-11-04
+
+New demos for every component, and the component and z.js gaps those demos turned up.
+
+### Added
+- Every component docs page has new, realistic demos (over 180): each prop and state shown, plus small working compositions that talk to the server. The demo code is split into one file per component under `docs/demos/`.
+- z.js: `z-trigger="every 2s"` (or `500ms`) polls while the page is visible and stops when the element leaves.
+- z.js: error responses (4xx/5xx) apply their `z-oob` parts, so a server can answer with an error toast and leave the page alone.
+- z.js: `z-keep-open` (response header or attribute) keeps a popover or sheet open after its form sends; `ui.Z.keep_open` renders it. `z-keep` also works as a response header.
+- z.js: islands may export an async function; an island that fails to load gets `data-error` and the component shows its `failed` text.
+- z.js: resetting a form also resets textarea counters, picker labels, slider fills and steppers. Steppers clamp typed values to min and max.
+- z.js: search fields move between the field and results with the arrow keys; picking a result closes the panel; Escape hides a hover tooltip.
+- Component props (all optional): `avatar` neutral, anonymous and name-less; `badge` hides when empty; `button` `.reset` type; `check` mixed state and the `CheckSize`/`CheckTint` exports; `checkbox`, `disclosure`, `empty`, `setting`, `progress` and `table` take `id` (and `oob` where it helps); `field` `show_label`, `step`, `min`, `max`; `list` `busy`; `menu` radio items; `path` and `sidebar` links take `z`; `picker` `size`, `help`, `invalid`; `progress` `bar` and a neutral tone; `radio` `caption`, `required`, `help`, `invalid`, `detail`; `search` `disabled`, `readonly`, `invalid`, `platform`, `inline_results`; `segmented` `help`, `invalid`; `skeleton` `line_height`, `gap`, `z`; `stepper` `invalid`; `table` `html`, `foot`, sorting and selected rows; `tabs` `z` and `submit`; `toast` `static`; `tooltip` `focusable`; `layout` `brand_href`. `CardVariant` and `CalloutKind` are exported from `ui`.
+- The server answers `431` when request headers are too large instead of dropping the connection.
+- A unit test checks that every component's CSS closes its braces.
+
+### Changed
+- `zw.view` props: nested anonymous struct literals coerce to the field's struct type, so `.z = .{ .get = "/x" }` works inside any component's props.
+- Any z.js form sends on Enter, whatever its `z-trigger`.
+- Accent spinners are blue; the default `search` width is 240px; menus default to `z-swap="none"`; a picker without a selection checks its first option.
+
+### Fixed
+- The check component's CSS left a rule open, which nested every later component's CSS (and an app's own `css`) inside it.
+- An inline sidebar's sticky footer pinned itself to the bottom of the screen instead of the sidebar.
+- The stepper docs demo overflowed a buffer on negative values and crashed the docs server.
+- A long tag in a narrow grid pushed the page wider than the phone.
+
 ## [0.6.1] - 2026-11-04
 
 ### Fixed
