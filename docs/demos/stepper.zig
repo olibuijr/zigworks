@@ -48,7 +48,7 @@ fn props(w: *Writer) Writer.Error!void {
 
 // The bounds, wrapping and disabled, side by side.
 fn states(w: *Writer) Writer.Error!void {
-    try ui.card(.{ .body = zw.view("{a}{b}{c}{d}{e}", .{
+    try ui.card(.{ .body = zw.view("{a}{b}{c}{f}{d}{e}", .{
         .a = ui.setting(.{ .label = "At the minimum", .description = "value equals min: the − button is off", .control = ui.stepper(.{ .name = "s-min", .label = "Guests at the minimum", .value = 1, .min = 1, .max = 10, .z = d.save }) }),
         .b = ui.setting(.{ .label = "At the maximum", .description = "value equals max: the + button is off", .control = ui.stepper(.{ .name = "s-max", .label = "Guests at the maximum", .value = 10, .min = 1, .max = 10, .z = d.save }) }),
         .c = ui.setting(.{ .label = "Wrapping", .description = "+ at 23 goes to 0; buttons never turn off", .control = ui.stepper(.{ .name = "s-wrap", .label = "Wrapping hour", .value = 23, .min = 0, .max = 23, .wrap = true, .editable = false, .z = d.save }) }),
