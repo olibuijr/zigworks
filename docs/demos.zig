@@ -248,13 +248,17 @@ fn island(w: *Writer) Writer.Error!void {
 }
 
 fn tabs(w: *Writer) Writer.Error!void {
-    try ui.tabs(.{ .id = "demo-tabs", .labels = &.{ "General", "Sharing", "Advanced" }, .panels = .{
+    try ui.tabs(.{ .id = "demo-tabs", .labels = &.{ "General", "Sharing", "Advanced", "Archive" }, .badges = &.{ "", "2" }, .disabled = &.{3}, .panels = .{
         ui.card(.{ .body = zw.view("{a}{b}", .{
             .a = ui.toggle(.{ .name = "sync", .label = "Sync across devices", .on = true, .z = save }),
             .b = ui.toggle(.{ .name = "badge", .label = "Show badge", .z = save }),
         }) }),
         ui.card(.{ .body = ui.empty(.{ .title = "Not shared", .text = "Invite people to edit this list with you.", .action = ui.button(.{ .label = "Invite…" }) }) }),
         ui.card(.{ .body = ui.setting(.{ .label = "Cache size", .control = ui.stepper(.{ .name = "cache", .label = "Cache size in GB", .value = 4, .min = 1, .max = 32, .z = save }) }) }),
+        ui.card(.{ .body = "Nothing archived yet." }),
+    } }).render(w);
+    try ui.tabs(.{ .id = "demo-tabs-full", .full_width = true, .label = "Sort order", .labels = &.{ "Name", "Date", "Size" }, .selected = 1, .panels = .{
+        "Sorted by name.", "Sorted by date.", "Sorted by size.",
     } }).render(w);
 }
 
