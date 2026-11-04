@@ -188,7 +188,11 @@ fn field(w: *Writer) Writer.Error!void {
 }
 
 fn search(w: *Writer) Writer.Error!void {
-    try ui.search(.{ .action = "/search", .id = "demo-results", .label = "Search docs", .placeholder = "Try “button”" }).render(w);
+    try zw.view("{a}{b}{c}", .{
+        .a = ui.search(.{ .action = "/search", .id = "demo-results", .label = "Search docs", .placeholder = "Try “button”", .shortcut = "k" }),
+        .b = ui.search(.{ .action = "/search", .id = "demo-results-small", .label = "Search docs (small)", .placeholder = "Small", .size = .small }),
+        .c = ui.search(.{ .action = "/search", .id = "demo-results-large", .label = "Search docs (large)", .placeholder = "Large, no clear button", .size = .large, .clear = false }),
+    }).render(w);
 }
 
 fn check(w: *Writer) Writer.Error!void {
