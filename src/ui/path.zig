@@ -6,29 +6,28 @@ const Writer = std.Io.Writer;
 const zv = @import("../view.zig");
 
 pub const css =
-    \\.zw-path>ol{display:flex;flex-wrap:wrap;align-items:center;gap:2px;list-style:none;margin:0;padding:0;font:var(--callout)}
-    \\.zw-path>ol>li{display:inline-flex;align-items:center;gap:2px;min-width:0}
-    \\.zw-path>ol>li+li::before{content:"";flex:none;width:5px;height:5px;margin:0 6px 0 3px;border:solid var(--tertiary);border-width:1.5px 1.5px 0 0;rotate:45deg}
+    \\.zw-path>ol{display:flex;flex-wrap:wrap;align-items:center;gap:2px;list-style:none;margin:0;padding:0;font:var(--callout);
+    \\>li{display:inline-flex;align-items:center;gap:2px;min-width:0;
+    \\&+li::before{content:"";flex:none;width:5px;height:5px;margin:0 6px 0 3px;border:solid var(--tertiary);border-width:1.5px 1.5px 0 0;rotate:45deg}}}
     \\.zw-path--slash>ol>li+li::before{width:auto;height:auto;margin:0 4px;border:0;rotate:none;content:"/";color:var(--tertiary)}
-    \\.zw-path a,.zw-path-text,.zw-path [aria-current],.zw-path-more>summary{display:inline-flex;align-items:center;gap:5px;min-width:0;max-width:min(26ch,70vw);padding:2px 6px;border-radius:6px}
-    \\.zw-path a{color:var(--secondary);text-decoration:none;transition:background-color var(--speed),color var(--speed)}
-    \\.zw-path a:hover{background:var(--fill);color:var(--label)}
-    \\.zw-path a:active{background:color-mix(in srgb,var(--fill) 70%,var(--separator))}
+    \\.zw-path a,.zw-path-text,.zw-path [aria-current],.zw-path-more>summary{display:inline-flex;align-items:center;gap:5px;min-width:0;max-width:min(26ch,70vw);padding:2px 6px;border-radius:6px;
+    \\@media (pointer:coarse){min-height:44px}}
+    \\.zw-path a{color:var(--secondary);text-decoration:none;transition:background-color var(--speed),color var(--speed);
+    \\&:hover{background:var(--fill);color:var(--label)}
+    \\&:active{background:color-mix(in srgb,var(--fill) 70%,var(--separator))}}
     \\.zw-path-text{color:var(--secondary)}
     \\.zw-path [aria-current]{color:var(--label);font-weight:600}
     \\.zw-path-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     \\.zw-path-icon{flex:none}
-    \\.zw-path-more{position:relative}
-    \\.zw-path-more>summary{list-style:none;color:var(--secondary);cursor:default;user-select:none;transition:background-color var(--speed),color var(--speed)}
-    \\.zw-path-more>summary::-webkit-details-marker{display:none}
-    \\.zw-path-more>summary:hover,.zw-path-more[open]>summary{background:var(--fill);color:var(--label)}
-    \\.zw-path-more[open]>summary::after{content:"";position:fixed;inset:0;z-index:30;cursor:default}
+    \\.zw-path-more{position:relative;
+    \\&>summary{list-style:none;color:var(--secondary);cursor:default;user-select:none;transition:background-color var(--speed),color var(--speed);
+    \\&::-webkit-details-marker{display:none}}
+    \\&>summary:hover,&[open]>summary{background:var(--fill);color:var(--label)}
+    \\&[open]>summary::after{content:"";position:fixed;inset:0;z-index:30;cursor:default}}
     \\.zw-path .zw-path-menu{position:absolute;top:100%;left:0;z-index:31;display:flex;flex-direction:column;gap:1px;min-width:180px;max-width:min(320px,calc(100vw - 32px));margin:6px 0 0;padding:6px;
     \\list-style:none;border-radius:var(--radius);--glass:var(--glass-thick);animation:zw-path-in var(--dur-bouncy) var(--spring-bouncy);transform-origin:top left}
     \\@keyframes zw-path-in{from{opacity:0;scale:.92;translate:0 -6px}}
-    \\.zw-path-menu a{display:flex;max-width:none;padding:4px 10px;border-radius:8px;color:var(--label)}
-    \\.zw-path-menu a:hover,.zw-path-menu a:focus-visible{background:var(--accent);color:var(--on-accent)}
-    \\@media (pointer:coarse){.zw-path a,.zw-path-text,.zw-path [aria-current],.zw-path-more>summary{min-height:44px}.zw-path-menu a{min-height:44px}}
+    \\.zw-path-menu a{display:flex;max-width:none;padding:4px 10px;border-radius:8px;color:var(--label);&:is(:hover,:focus-visible){background:var(--accent);color:var(--on-accent)}}
     \\
 ;
 
