@@ -3,7 +3,7 @@ const std = @import("std");
 const zv = @import("../view.zig");
 
 pub const css =
-    \\.zw-callout{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:var(--radius-control);background:color-mix(in srgb,var(--c) 10%,transparent);box-shadow:inset 3px 0 0 var(--c);color:var(--label);--c:var(--accent);--g:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cmask id='m'%3E%3Crect width='16' height='16' fill='white'/%3E%3Cpath d='M8 7.3v4M8 4.9v.1' stroke='black' stroke-width='1.7' stroke-linecap='round'/%3E%3C/mask%3E%3Ccircle cx='8' cy='8' r='8' mask='url(%23m)'/%3E%3C/svg%3E")
+    \\.zw-callout{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:var(--radius-control);background:color-mix(in srgb,var(--c) 10%,transparent);box-shadow:inset 3px 0 0 var(--c);color:var(--label);--c:var(--accent);--g:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cmask id='m'%3E%3Crect width='16' height='16' fill='white'/%3E%3Cpath d='M8 7.3v4M8 4.9v.1' stroke='black' stroke-width='1.7' stroke-linecap='round'/%3E%3C/mask%3E%3Ccircle cx='8' cy='8' r='8' mask='url(%23m)'/%3E%3C/svg%3E");
     \\  &::before{content:"";flex:none;width:16px;height:15px;background:var(--c);mask:var(--g) center/16px no-repeat}
     \\  &>div,&>p{min-width:0}
     \\  & p{margin:0}
