@@ -159,6 +159,23 @@ fn card(w: *Writer) Writer.Error!void {
 
 fn list(w: *Writer) Writer.Error!void {
     try ui.list(.{ .id = "demo-list", .body = zw.view("{a}{b}{c}", .{ .a = row(true, "Renew domain"), .b = row(false, "Write release notes"), .c = row(false, "Tag v0.2.0") }) }).render(w);
+    try ui.list(.{
+        .id = "demo-nav",
+        .header = "Network",
+        .footer = "Rows are links: the whole row is the target.",
+        .nav = true,
+        .body = zw.view("<li><a href=\"#demo-nav\">Wi-Fi</a></li><li><a href=\"#demo-nav\">Bluetooth</a></li><li><a href=\"#demo-nav\">VPN</a></li>", .{}),
+    }).render(w);
+    try ui.list(.{
+        .id = "demo-reveal",
+        .header = "Drafts",
+        .reveal = true,
+        .separators = .full,
+        .body = zw.view("<li><span class=\"zw-grow\">Launch notes</span>{a}</li><li><span class=\"zw-grow\">Old plan</span>{b}</li>", .{
+            .a = ui.button(.{ .label = "Delete", .variant = .destructive }),
+            .b = ui.button(.{ .label = "Delete", .variant = .destructive }),
+        }),
+    }).render(w);
 }
 
 fn setting(w: *Writer) Writer.Error!void {
