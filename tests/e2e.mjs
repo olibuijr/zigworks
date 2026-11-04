@@ -144,7 +144,15 @@ async function test(name, fn) {
   catch (e) { results.push([name, 'FAIL', Date.now() - t0, e.message]); }
 }
 const eq = (a, b, msg) => { if (a !== b) throw new Error(`${msg}: expected ${JSON.stringify(b)}, got ${JSON.stringify(a)}`); };
-const noErrors = (p) => { if (p.errors.length) throw new Error(`browser errors:\n  ${p.errors.join('\n  ')}`); };
+/** Close the tab, then fail if the page logged errors. */
+async function done(p) {
+  await p.close();
+  if (p.errors.length) throw new Error(`browser errors:\n  ${p.errors.join('\n  ')}`);
+}
+/** Run fn once in light and once in dark mode. */
+async function modes(fn) {
+  for (const dark of [false, true]) await fn(dark, dark ? 'dark' : 'light');
+}
 
 const todo = app('todo', 8901);
 const gallery = app('gallery', 8902);
@@ -175,13 +183,11 @@ await test('todo: add, complete, delete via z.js', async () => {
   await p.shot('todo-light');
   const html = await p.eval(`document.querySelector('#todos').textContent`);
   if (!html.includes('Reykjavík')) throw new Error('utf-8 title lost');
-  noErrors(p);
-  await p.close();
+  await done(p);
   const d = await open(todo, { dark: true });
   eq(await d.eval(`document.querySelectorAll('#todos > li').length`), 2, 'server state persists');
   await d.shot('todo-dark');
-  noErrors(d);
-  await d.close();
+  await done(d);
 });
 
 await test('todo: mobile layout has no horizontal scroll', async () => {
@@ -191,41 +197,37 @@ await test('todo: mobile layout has no horizontal scroll', async () => {
   await p.close();
 });
 
-await test('gallery: controls, menu, picker, sheet', async () => {
-  for (const dark of [false, true]) {
-    const mode = dark ? 'dark' : 'light';
-    const p = await open(gallery, { dark, height: 1100 });
-    eq(await p.eval(`getComputedStyle(document.querySelector('.actions')).justifyContent`), 'flex-end', 'app css served');
-    await p.shot(`gallery-${mode}`);
-    // menu opens anchored under its button
-    await p.click('[popovertarget=more]');
-    await p.waitFor(`document.getElementById('more').matches(':popover-open')`);
-    await sleep(800); // let the open spring settle
-    const below = await p.eval(`document.getElementById('more').getBoundingClientRect().top >= document.querySelector('[popovertarget=more]').getBoundingClientRect().bottom - 1`);
-    eq(below, true, 'menu anchored below button');
-    await p.shot(`gallery-menu-${mode}`);
-    await p.key('Escape');
-    await p.waitFor(`!document.getElementById('more').matches(':popover-open')`);
-    // picker changes its label and closes
-    await p.click('[popovertarget=accent]');
-    await p.waitFor(`document.getElementById('accent').matches(':popover-open')`);
-    await p.shot(`gallery-picker-${mode}`);
-    await p.click('#accent label:nth-child(2)');
-    await p.waitFor(`document.querySelector('.zw-picker-value').textContent === 'Purple'`);
-    eq(await p.eval(`document.getElementById('accent').matches(':popover-open')`), false, 'picker closed');
-    // switch and segmented change state
-    await p.click('.zw-toggle:nth-of-type(2) input');
-    eq(await p.eval(`document.querySelector('input[name=menubar]').checked`), true, 'switch on');
-    await p.click('.zw-seg label:nth-of-type(2)');
-    eq(await p.eval(`document.querySelector('input[name=theme]:checked').value`), 'dark', 'segment selected');
-    // sheet opens
-    await p.click('[popovertarget=new-list].zw-btn--primary');
-    await p.waitFor(`document.getElementById('new-list').matches(':popover-open')`);
-    await p.shot(`gallery-sheet-${mode}`);
-    noErrors(p);
-    await p.close();
-  }
-});
+await test('gallery: controls, menu, picker, sheet', () => modes(async (dark, mode) => {
+  const p = await open(gallery, { dark, height: 1100 });
+  eq(await p.eval(`getComputedStyle(document.querySelector('.actions')).justifyContent`), 'flex-end', 'app css served');
+  await p.shot(`gallery-${mode}`);
+  // menu opens anchored under its button
+  await p.click('[popovertarget=more]');
+  await p.waitFor(`document.getElementById('more').matches(':popover-open')`);
+  await sleep(800); // let the open spring settle
+  const below = await p.eval(`document.getElementById('more').getBoundingClientRect().top >= document.querySelector('[popovertarget=more]').getBoundingClientRect().bottom - 1`);
+  eq(below, true, 'menu anchored below button');
+  await p.shot(`gallery-menu-${mode}`);
+  await p.key('Escape');
+  await p.waitFor(`!document.getElementById('more').matches(':popover-open')`);
+  // picker changes its label and closes
+  await p.click('[popovertarget=accent]');
+  await p.waitFor(`document.getElementById('accent').matches(':popover-open')`);
+  await p.shot(`gallery-picker-${mode}`);
+  await p.click('#accent label:nth-child(2)');
+  await p.waitFor(`document.querySelector('.zw-picker-value').textContent === 'Purple'`);
+  eq(await p.eval(`document.getElementById('accent').matches(':popover-open')`), false, 'picker closed');
+  // switch and segmented change state
+  await p.click('.zw-toggle:nth-of-type(2) input');
+  eq(await p.eval(`document.querySelector('input[name=menubar]').checked`), true, 'switch on');
+  await p.click('.zw-seg label:nth-of-type(2)');
+  eq(await p.eval(`document.querySelector('input[name=theme]:checked').value`), 'dark', 'segment selected');
+  // sheet opens
+  await p.click('[popovertarget=new-list].zw-btn--primary');
+  await p.waitFor(`document.getElementById('new-list').matches(':popover-open')`);
+  await p.shot(`gallery-sheet-${mode}`);
+  await done(p);
+}));
 
 await test('gallery: tabs, stepper, disclosure, tooltip, tags, toast, skeleton', async () => {
   const p = await open(gallery, { height: 1100 });
@@ -268,42 +270,37 @@ await test('gallery: tabs, stepper, disclosure, tooltip, tags, toast, skeleton',
   await sleep(1100);
   eq(await p.eval(`getComputedStyle(document.querySelector('.zw-tip-text')).opacity`), '1', 'tooltip visible');
   await p.shot('gallery-tooltip');
-  noErrors(p);
-  await p.close();
+  await done(p);
 });
 
-await test('glass: refraction lenses, pressed knobs, springs', async () => {
-  for (const dark of [false, true]) {
-    const mode = dark ? 'dark' : 'light';
-    const p = await open(gallery, { dark, height: 1100 });
-    eq(await p.eval(`document.documentElement.classList.contains('zw-refract')`), true, 'refraction on in Chromium');
-    const lensed = await p.eval(`getComputedStyle(document.querySelector('.zw-btn--primary')).getPropertyValue('--zw-lens')`);
-    if (!/url\(#zw-lens-\d+-\d+-\d+\)/.test(lensed)) throw new Error(`primary button has no lens: ${lensed}`);
-    const id = lensed.match(/#([\w-]+)/)[1];
-    eq(await p.eval(`!!document.getElementById('${id}')?.querySelector('feDisplacementMap')`), true, 'lens filter exists');
-    eq(await p.eval(`getComputedStyle(document.querySelector('.zw-btn--primary')).backdropFilter.includes('url(')`), true, 'backdrop-filter uses the lens');
-    eq(await p.eval(`!!document.getElementById('zw-lens-knob')`), true, 'knob lens');
-    eq(await p.eval(`getComputedStyle(document.documentElement).getPropertyValue('--spring-bouncy').trim().startsWith('linear(')`), true, 'spring tokens');
-    // Pressed states: the knob becomes a glass drop, the segmented pill swells.
-    await p.press('.zw-toggle:nth-of-type(1) input');
-    await sleep(1000);
-    await p.shot(`glass-toggle-pressed-${mode}`);
-    await p.release();
-    await p.press('.zw-slider input', 20);
-    await sleep(1000);
-    await p.shot(`glass-slider-pressed-${mode}`);
-    await p.release();
-    await p.press('.zw-seg label:nth-of-type(1)');
-    await sleep(2000); // headless Chromium applies :active to ancestors late
-    await p.shot(`glass-seg-pressed-${mode}`);
-    await p.release();
-    await sleep(800);
-    const pill = await p.eval(`getComputedStyle(document.querySelector('.zw-seg-pill')).translate`);
-    eq(['0px', '0%', 'none', '0px 0px', '0% 0px'].includes(pill), true, `pill slid to the first segment (${pill})`);
-    noErrors(p);
-    await p.close();
-  }
-});
+await test('glass: refraction lenses, pressed knobs, springs', () => modes(async (dark, mode) => {
+  const p = await open(gallery, { dark, height: 1100 });
+  eq(await p.eval(`document.documentElement.classList.contains('zw-refract')`), true, 'refraction on in Chromium');
+  const lensed = await p.eval(`getComputedStyle(document.querySelector('.zw-btn--primary')).getPropertyValue('--zw-lens')`);
+  if (!/url\(#zw-lens-\d+-\d+-\d+\)/.test(lensed)) throw new Error(`primary button has no lens: ${lensed}`);
+  const id = lensed.match(/#([\w-]+)/)[1];
+  eq(await p.eval(`!!document.getElementById('${id}')?.querySelector('feDisplacementMap')`), true, 'lens filter exists');
+  eq(await p.eval(`getComputedStyle(document.querySelector('.zw-btn--primary')).backdropFilter.includes('url(')`), true, 'backdrop-filter uses the lens');
+  eq(await p.eval(`!!document.getElementById('zw-lens-knob')`), true, 'knob lens');
+  eq(await p.eval(`getComputedStyle(document.documentElement).getPropertyValue('--spring-bouncy').trim().startsWith('linear(')`), true, 'spring tokens');
+  // Pressed states: the knob becomes a glass drop, the segmented pill swells.
+  await p.press('.zw-toggle:nth-of-type(1) input');
+  await sleep(1000);
+  await p.shot(`glass-toggle-pressed-${mode}`);
+  await p.release();
+  await p.press('.zw-slider input', 20);
+  await sleep(1000);
+  await p.shot(`glass-slider-pressed-${mode}`);
+  await p.release();
+  await p.press('.zw-seg label:nth-of-type(1)');
+  await sleep(2000); // headless Chromium applies :active to ancestors late
+  await p.shot(`glass-seg-pressed-${mode}`);
+  await p.release();
+  await sleep(800);
+  const pill = await p.eval(`getComputedStyle(document.querySelector('.zw-seg-pill')).translate`);
+  eq(['0px', '0%', 'none', '0px 0px', '0% 0px'].includes(pill), true, `pill slid to the first segment (${pill})`);
+  await done(p);
+}));
 
 await test('scene: three.js island renders', async () => {
   const p = await open(scene);
@@ -317,8 +314,7 @@ await test('scene: three.js island renders', async () => {
   await p.eval(`document.querySelector('.zw-island canvas').style.visibility = ''`);
   if (withCanvas === without) throw new Error('canvas paints nothing');
   await p.shot('scene-light');
-  noErrors(p);
-  await p.close();
+  await done(p);
 });
 
 await test('docs: every page renders its demos without errors', async () => {
@@ -335,17 +331,14 @@ await test('docs: every page renders its demos without errors', async () => {
   eq((await fetch(docs + '/nope')).status, 404, 'unknown page');
   eq((await fetch(docs + '/orbit.js')).status, 200, 'static file behind GET /:page');
   await p.shot('docs-home-light');
-  noErrors(p);
-  await p.close();
-  for (const dark of [false, true]) {
-    const mode = dark ? 'dark' : 'light';
+  await done(p);
+  await modes(async (dark, mode) => {
     for (const page of ['templates', 'components/picker', 'components/setting']) {
       const d = await open(`${docs}/${page}`, { dark, width: 1280, height: 1000 });
       await d.shot(`docs-${page.replace('/', '-')}-${mode}`);
-      noErrors(d);
-      await d.close();
+      await done(d);
     }
-  }
+  });
 });
 
 await test('docs: home todo demo adds, checks off and deletes', async () => {
@@ -364,8 +357,7 @@ await test('docs: home todo demo adds, checks off and deletes', async () => {
   await p.click('#hero-list > li:first-child .zw-btn--destructive');
   await p.waitFor(`document.querySelectorAll('#hero-list > li').length === 3`);
   await p.shot('docs-todo-demo');
-  noErrors(p);
-  await p.close();
+  await done(p);
 });
 
 await test('docs: live search, copy button, pager', async () => {
@@ -380,25 +372,21 @@ await test('docs: live search, copy button, pager', async () => {
   await p.waitFor(`document.querySelector('.zw-code [data-copy]').textContent === 'Copied'`);
   eq(await p.eval(`navigator.clipboard.readText()`), await p.eval(`document.querySelector('.zw-code code').textContent`), 'clipboard text');
   eq(await p.eval(`document.querySelector('.pager .next').getAttribute('href')`), '/interactivity', 'next page');
-  noErrors(p);
-  await p.close();
+  await done(p);
 });
 
-await test('docs: sidebar stays in view while the page scrolls', async () => {
-  for (const dark of [false, true]) {
-    const p = await open(`${docs}/templates`, { dark, width: 1200, height: 800 });
-    const top = `document.getElementById('zw-sidebar').getBoundingClientRect().top`;
-    const before = await p.eval(top);
-    await p.eval(`scrollTo(0, document.body.scrollHeight)`);
-    await sleep(300);
-    eq(Math.round(await p.eval(top)), Math.round(before), 'sidebar sticky');
-    eq(await p.eval(`getComputedStyle(document.getElementById('zw-sidebar')).backdropFilter.includes('url(')`), false, 'no lens on scrolling glass');
-    await p.eval(`document.getElementById('zw-sidebar').scrollTop = 99999`);
-    await p.shot(`docs-scrolled-${dark ? 'dark' : 'light'}`);
-    noErrors(p);
-    await p.close();
-  }
-});
+await test('docs: sidebar stays in view while the page scrolls', () => modes(async (dark, mode) => {
+  const p = await open(`${docs}/templates`, { dark, width: 1200, height: 800 });
+  const top = `document.getElementById('zw-sidebar').getBoundingClientRect().top`;
+  const before = await p.eval(top);
+  await p.eval(`scrollTo(0, document.body.scrollHeight)`);
+  await sleep(300);
+  eq(Math.round(await p.eval(top)), Math.round(before), 'sidebar sticky');
+  eq(await p.eval(`getComputedStyle(document.getElementById('zw-sidebar')).backdropFilter.includes('url(')`), false, 'no lens on scrolling glass');
+  await p.eval(`document.getElementById('zw-sidebar').scrollTop = 99999`);
+  await p.shot(`docs-scrolled-${mode}`);
+  await done(p);
+}));
 
 await test('docs: no zoom-on-focus on touch screens (text fields >= 16px)', async () => {
   const p = await open(docs, { width: 390, height: 800 });
@@ -407,8 +395,7 @@ await test('docs: no zoom-on-focus on touch screens (text fields >= 16px)', asyn
     .filter((i) => parseFloat(getComputedStyle(i).fontSize) < 16).map((i) => i.name || i.type)`);
   eq(small.length, 0, `fields under 16px: ${small.join(', ')}`);
   await p.shot('docs-mobile-home');
-  noErrors(p);
-  await p.close();
+  await done(p);
 });
 
 await test('docs: layout demos fit on phones', async () => {
@@ -419,8 +406,7 @@ await test('docs: layout demos fit on phones', async () => {
   await p.close();
   const s = await open(`${docs}/components/setting`, { width: 390, height: 844 });
   eq(await s.eval(`(() => { const seg = document.querySelector('.zw-demo .zw-seg'); return seg.scrollWidth <= seg.clientWidth + 1 && seg.getBoundingClientRect().right <= seg.closest('.zw-card').getBoundingClientRect().right; })()`), true, 'segmented fits its card');
-  noErrors(s);
-  await s.close();
+  await done(s);
 });
 
 await test('docs: mobile sidebar and island', async () => {
@@ -436,8 +422,7 @@ await test('docs: mobile sidebar and island', async () => {
   await p.click('.zw-sidebar-toggle');
   await p.waitFor(`document.getElementById('zw-sidebar').matches(':popover-open')`);
   await p.shot('docs-mobile-sidebar');
-  noErrors(p);
-  await p.close();
+  await done(p);
 });
 
 cleanup();
