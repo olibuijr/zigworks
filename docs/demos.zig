@@ -354,7 +354,16 @@ fn menu(w: *Writer) Writer.Error!void {
 }
 
 fn badge(w: *Writer) Writer.Error!void {
-    try zw.view("{a}{b}", .{ .a = ui.badge(.{ .text = "3" }), .b = ui.badge(.{ .text = "12 left" }) }).render(w);
+    try zw.view("{a}{b}{c}{d}{e}{f}{g}<span class=\"zw-row\" style=\"gap:6px\">{h}<span>Online</span></span>", .{
+        .a = ui.badge(.{ .text = "3" }),
+        .b = ui.badge(.{ .text = "12 left" }),
+        .c = ui.badge(.{ .text = "New", .tone = .accent }),
+        .d = ui.badge(.{ .text = "Beta", .tone = .orange, .size = .small }),
+        .e = ui.badge(.{ .text = "Synced", .tone = .green }),
+        .f = ui.badge(.{ .count = 128, .tone = .red, .solid = true }),
+        .g = ui.badge(.{ .count = 7, .tone = .red, .solid = true, .size = .small }),
+        .h = ui.badge(.{ .dot = true, .tone = .green, .text = "Online" }),
+    }).render(w);
 }
 
 fn progress(w: *Writer) Writer.Error!void {
@@ -475,19 +484,34 @@ fn toast(w: *Writer) Writer.Error!void {
 }
 
 fn avatar(w: *Writer) Writer.Error!void {
-    try zw.view("{a}{b}{c}{d}", .{
+    try zw.view("{a}{b}{c}{d}{e}{f}{g}<div class=\"zw-avatars\">{s1}{s2}{s3}{s4}</div>", .{
         .a = ui.avatar(.{ .name = "Ada Lovelace", .size = 44 }),
-        .b = ui.avatar(.{ .name = "Grace Hopper", .size = 44 }),
-        .c = ui.avatar(.{ .name = "Linus Torvalds", .size = 32 }),
+        .b = ui.avatar(.{ .name = "Grace Hopper", .size = 44, .status = .online }),
+        .c = ui.avatar(.{ .name = "Linus Torvalds", .size = 32, .status = .away }),
         .d = ui.avatar(.{ .name = "Andrew Kelley", .size = 24 }),
+        .e = ui.avatar(.{ .name = "Zig Software Foundation", .size = 44, .shape = .rounded, .hue = 35 }),
+        .f = ui.avatar(.{ .name = "Margaret Hamilton", .size = 44, .status = .busy }),
+        .g = ui.avatar(.{ .name = "Alan Turing", .size = 44, .status = .offline }),
+        .s1 = ui.avatar(.{ .name = "Ada Lovelace", .size = 36 }),
+        .s2 = ui.avatar(.{ .name = "Grace Hopper", .size = 36 }),
+        .s3 = ui.avatar(.{ .name = "Linus Torvalds", .size = 36 }),
+        .s4 = ui.avatar(.{ .name = "More people", .size = 36, .more = 5 }),
     }).render(w);
 }
 
 fn tag(w: *Writer) Writer.Error!void {
-    try zw.view("<div class=\"zw-tags\">{a}{b}{c}</div>", .{
+    try zw.view("<div class=\"zw-tags\">{a}{b}{c}</div><div class=\"zw-tags\">{d}{e}{f}{g}</div><div class=\"zw-tags\">{h}{i}{j}{k}</div>", .{
         .a = ui.tag(.{ .text = "zig" }),
         .b = ui.tag(.{ .text = "web", .remove = .{ .delete = "/demo/todo" } }),
         .c = ui.tag(.{ .text = "liquid glass", .remove = .{ .delete = "/demo/todo" } }),
+        .d = ui.tag(.{ .text = "Design", .tone = .gray, .icon = "✎" }),
+        .e = ui.tag(.{ .text = "Shipped", .tone = .green, .icon = "✓" }),
+        .f = ui.tag(.{ .text = "Blocked", .tone = .red, .size = .small }),
+        .g = ui.tag(.{ .text = "Docs", .href = "/", .tone = .orange, .size = .large }),
+        .h = ui.tag(.{ .text = "Open", .name = "state", .value = "open", .selected = true }),
+        .i = ui.tag(.{ .text = "Closed", .name = "state", .value = "closed" }),
+        .j = ui.tag(.{ .text = "Mine", .name = "mine", .tone = .green }),
+        .k = ui.tag(.{ .text = "Archived", .name = "archived", .disabled = true }),
     }).render(w);
 }
 
@@ -507,7 +531,16 @@ fn skeleton(w: *Writer) Writer.Error!void {
 }
 
 fn kbd(w: *Writer) Writer.Error!void {
-    try zw.view("<span>Search the docs</span>{a}<span style=\"margin-left:16px\">New window</span>{b}", .{ .a = ui.kbd(.{ .keys = "⌘ K" }), .b = ui.kbd(.{ .keys = "⌘ ⇧ N" }) }).render(w);
+    try zw.view("<span>Search the docs</span>{a}<span style=\"margin-left:16px\">New window</span>{b}<span style=\"margin-left:16px\">Quit</span>{c}" ++
+        "<span style=\"margin-left:16px\">On Windows</span>{d}<span style=\"margin-left:16px\">Go to Inbox</span>{e}<span style=\"margin-left:16px\">Menu style</span>{f}<span style=\"margin-left:16px\">Large</span>{g}", .{
+        .a = ui.kbd(.{ .keys = "⌘ K" }),
+        .b = ui.kbd(.{ .keys = "⌘ ⇧ N" }),
+        .c = ui.kbd(.{ .keys = "cmd q", .size = .small }),
+        .d = ui.kbd(.{ .keys = "cmd shift p", .platform = .pc }),
+        .e = ui.kbd(.{ .keys = "g i", .joiner = "then" }),
+        .f = ui.kbd(.{ .keys = "⌘ ⌥ esc", .plain = true }),
+        .g = ui.kbd(.{ .keys = "⌃ ⌥ ⌫", .size = .large }),
+    }).render(w);
 }
 
 fn path(w: *Writer) Writer.Error!void {
