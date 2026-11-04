@@ -25,7 +25,7 @@ pub const css =
     \\.demo-tooltip-item small{display:block}
     \\.demo-tooltip-people{margin-inline-start:4px}
     \\.demo-tooltip-people .zw-tip+.zw-tip{margin-inline-start:-10px}
-    \\.demo-tooltip-who{display:inline-grid;border-radius:50%}
+    \\.demo-tooltip-people .zw-tip[tabindex]{border-radius:50%}
     \\
 ;
 /// Server routes these demos need, e.g. `.{ "POST /demo/tooltip/x", handler }`.
@@ -45,7 +45,8 @@ const refresh = svg ++ "<path d=\"M14.5 9a5.5 5.5 0 1 1-1.8-4.1M14.5 3v3h-3\"/><
 const star_off = svg ++ "<path d=\"M9 2l2 4.3 4.7.6-3.4 3.2.9 4.7L9 12.5l-4.2 2.3.9-4.7L2.3 6.9 7 6.3z\"/></svg>";
 const star_on = "<svg viewBox=\"0 0 18 18\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linejoin=\"round\"><path d=\"M9 2l2 4.3 4.7.6-3.4 3.2.9 4.7L9 12.5l-4.2 2.3.9-4.7L2.3 6.9 7 6.3z\"/></svg>";
 
-// Hero: a Notes-style toolbar. Toolbar tips open below, as in macOS.
+// Hero: a Notes-style toolbar. Toolbar tips open below, as in macOS. Tips that only repeat a button's
+// name have no id or describedby (the screen reader already says it); Share adds a detail, so it has both.
 fn hero(w: *Writer) Writer.Error!void {
     try zw.view("<div class=\"demo-tooltip-bar zw-glass\" role=\"group\" aria-label=\"Note\">{new}{list}<span class=\"demo-tooltip-sep\"></span>{share}{trash}</div>{note}", .{
         .new = ui.tooltip(.{
@@ -68,11 +69,10 @@ fn hero(w: *Writer) Writer.Error!void {
             .body = ui.button(.{ .label = "Share", .variant = .plain, .icon = share, .icon_only = true, .describedby = "demo-tooltip-share", .z = d.save }),
         }),
         .trash = ui.tooltip(.{
-            .id = "demo-tooltip-trash",
             .text = "Delete Note",
             .shortcut = "⌘⌫",
             .side = .below,
-            .body = ui.button(.{ .label = "Delete Note", .variant = .plain, .icon = trash, .icon_only = true, .describedby = "demo-tooltip-trash", .z = d.save }),
+            .body = ui.button(.{ .label = "Delete Note", .variant = .plain, .icon = trash, .icon_only = true, .z = d.save }),
         }),
         .note = ui.card(.{
             .title = "Weekend plans",
@@ -170,14 +170,12 @@ fn star(on: bool, url: []const u8) ui.Tooltip(ui.Button) {
     const label: []const u8 = if (on) "Unfavorite" else "Favorite";
     const icon: []const u8 = if (on) star_on else star_off;
     return ui.tooltip(.{
-        .id = "demo-tooltip-star-tip",
         .text = text,
         .body = ui.button(.{
             .label = label,
             .variant = .plain,
             .icon = icon,
             .icon_only = true,
-            .describedby = "demo-tooltip-star-tip",
             .z = .{ .post = url, .target = "closest .zw-tip", .swap = .outer },
         }),
     });
@@ -221,9 +219,8 @@ fn live(w: *Writer) Writer.Error!void {
 }
 
 // Composition: tooltips on card actions (one also opens a menu) and on avatars. Avatars are not
-// focusable, so each gets a tabindex wrapper to make its tip reachable from the keyboard.
+// focusable, so `focusable` makes the tooltip wrapper a tab stop and its tip reachable from the keyboard.
 fn compose(w: *Writer) Writer.Error!void {
-    const who = "<span class=\"demo-tooltip-who\" tabindex=\"0\">{a}</span>";
     try ui.card(.{
         .title = "Q3 roadmap",
         .subtitle = "Shared document",
@@ -246,10 +243,10 @@ fn compose(w: *Writer) Writer.Error!void {
             } }),
         }),
         .body = zw.view("<div class=\"zw-row\"><span class=\"zw-secondary\">Shared with</span><div class=\"zw-avatars demo-tooltip-people\">{a}{b}{c}{d}</div></div>", .{
-            .a = ui.tooltip(.{ .text = "Ada Lovelace", .detail = "Can edit", .body = zw.view(who, .{ .a = ui.avatar(.{ .name = "Ada Lovelace" }) }) }),
-            .b = ui.tooltip(.{ .text = "Grace Hopper", .detail = "Can comment", .body = zw.view(who, .{ .a = ui.avatar(.{ .name = "Grace Hopper" }) }) }),
-            .c = ui.tooltip(.{ .text = "Alan Turing", .detail = "Can view", .body = zw.view(who, .{ .a = ui.avatar(.{ .name = "Alan Turing" }) }) }),
-            .d = ui.tooltip(.{ .text = "2 more people", .detail = "Margaret Hamilton and Katherine Johnson", .body = zw.view(who, .{ .a = ui.avatar(.{ .name = "More people", .more = 2 }) }) }),
+            .a = ui.tooltip(.{ .id = "demo-tooltip-ada", .text = "Ada Lovelace", .detail = "Can edit", .focusable = true, .body = ui.avatar(.{ .name = "Ada Lovelace" }) }),
+            .b = ui.tooltip(.{ .id = "demo-tooltip-grace", .text = "Grace Hopper", .detail = "Can comment", .focusable = true, .body = ui.avatar(.{ .name = "Grace Hopper" }) }),
+            .c = ui.tooltip(.{ .id = "demo-tooltip-alan", .text = "Alan Turing", .detail = "Can view", .focusable = true, .body = ui.avatar(.{ .name = "Alan Turing" }) }),
+            .d = ui.tooltip(.{ .id = "demo-tooltip-more", .text = "2 more people", .detail = "Margaret Hamilton and Katherine Johnson", .focusable = true, .body = ui.avatar(.{ .name = "More people", .more = 2 }) }),
         }),
     }).render(w);
 }

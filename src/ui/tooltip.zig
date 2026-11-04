@@ -1,6 +1,8 @@
 //! Tooltip: a short glass hint shown when the pointer rests on (or keyboard focus enters) its content,
 //! after the macOS delay. Replaces the browser's `title` tooltip. CSS only. Touch screens never show it.
-//! Give it an `id` and the trigger's `describedby` so assistive tech reads it as the description.
+//! The tip is aria-hidden (so screen readers do not read it twice); give it an `id` and the trigger's
+//! `describedby` when it adds more than the trigger's own name. The pointer can move onto the tip.
+//! Escape dismisses it (z.js blurs a focused trigger and adds `zw-tip--off` while hovered).
 const std = @import("std");
 const zv = @import("../view.zig");
 
@@ -14,8 +16,11 @@ pub const css =
     \\:is(.zw-tip--left,.zw-tip--right)>&{bottom:auto;top:50%;--px:0%;--py:-50%;--ny:0px}
     \\.zw-tip--left>&{left:auto;right:calc(100% + 8px);--nx:4px;transform-origin:right center}
     \\.zw-tip--right>&{left:calc(100% + 8px);--nx:-4px;transform-origin:left center}
-    \\.zw-tip:is(:hover,:has(:focus-visible))>&{opacity:1;--nx:0px;--ny:0px;scale:1;transition-delay:var(--zw-tip-delay,500ms)}}
-    \\@media (hover:none){.zw-tip:not(:has(:focus-visible))>.zw-tip-text{display:none}}
+    \\&::after{content:"";position:absolute;inset:-8px}
+    \\.zw-tip:is(:hover,:focus-visible,:has(:focus-visible))>&{opacity:1;pointer-events:auto;--nx:0px;--ny:0px;scale:1;transition-delay:var(--zw-tip-delay,500ms)}
+    \\.zw-tip.zw-tip--off>&{opacity:0;pointer-events:none;transition-delay:0s}}
+    \\.zw-tip[tabindex]{border-radius:var(--radius-control)}
+    \\@media (hover:none){.zw-tip:not(:focus-visible,:has(:focus-visible))>.zw-tip-text{display:none}}
     \\.zw-tip-detail{display:block;margin-top:2px;color:var(--secondary)}
     \\.zw-tip-kbd{margin-left:8px;padding:0 4px;border-radius:4px;background:var(--fill);color:var(--secondary);font-weight:500}
     \\
@@ -36,15 +41,18 @@ pub fn Props(comptime Body: type) type {
         shortcut: []const u8 = "",
         /// Id of the tip. Pass the same string as the trigger's `describedby` (see `ui.button`).
         id: []const u8 = "",
+        /// Make the wrapper itself a tab stop, for bodies that are not focusable (avatar, badge). With an `id` it
+        /// also gets `aria-describedby`.
+        focusable: bool = false,
     };
 }
 
-const src = "<span class=\"zw-tip zw-tip--{p.side}\"{#if custom_delay} style=\"--zw-tip-delay:{p.delay}ms\"{/if}>{p.body}" ++
-    "<span class=\"zw-tip-text zw-glass\" role=\"tooltip\"{#if p.id} id=\"{p.id}\"{/if}>{p.text}" ++
+const src = "<span class=\"zw-tip zw-tip--{p.side}\"{#if p.focusable} tabindex=\"0\"{/if}{#if describe} aria-describedby=\"{p.id}\"{/if}{#if custom_delay} style=\"--zw-tip-delay:{p.delay}ms\"{/if}>{p.body}" ++
+    "<span class=\"zw-tip-text zw-glass\" role=\"tooltip\" aria-hidden=\"true\"{#if p.id} id=\"{p.id}\"{/if}>{p.text}" ++
     "{#if p.shortcut}<span class=\"zw-tip-kbd\">{p.shortcut}</span>{/if}{#if p.detail}<span class=\"zw-tip-detail\">{p.detail}</span>{/if}</span></span>";
 
 fn Data(comptime Body: type) type {
-    return struct { p: Props(Body), custom_delay: bool };
+    return struct { p: Props(Body), custom_delay: bool, describe: bool };
 }
 
 pub fn Tooltip(comptime Body: type) type {
@@ -55,7 +63,7 @@ pub fn Tooltip(comptime Body: type) type {
 pub fn tooltip(p: anytype) Tooltip(@FieldType(@TypeOf(p), "body")) {
     const P = Props(@FieldType(@TypeOf(p), "body"));
     const full = zv.props(P, p);
-    return .{ .data = .{ .p = full, .custom_delay = full.delay != 500 } };
+    return .{ .data = .{ .p = full, .custom_delay = full.delay != 500, .describe = full.focusable and full.id.len > 0 } };
 }
 
 fn expectHas(t: anytype, needle: []const u8) !void {
@@ -70,7 +78,9 @@ fn expectHas(t: anytype, needle: []const u8) !void {
 
 test "side, delay and rich body render" {
     const body = zv.view("<b>x</b>", .{});
-    try expectHas(tooltip(.{ .text = "Hi", .body = body }), "<span class=\"zw-tip zw-tip--above\"><b>x</b><span class=\"zw-tip-text zw-glass\" role=\"tooltip\">Hi</span></span>");
+    try expectHas(tooltip(.{ .text = "Hi", .body = body }), "<span class=\"zw-tip zw-tip--above\"><b>x</b><span class=\"zw-tip-text zw-glass\" role=\"tooltip\" aria-hidden=\"true\">Hi</span></span>");
     try expectHas(tooltip(.{ .text = "Hi", .side = .left, .delay = 200, .body = body }), "zw-tip--left\" style=\"--zw-tip-delay:200ms\"");
-    try expectHas(tooltip(.{ .text = "Hi", .id = "t1", .shortcut = "⌘S", .detail = "Saves now", .body = body }), "id=\"t1\">Hi<span class=\"zw-tip-kbd\">⌘S</span><span class=\"zw-tip-detail\">Saves now</span>");
+    try expectHas(tooltip(.{ .text = "Hi", .id = "t1", .shortcut = "⌘S", .detail = "Saves now", .body = body }), "aria-hidden=\"true\" id=\"t1\">Hi<span class=\"zw-tip-kbd\">⌘S</span><span class=\"zw-tip-detail\">Saves now</span>");
+    try expectHas(tooltip(.{ .text = "Hi", .focusable = true, .id = "t2", .body = body }), "zw-tip--above\" tabindex=\"0\" aria-describedby=\"t2\"><b>x</b>");
+    try expectHas(tooltip(.{ .text = "Hi", .focusable = true, .body = body }), "zw-tip--above\" tabindex=\"0\"><b>x</b>");
 }
