@@ -6,24 +6,23 @@ const Writer = std.Io.Writer;
 const zv = @import("../view.zig");
 
 pub const css =
-    \\.zw-disclosure{interpolate-size:allow-keywords}
-    \\.zw-disclosure>summary{display:flex;align-items:center;gap:8px;min-height:30px;list-style:none;font:var(--body);font-weight:600;cursor:default;user-select:none;border-radius:var(--radius-control);padding:0 6px;margin:0 -6px;
-    \\-webkit-tap-highlight-color:transparent;transition:background-color var(--speed)}
-    \\.zw-disclosure>summary::-webkit-details-marker{display:none}
-    \\.zw-disclosure>summary::before{content:"";flex:none;width:6px;height:6px;margin:0 3px 0 2px;border:solid var(--secondary);border-width:0 1.75px 1.75px 0;rotate:-45deg;
-    \\transition:rotate var(--dur-bouncy) var(--spring-bouncy)}
-    \\.zw-disclosure[open]>summary::before{rotate:45deg}
-    \\.zw-disclosure>summary:hover{background:var(--fill)}
-    \\.zw-disclosure>summary:active{background:color-mix(in srgb,var(--fill) 70%,var(--separator))}
+    \\.zw-disclosure{interpolate-size:allow-keywords;
+    \\&::details-content{height:0;opacity:0;overflow:clip;transition:height var(--dur) var(--spring),opacity 200ms ease,content-visibility var(--dur) allow-discrete}
+    \\&[open]::details-content{height:auto;opacity:1}
+    \\>summary{display:flex;align-items:center;gap:8px;min-height:30px;margin:0 -6px;padding:0 6px;list-style:none;font:var(--body);font-weight:600;cursor:default;user-select:none;
+    \\border-radius:var(--radius-control);-webkit-tap-highlight-color:transparent;transition:background-color var(--speed);
+    \\&::-webkit-details-marker{display:none}
+    \\&::before{content:"";flex:none;width:6px;height:6px;margin:0 3px 0 2px;border:solid var(--secondary);border-width:0 1.75px 1.75px 0;rotate:-45deg;transition:rotate var(--dur-bouncy) var(--spring-bouncy)}
+    \\&:hover{background:var(--fill)}
+    \\&:active{background:color-mix(in srgb,var(--fill) 70%,var(--separator))}}
+    \\&[open]>summary::before{rotate:45deg}}
     \\.zw-disclosure-title{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
-    \\.zw-disclosure-detail{flex:none;margin-left:auto;max-width:50%;font:var(--callout);color:var(--secondary);text-align:end;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    \\.zw-disclosure::details-content{height:0;opacity:0;overflow:clip;transition:height var(--dur) var(--spring),opacity 200ms ease,content-visibility var(--dur) allow-discrete}
-    \\.zw-disclosure[open]::details-content{height:auto;opacity:1}
+    \\.zw-disclosure-detail{flex:none;margin-left:auto;max-width:50%;overflow:hidden;font:var(--callout);color:var(--secondary);text-align:end;text-overflow:ellipsis;white-space:nowrap}
     \\.zw-disclosure-body{padding:6px 0 4px 21px}
-    \\.zw-disclosure--card{padding:4px;background:var(--content);border-radius:var(--radius);box-shadow:var(--shadow)}
-    \\.zw-disclosure--card>summary{margin:0;padding:0 8px;min-height:36px}
-    \\.zw-disclosure--card>.zw-disclosure-body{padding:6px 8px 8px 29px}
-    \\.zw-disclosure--card+.zw-disclosure--card{margin-top:8px}
+    \\.zw-disclosure--card{padding:4px;background:var(--content);border-radius:var(--radius);box-shadow:var(--shadow);
+    \\&>summary{margin:0;padding:0 8px;min-height:36px}
+    \\&>.zw-disclosure-body{padding:6px 8px 8px 29px}
+    \\&+&{margin-top:8px}}
     \\@media (pointer:coarse){.zw-disclosure>summary{min-height:44px}}
     \\
 ;

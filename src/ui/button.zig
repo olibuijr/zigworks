@@ -6,24 +6,22 @@ const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
 
 pub const css =
-    \\.zw-btn{appearance:none;position:relative;height:var(--zw-btn-h,var(--control-h));padding:0 var(--zw-btn-px,15px);border:0;border-radius:999px;font:var(--body);font-weight:500;letter-spacing:-.08px;
-    \\color:var(--label);background:transparent;cursor:default;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;text-decoration:none}
-    \\.zw-btn:hover{text-decoration:none}
-    \\.zw-btn:disabled,.zw-btn[aria-disabled=true]{opacity:.4;pointer-events:none}
-    \\.zw-btn.is-loading:disabled{opacity:.7}
+    \\.zw-btn{appearance:none;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:var(--zw-btn-h,var(--control-h));padding:0 var(--zw-btn-px,15px);
+    \\border:0;border-radius:999px;background:transparent;color:var(--label);font:var(--body);font-weight:500;letter-spacing:-.08px;white-space:nowrap;cursor:default;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+    \\&:hover{text-decoration:none}
+    \\&:disabled,&[aria-disabled=true]{opacity:.4;pointer-events:none}
+    \\&.is-loading:disabled{opacity:.7}
+    \\svg{width:1.15em;height:1.15em;flex:none}}
     \\.zw-btn--small{--zw-btn-h:calc(var(--control-h) - 6px);--zw-btn-px:10px;font:var(--callout);font-weight:500}
     \\.zw-btn--large{--zw-btn-h:calc(var(--control-h) + 8px);--zw-btn-px:20px;font:var(--title3);font-weight:500;letter-spacing:-.23px}
     \\.zw-btn--primary{color:var(--on-accent);background:color-mix(in srgb,var(--accent) 88%,transparent);
     \\box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -1px 1px rgba(0,0,0,.12),inset 0 0 0 .5px rgba(255,255,255,.22),0 0 0 .5px color-mix(in srgb,var(--accent) 70%,#000),0 4px 14px color-mix(in srgb,var(--accent) 32%,transparent)}
     \\.zw-btn--plain,.zw-btn--destructive{padding-inline:calc(var(--zw-btn-px,15px) - 5px)}
-    \\.zw-btn--plain{color:var(--accent)}
-    \\.zw-btn--plain:hover,.zw-btn--plain[aria-expanded=true]{background:var(--fill)}
-    \\.zw-btn--destructive{color:var(--red)}
-    \\.zw-btn--destructive:hover{background:color-mix(in srgb,var(--red) 12%,transparent)}
-    \\.zw-btn svg{width:1.15em;height:1.15em;flex:none}
+    \\.zw-btn--plain{color:var(--accent);&:hover,&[aria-expanded=true]{background:var(--fill)}}
+    \\.zw-btn--destructive{color:var(--red);&:hover{background:color-mix(in srgb,var(--red) 12%,transparent)}}
     \\.zw-btn-icon{display:inline-flex;flex:none}
     \\.zw-btn-icon--end{order:1}
-    \\.zw-btn-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    \\.zw-btn-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
     \\.zw-btn-spin{flex:none;width:1.05em;height:1.05em;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;opacity:.85;animation:zw-btn-spin .7s linear infinite}
     \\@keyframes zw-btn-spin{to{rotate:360deg}}
     \\.zw-btn--full{display:flex;width:100%}
