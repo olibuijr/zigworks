@@ -194,13 +194,16 @@ fn decl(comptime name: []const u8, comptime value: []const u8) []const u8 {
 // them on focus (it zooms below 16px; turning page zoom off instead would hurt accessibility),
 // and controls get taller for fingers.
 const base =
-    \\*,*::before,*::after{box-sizing:border-box;margin:0}
+    \\*,::before,::after{box-sizing:border-box;margin:0}
     \\html{-webkit-text-size-adjust:100%;scrollbar-width:thin;scrollbar-color:var(--tertiary) transparent}
     \\body{min-height:100vh;font:var(--body);letter-spacing:-.08px;color:var(--label);background:var(--window);-webkit-font-smoothing:antialiased}
-    \\::-webkit-scrollbar{width:11px;height:11px}::-webkit-scrollbar-thumb{background:var(--tertiary);border-radius:11px;border:3px solid transparent;background-clip:content-box}
+    \\::-webkit-scrollbar{width:11px;height:11px}
+    \\::-webkit-scrollbar-thumb{background:var(--tertiary);border-radius:11px;border:3px solid transparent;background-clip:content-box}
     \\::selection{background:color-mix(in srgb,var(--accent) 30%,transparent)}
-    \\h1{font:var(--large-title);letter-spacing:.22px}h2{font:var(--title2);font-weight:700;letter-spacing:-.43px}h3{font:var(--title3);font-weight:600;letter-spacing:-.23px}
-    \\a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+    \\h1{font:var(--large-title);letter-spacing:.22px}
+    \\h2{font:var(--title2);font-weight:700;letter-spacing:-.43px}
+    \\h3{font:var(--title3);font-weight:600;letter-spacing:-.23px}
+    \\a{color:var(--accent);text-decoration:none;&:hover{text-decoration:underline}}
     \\:focus-visible{outline:var(--focus-ring);outline-offset:1px}
     \\code{font-family:var(--mono);font-size:12px}
     \\.zw-stack{display:flex;flex-direction:column;gap:var(--space)}
@@ -215,7 +218,7 @@ const base =
     \\@media (pointer:coarse){:root{--control-h:34px}input:not([type=checkbox],[type=radio],[type=range]),textarea,select{font-size:max(16px,1em)!important}}
     \\@property --zw-glow{syntax:"<number>";inherits:true;initial-value:0}
     \\@supports not (transition-timing-function:linear(0,1)){:root{--spring:cubic-bezier(.25,1.1,.4,1);--spring-bouncy:cubic-bezier(.3,1.5,.5,1);--spring-snappy:cubic-bezier(.2,1,.3,1)}}
-    \\@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+    \\@media (prefers-reduced-motion:reduce){*,::before,::after{transition:none!important;animation:none!important}}
     \\@media (prefers-contrast:more){:root{--separator:var(--secondary);--glass:var(--content);--glass-thick:var(--content);--glass-rim:inset 0 0 0 1px var(--secondary)}}
     \\@media (prefers-reduced-transparency:reduce){:root{--glass:var(--content);--glass-thick:var(--content);--glass-clear:var(--content);--glass-filter:none;--glass-filter-clear:none;--glass-sheen:none}}
     \\
