@@ -2,6 +2,27 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [SemVer](https://semver.org/).
 
+**Releasing:** bump the version in `build.zig.zon`, `src/zigworks.zig` (`version`) and the README
+install snippet (`#vX.Y.Z`), rename `[Unreleased]` to the version and date, then tag `vX.Y.Z`.
+
+## [Unreleased]
+
+Codebase hygiene: less code, fewer surprises, same API.
+
+### Changed
+- `+` stays literal in route params and static file paths (only form bodies and query strings decode it as a space).
+- Built-in assets (`/_zw/z.js`, `/_zw/zw.css`) send an `ETag` and answer `304 Not Modified`.
+- Per-connection memory is bounded.
+- Markdown blockquotes no longer stop at 64 lines.
+- Shared base CSS for the focus ring, `.zw-input` and `.zw-sr`; components reuse it instead of repeating it.
+- Lighter glass.js.
+- Prose styles use `@scope`.
+
+### Internal
+- Server tests run in-process.
+- e2e helpers shorten the browser tests.
+- One add-a-component checklist in the agents docs; size, Node and host facts corrected in the docs.
+
 ## [0.5.0] - 2026-11-04
 
 Every component reviewed and extended. All new props have defaults, so existing code compiles unchanged.
