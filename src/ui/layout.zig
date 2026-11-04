@@ -9,38 +9,35 @@ const std = @import("std");
 const zv = @import("../view.zig");
 
 pub const css =
-    \\.zw-bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:8px;height:calc(52px + env(safe-area-inset-top));
-    \\padding:env(safe-area-inset-top) max(var(--space),calc((100vw - var(--width))/2 + var(--space))) 0}
-    \\.zw-bar::before{content:"";position:absolute;inset:0 0 -24px;z-index:-1;pointer-events:none;
+    \\.zw-bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:8px;height:calc(52px + env(safe-area-inset-top));padding:env(safe-area-inset-top) max(var(--space),(100vw - var(--width))/2 + var(--space)) 0;
+    \\&::before{content:"";position:absolute;inset:0 0 -24px;z-index:-1;pointer-events:none;
     \\background:linear-gradient(color-mix(in srgb,var(--window) 80%,transparent),color-mix(in srgb,var(--window) 0%,transparent));
     \\-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);mask-image:linear-gradient(#000 35%,rgba(0,0,0,.6) 65%,transparent)}
-    \\.zw-bar h1{flex:1;min-width:0;font:var(--title3);font-weight:600;letter-spacing:-.23px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    \\.zw-bar h1 a{color:inherit;text-decoration:none}
-    \\.zw-bar h1:has(a){flex:1 0 auto}
-    \\.zw-bar--center{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,auto) minmax(0,1fr)}
-    \\.zw-bar--center h1{grid-column:2;text-align:center}
-    \\.zw-bar--center .zw-sidebar-toggle{grid-column:1;grid-row:1;justify-self:start}
+    \\h1{flex:1;min-width:0;font:var(--title3);font-weight:600;letter-spacing:-.23px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    \\a{color:inherit;text-decoration:none}
+    \\&:has(a){flex:1 0 auto}}}
+    \\.zw-bar--center{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,auto) minmax(0,1fr);
+    \\h1{grid-column:2;text-align:center}
+    \\.zw-sidebar-toggle{grid-column:1;grid-row:1;justify-self:start}}
     \\.zw-bar-end{grid-column:3;grid-row:1;justify-self:end;display:flex;align-items:center;gap:8px;min-width:0}
-    \\.zw-main{max-width:var(--width);margin:0 auto;padding:20px var(--space) calc(64px + env(safe-area-inset-bottom))}
-    \\.zw-main:focus{outline:none}
-    \\.zw-app .zw-bar{padding:env(safe-area-inset-top) max(var(--space),env(safe-area-inset-right)) 0 max(var(--space),env(safe-area-inset-left))}
-    \\.zw-app .zw-main{max-width:calc(72ch + 2 * var(--space) + 40px);padding:28px calc(var(--space) + 20px) calc(80px + env(safe-area-inset-bottom))}
-    \\@media (max-width:599px){.zw-app .zw-main{padding:20px var(--space) calc(64px + env(safe-area-inset-bottom))}}
+    \\.zw-main{max-width:var(--width);margin:0 auto;padding:20px var(--space) calc(64px + env(safe-area-inset-bottom));&:focus{outline:none}}
+    \\.zw-footer{max-width:var(--width);margin:0 auto;padding:0 var(--space) calc(40px + env(safe-area-inset-bottom));font:var(--callout);color:var(--secondary);
+    \\&::before{content:"";display:block;height:.5px;margin-bottom:14px;background:var(--separator)}}
+    \\.zw-app{
+    \\.zw-bar{padding:env(safe-area-inset-top) max(var(--space),env(safe-area-inset-right)) 0 max(var(--space),env(safe-area-inset-left))}
+    \\.zw-main{max-width:calc(72ch + 2 * var(--space) + 40px);padding:28px calc(var(--space) + 20px) calc(80px + env(safe-area-inset-bottom))}
+    \\.zw-footer{max-width:calc(72ch + 2 * var(--space) + 40px);padding-inline:calc(var(--space) + 20px)}
+    \\@media (max-width:599px){.zw-main{padding:20px var(--space) calc(64px + env(safe-area-inset-bottom))}.zw-footer{padding-inline:var(--space)}}}
     \\.zw-main:has(+.zw-footer){padding-bottom:24px}
-    \\.zw-footer{max-width:var(--width);margin:0 auto;padding:0 var(--space) calc(40px + env(safe-area-inset-bottom));font:var(--callout);color:var(--secondary)}
-    \\.zw-footer::before{content:"";display:block;height:.5px;margin-bottom:14px;background:var(--separator)}
-    \\.zw-app .zw-footer{max-width:calc(72ch + 2 * var(--space) + 40px);padding-inline:calc(var(--space) + 20px)}
-    \\@media (max-width:599px){.zw-app .zw-footer{padding-inline:var(--space)}}
-    \\@media (min-width:800px){.zw-shell{display:grid;grid-template-columns:250px minmax(0,1fr)}
-    \\.zw-shell>.zw-main,.zw-shell>.zw-footer{grid-column:2}
-    \\.zw-shell:has(>.zw-footer)>.zw-sidebar{grid-row:1/3}
-    \\.zw-shell>.zw-footer{align-self:start}}
-    \\@media (pointer:coarse){.zw-sidebar-toggle{min-width:44px;height:44px}}
+    \\@media (min-width:800px){.zw-shell{display:grid;grid-template-columns:250px minmax(0,1fr);
+    \\>:is(.zw-main,.zw-footer){grid-column:2}
+    \\>.zw-footer{align-self:start}
+    \\&:has(>.zw-footer)>.zw-sidebar{grid-row:1/3}}}
     \\.zw-skip{position:fixed;top:calc(8px + env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));z-index:100;display:inline-flex;align-items:center;height:var(--control-h);padding:0 16px;
-    \\border-radius:999px;font:var(--body);font-weight:500;color:var(--label);text-decoration:none;white-space:nowrap;
-    \\translate:0 calc(-100% - 24px);opacity:0;transition:translate var(--dur) var(--spring),opacity var(--speed)}
-    \\.zw-skip:focus{translate:0 0;opacity:1;text-decoration:none}
-    \\@media (pointer:coarse){.zw-skip{height:44px}}
+    \\border-radius:999px;font:var(--body);font-weight:500;color:var(--label);white-space:nowrap;
+    \\translate:0 calc(-100% - 24px);opacity:0;transition:translate var(--dur) var(--spring),opacity var(--speed);
+    \\&:focus{translate:0 0;opacity:1;text-decoration:none}}
+    \\@media (pointer:coarse){.zw-sidebar-toggle{min-width:44px;height:44px}.zw-skip{height:44px}}
     \\
 ;
 
