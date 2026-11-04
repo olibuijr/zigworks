@@ -289,7 +289,8 @@ fn radio(w: *Writer) Writer.Error!void {
     try ui.radio(.{ .name = "open", .label = "New windows open with", .z = save, .options = &.{
         .{ .value = "recent", .label = "Recents", .selected = true },
         .{ .value = "home", .label = "Home folder" },
-        .{ .value = "desktop", .label = "Desktop" },
+        .{ .value = "desktop", .label = "Desktop", .description = "The folder on your desktop" },
+        .{ .value = "icloud", .label = "iCloud Drive", .disabled = true },
     } }).render(w);
 }
 
