@@ -367,34 +367,74 @@ fn badge(w: *Writer) Writer.Error!void {
 }
 
 fn progress(w: *Writer) Writer.Error!void {
-    try zw.view("{a}<p class=\"zw-row\" style=\"margin-top:14px\">{b}<span class=\"zw-secondary\">Indexing…</span></p>", .{
-        .a = ui.progress(.{ .value = 42, .label = "Download" }),
-        .b = ui.progress(.{ .value = null, .label = "Indexing" }),
-    }).render(w);
+    try zw.view(
+        "<div class=\"zw-stack\" style=\"width:100%\">{a}{b}{c}" ++
+            "<div class=\"zw-row\" style=\"gap:20px\">{d}{e}{f}{g}{h}</div></div>",
+        .{
+            .a = ui.progress(.{ .value = 42, .label = "Download", .text = "Downloading Xcode", .show_value = true }),
+            .b = ui.progress(.{ .value = 88, .label = "Storage", .text = "Storage almost full", .show_value = true, .tone = .warning }),
+            .c = ui.progress(.{ .value = 100, .label = "Backup", .tone = .success, .size = .large }),
+            .d = ui.progress(.{ .value = null, .label = "Indexing", .text = "Indexing…" }),
+            .e = ui.progress(.{ .value = 64, .label = "Storage used", .ring = true, .show_value = true }),
+            .f = ui.progress(.{ .value = 100, .label = "Done", .ring = true, .size = .small, .tone = .success }),
+            .g = ui.progress(.{ .value = 30, .label = "Upload failed", .ring = true, .size = .large, .show_value = true, .tone = .@"error" }),
+            .h = ui.progress(.{ .value = null, .label = "Syncing", .size = .large }),
+        },
+    ).render(w);
 }
 
 fn callout(w: *Writer) Writer.Error!void {
-    try zw.view("{a}{b}{c}", .{
+    try zw.view("<div class=\"zw-stack\" style=\"width:100%\">{a}{b}{c}{d}{e}{f}</div>", .{
         .a = ui.callout(.{ .title = "Note", .body = "Routes are matched in order." }),
         .b = ui.callout(.{ .kind = .tip, .title = "Tip", .body = "Run zig build e2e before you ship." }),
         .c = ui.callout(.{ .kind = .warning, .title = "Warning", .body = "No idle timeout yet: use a reverse proxy." }),
+        .d = ui.callout(.{ .kind = .important, .title = "Important", .body = "Handlers must not keep the Ctx after returning." }),
+        .e = ui.callout(.{ .kind = .caution, .title = "Caution", .body = "Deleting a site removes its backups too." }),
+        .f = ui.callout(.{ .kind = .tip, .body = "Compact, for dense UI.", .compact = true }),
     }).render(w);
 }
 
 fn code(w: *Writer) Writer.Error!void {
-    try ui.code(.{ .src = "fn index(c: *zw.Ctx) !void {\n    try c.html(\"<h1>Hello, {name}</h1>\", .{ .name = \"Zig\" });\n}" }).render(w);
+    try zw.view("<div class=\"zw-stack\" style=\"width:100%;min-width:0\">{a}{b}{c}</div>", .{
+        .a = ui.code(.{ .src = "fn index(c: *zw.Ctx) !void {\n    try c.html(\"<h1>Hello, {name}</h1>\", .{ .name = \"Zig\" });\n}" }),
+        .b = ui.code(.{
+            .title = "handlers.zig",
+            .numbers = true,
+            .highlight = "2-3",
+            .src = "fn create(c: *zw.Ctx) !void {\n    const title = c.form(\"title\") orelse return;\n    try store.add(title);\n    try c.html(\"{row}\", .{ .row = row(title) });\n}",
+        }),
+        .c = ui.code(.{ .lang = "sh", .wrap = true, .copy = false, .src = "curl -fsSL https://example.com/install-zigworks.sh | sh -s -- --prefix /usr/local --with-docs --no-telemetry" }),
+    }).render(w);
 }
 
 fn table(w: *Writer) Writer.Error!void {
-    try ui.table(.{ .head = &.{ "Method", "Path", "Handler" }, .rows = &.{
-        &.{ "GET", "/", "index" },
-        &.{ "POST", "/todos", "create" },
-        &.{ "DELETE", "/todos/:id", "remove" },
-    } }).render(w);
+    try zw.view("<div class=\"zw-stack\" style=\"width:100%;min-width:0\">{a}{b}{c}</div>", .{
+        .a = ui.table(.{ .head = &.{ "Method", "Path", "Handler" }, .rows = &.{
+            &.{ "GET", "/", "index" },
+            &.{ "POST", "/todos", "create" },
+            &.{ "DELETE", "/todos/:id", "remove" },
+        } }),
+        .b = ui.table(.{
+            .caption = "Disk usage",
+            .head = &.{ "Volume", "Used", "Free" },
+            .aligns = &.{ .left, .right, .right },
+            .rows = &.{
+                &.{ "System", "41.2 GB", "22.8 GB" },
+                &.{ "Backups", "310 GB", "190 GB" },
+                &.{ "Photos", "88.6 GB", "11.4 GB" },
+            },
+            .striped = true,
+            .row_header = true,
+        }),
+        .c = ui.table(.{ .head = &.{ "Name", "Role" }, .rows = &.{}, .empty = "No members yet", .compact = true }),
+    }).render(w);
 }
 
 fn island(w: *Writer) Writer.Error!void {
-    try ui.island(.{ .src = "/orbit.js", .props = "{\"planets\":5}", .height = "220px", .label = "Animated orbit drawn on a canvas" }).render(w);
+    try zw.view("<div class=\"zw-stack\" style=\"width:100%\">{a}{b}</div>", .{
+        .a = ui.island(.{ .src = "/orbit.js", .props = "{\"planets\":5}", .height = "220px", .label = "Animated orbit drawn on a canvas" }),
+        .b = ui.island(.{ .src = "/orbit.js", .props = "{\"planets\":3}", .aspect = "21/9", .label = "Wide orbit that keeps its proportions", .fallback = "Turn on JavaScript to see the orbit." }),
+    }).render(w);
 }
 
 fn tabs(w: *Writer) Writer.Error!void {
@@ -477,10 +517,26 @@ fn tooltip(w: *Writer) Writer.Error!void {
 }
 
 fn toast(w: *Writer) Writer.Error!void {
-    try zw.view("{a}{b}", .{
+    try zw.view("{a}{b}{c}{d}", .{
         .a = ui.button(.{ .label = "Save", .variant = .primary, .z = .{ .post = "/demo/toast?k=success", .swap = .none } }),
         .b = ui.button(.{ .label = "Fail", .z = .{ .post = "/demo/toast?k=error", .swap = .none } }),
+        .c = ui.button(.{ .label = "Warn", .z = .{ .post = "/demo/toast?k=warning", .swap = .none } }),
+        .d = ui.button(.{ .label = "Delete with Undo", .z = .{ .post = "/demo/toast?k=undo", .swap = .none } }),
     }).render(w);
+}
+
+/// The toast a demo button asks for (`POST /demo/toast?k=...`).
+pub fn toastFor(k: []const u8) ui.Toast {
+    if (std.mem.eql(u8, k, "error")) return ui.toast(.{ .text = "Couldn't save: the disk is full", .kind = .@"error" });
+    if (std.mem.eql(u8, k, "warning")) return ui.toast(.{ .text = "Storage is almost full", .kind = .warning });
+    // The action closes the toast through the empty 200 that DELETE /demo/todo answers.
+    if (std.mem.eql(u8, k, "undo")) return ui.toast(.{
+        .text = "Reminder deleted",
+        .action = "Undo",
+        .z = .{ .delete = "/demo/todo", .target = "closest .zw-toast", .swap = .delete },
+        .sticky = true,
+    });
+    return ui.toast(.{ .text = "Saved", .kind = .success });
 }
 
 fn avatar(w: *Writer) Writer.Error!void {
@@ -527,7 +583,12 @@ fn empty(w: *Writer) Writer.Error!void {
 }
 
 fn skeleton(w: *Writer) Writer.Error!void {
-    try ui.card(.{ .body = ui.skeleton(.{ .lines = 3 }) }).render(w);
+    try zw.view("<div class=\"zw-stack\" style=\"width:100%\">{a}{b}{c}{d}</div>", .{
+        .a = ui.card(.{ .body = ui.skeleton(.{ .lines = 3 }) }),
+        .b = ui.card(.{ .body = ui.skeleton(.{ .shape = .media, .lines = 2, .size = 44 }) }),
+        .c = ui.card(.{ .body = ui.skeleton(.{ .shape = .block, .height = "96px", .label = "Loading photo" }) }),
+        .d = ui.card(.{ .body = ui.skeleton(.{ .lines = 2, .last_width = 40, .shimmer = false }) }),
+    }).render(w);
 }
 
 fn kbd(w: *Writer) Writer.Error!void {
