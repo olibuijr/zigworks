@@ -78,6 +78,7 @@ fn variants(w: *Writer) Writer.Error!void {
         \\<dt><code>icon</code></dt><dd class="zw-tags">{i1}{i2}{i3}</dd>
         \\<dt><code>href</code></dt><dd class="zw-tags">{h1}{h2}</dd>
         \\<dt><code>remove</code></dt><dd class="zw-tags">{r1}{r2}{r3}</dd>
+        \\<dt><code>text</code></dt><dd class="zw-tags">{x1}</dd>
         \\</dl>
     , .{
         .t1 = ui.tag(.{ .text = "accent" }),
@@ -96,6 +97,7 @@ fn variants(w: *Writer) Writer.Error!void {
         .r1 = ui.tag(.{ .text = "Draft", .size = .small, .tone = .gray, .remove = .{ .delete = "/demo/tag/remove?t=Draft" } }),
         .r2 = ui.tag(.{ .text = "Review", .remove = .{ .delete = "/demo/tag/remove?t=Review" } }),
         .r3 = ui.tag(.{ .text = "Shipped", .size = .large, .tone = .green, .remove = .{ .delete = "/demo/tag/remove?t=Shipped" } }),
+        .x1 = ui.tag(.{ .text = "A very long tag that does not fit on a phone and ends in an ellipsis instead of overflowing", .tone = .gray, .remove = .{ .delete = "/demo/tag/remove?t=Long" } }),
     }).render(w);
 }
 
