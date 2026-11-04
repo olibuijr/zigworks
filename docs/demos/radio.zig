@@ -96,7 +96,7 @@ fn layout(w: *Writer) Writer.Error!void {
     }).render(w);
 }
 
-// States: a disabled option, a disabled group, nothing selected, long labels, and a group a switch turns on.
+// States: a disabled option, a disabled group, nothing selected, a required group with an error, long labels, and a group a switch turns on.
 
 /// The group the switch enables: served at first as disabled, then again by /demo/radio/sync.
 fn syncGroup(disabled: bool) ui.Radio {
@@ -124,6 +124,7 @@ fn states(w: *Writer) Writer.Error!void {
         \\<div><p class="demo-radio-cap">An option with <code>disabled</code></p>{a}</div>
         \\<div><p class="demo-radio-cap">Group <code>disabled</code></p>{b}</div>
         \\<div><p class="demo-radio-cap">Nothing <code>selected</code></p>{c}</div>
+        \\<div><p class="demo-radio-cap"><code>required</code> with <code>invalid</code></p>{r}</div>
         \\<div><p class="demo-radio-cap">Long labels wrap</p>{e}</div>
         \\<div><p class="demo-radio-cap">Disabled until the switch is on</p>{t}<div id="demo-radio-sync-group">{g}</div></div>
         \\</div>
@@ -141,6 +142,10 @@ fn states(w: *Writer) Writer.Error!void {
         .c = ui.radio(.{ .name = "demo-radio-st-c", .label = "Default browser", .z = d.save, .options = &.{
             .{ .value = "safari", .label = "Safari" },
             .{ .value = "other", .label = "Another browser" },
+        } }),
+        .r = ui.radio(.{ .name = "demo-radio-st-r", .label = "Delivery", .caption = true, .required = true, .help = "Choose how you want to receive it", .invalid = "Choose a delivery option", .options = &.{
+            .{ .value = "ship", .label = "Ship to me" },
+            .{ .value = "pickup", .label = "Pick up in store" },
         } }),
         .e = ui.radio(.{ .name = "demo-radio-st-d", .label = "When the lid closes", .z = d.save, .options = &.{
             .{ .value = "sleep", .label = "Put the Mac to sleep and wake it when the lid opens again", .selected = true },
@@ -186,9 +191,9 @@ fn checkout(w: *Writer) Writer.Error!void {
                 .label = "Shipping method",
                 .z = .{ .post = "/demo/radio/ship", .swap = .none },
                 .options = &.{
-                    .{ .value = "standard", .label = "Standard", .description = "5 to 7 business days, free", .selected = true },
-                    .{ .value = "express", .label = "Express", .description = "2 business days, $9.00" },
-                    .{ .value = "overnight", .label = "Overnight", .description = "Next business day, $19.00" },
+                    .{ .value = "standard", .label = "Standard", .description = "5 to 7 business days", .detail = "Free", .selected = true },
+                    .{ .value = "express", .label = "Express", .description = "2 business days", .detail = "$9.00" },
+                    .{ .value = "overnight", .label = "Overnight", .description = "Next business day", .detail = "$19.00" },
                     .{ .value = "pickup", .label = "Store pickup", .description = "Not available for this order", .disabled = true },
                 },
             }),
@@ -198,7 +203,7 @@ fn checkout(w: *Writer) Writer.Error!void {
 }
 
 // Composition: a field, two radio groups and a button in one form. Leaving the format
-// unchosen is an error the server answers with a toast.
+// unchosen is stopped by `required`; the server still checks and answers with a toast.
 
 const formats = [_][]const u8{ "pdf", "png", "txt" };
 
@@ -218,18 +223,18 @@ fn export_(w: *Writer) Writer.Error!void {
         .subtitle = "Choose a name and a format",
         .body = zw.view(
             \\<form class="zw-stack"{z}>{name}
-            \\<div><p class="demo-radio-cap">Format</p>{format}</div>
-            \\<div><p class="demo-radio-cap">Pages</p>{pages}</div>
+            \\{format}
+            \\{pages}
             \\<div class="zw-row">{btn}</div></form>
         , .{
             .z = ui.Z{ .post = "/demo/radio/export", .swap = .none, .keep = true },
             .name = ui.field(.{ .name = "demo-radio-file", .label = "File name", .value = "Quarterly report", .maxlength = 40 }),
-            .format = ui.radio(.{ .name = "demo-radio-format", .label = "Format", .layout = .horizontal, .options = &.{
+            .format = ui.radio(.{ .name = "demo-radio-format", .label = "Format", .caption = true, .required = true, .layout = .horizontal, .options = &.{
                 .{ .value = "pdf", .label = "PDF", .description = "Best for sharing" },
                 .{ .value = "png", .label = "PNG", .description = "Lossless image" },
                 .{ .value = "txt", .label = "Text", .description = "Plain text" },
             } }),
-            .pages = ui.radio(.{ .name = "demo-radio-pages", .label = "Pages", .options = &.{
+            .pages = ui.radio(.{ .name = "demo-radio-pages", .label = "Pages", .caption = true, .options = &.{
                 .{ .value = "all", .label = "All pages", .selected = true },
                 .{ .value = "current", .label = "Current page" },
                 .{ .value = "selection", .label = "Selection", .description = "Select text in the document first", .disabled = true },
