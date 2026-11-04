@@ -281,7 +281,10 @@ fn table(w: *Writer) Writer.Error!void {
 }
 
 fn island(w: *Writer) Writer.Error!void {
-    try ui.island(.{ .src = "/orbit.js", .props = "{\"planets\":5}", .height = "220px", .label = "Animated orbit drawn on a canvas" }).render(w);
+    try zw.view("<div class=\"zw-stack\" style=\"width:100%\">{a}{b}</div>", .{
+        .a = ui.island(.{ .src = "/orbit.js", .props = "{\"planets\":5}", .height = "220px", .label = "Animated orbit drawn on a canvas" }),
+        .b = ui.island(.{ .src = "/orbit.js", .props = "{\"planets\":3}", .aspect = "21/9", .label = "Wide orbit that keeps its proportions", .fallback = "Turn on JavaScript to see the orbit." }),
+    }).render(w);
 }
 
 fn tabs(w: *Writer) Writer.Error!void {
