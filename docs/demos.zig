@@ -317,9 +317,19 @@ fn disclosure(w: *Writer) Writer.Error!void {
 }
 
 fn tooltip(w: *Writer) Writer.Error!void {
-    try zw.view("{a}{b}", .{
+    try zw.view("{a}{b}{c}{d}{e}{f}", .{
         .a = ui.tooltip(.{ .text = "Shares a link to this list", .body = ui.button(.{ .label = "Share" }) }),
         .b = ui.tooltip(.{ .text = "Shown below", .side = .below, .body = ui.button(.{ .label = "Hover me", .variant = .plain }) }),
+        .c = ui.tooltip(.{ .text = "Shown on the left", .side = .left, .body = ui.button(.{ .label = "Left", .variant = .plain }) }),
+        .d = ui.tooltip(.{ .text = "Shown on the right", .side = .right, .body = ui.button(.{ .label = "Right", .variant = .plain }) }),
+        .e = ui.tooltip(.{ .text = "Appears at once", .delay = 0, .body = ui.button(.{ .label = "No Delay" }) }),
+        .f = ui.tooltip(.{
+            .id = "demo-tip",
+            .text = "Save",
+            .shortcut = "⌘S",
+            .detail = "Writes the document to disk.",
+            .body = ui.button(.{ .label = "Save", .variant = .primary, .describedby = "demo-tip" }),
+        }),
     }).render(w);
 }
 
