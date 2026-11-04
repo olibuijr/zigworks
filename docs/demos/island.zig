@@ -10,6 +10,7 @@ pub const demos = [_]d.Demo{
     .{ "island", true, island },
     .{ "island-sizes", true, sizes },
     .{ "island-loading", true, loading },
+    .{ "island-error", true, failing },
     .{ "island-props", true, props },
     .{ "island-compose", true, compose },
 };
@@ -111,6 +112,13 @@ fn slowRoute(c: *zw.Ctx) !void {
     var out: std.Io.Writer.Allocating = .init(c.arena);
     try slowIslands(&out.writer);
     try c.send(.ok, "text/html; charset=utf-8", out.written());
+}
+
+// Error: /missing.js does not exist, so the import fails and z.js marks the island; `failed` replaces the placeholder.
+fn failing(w: *Writer) Writer.Error!void {
+    try zw.view("<div class=\"demo-island-grid\">{a}</div>", .{
+        .a = cell("src=\"/missing.js\"", ui.island(.{ .src = "/missing.js", .height = "120px", .label = "Island whose module is missing", .failed = "The chart could not be loaded." })),
+    }).render(w);
 }
 
 // Props: a Screen Saver pane. The form sends its values with GET; the server answers with an island
