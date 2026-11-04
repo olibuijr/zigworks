@@ -2,9 +2,13 @@
 
 Source-list navigation, like Finder and Mail. Pass it to `ui.layout` as `sidebar`. On wide screens it sits next to the content; on narrow screens it slides in from the title bar button, with no JavaScript.
 
+A Mail window. Sections have headings, links have icons and counts, two sections fold, and the footer is pinned to the bottom. The buttons on the right post to the server, which sends back the whole window: the badges and the selected mailbox follow.
+
 ```demo
 sidebar
 ```
+
+In the demos the links only change the URL hash. In an app they are real pages, and `current` marks the one you are on.
 
 ## Usage
 
@@ -25,6 +29,46 @@ ui.sidebar(.{
 })
 ```
 
+## Sizes
+
+`size` is the macOS Sidebar Icon Size setting. It changes the row height and the icon size together, and rows are 44 px on touch screens whatever you pick.
+
+```demo
+sidebar-sizes
+```
+
+## Sections and badges
+
+A section with an empty `title` has no heading. A `badge` stays visible when a long label is cut off with an ellipsis. A collapsible section starts as `open` says, but the section that holds the `current` page always opens.
+
+```demo
+sidebar-sections
+```
+
+## Filtering
+
+The sidebar is plain markup, so a handler can return a smaller one. Here a field sends `GET /demo/sidebar/filter` on every keystroke and swaps the answer into the sidebar's container. Matching sections fold open, and when nothing matches the handler returns an empty state instead.
+
+```demo
+sidebar-filter
+```
+
+```zig
+fn filter(c: *zw.Ctx) !void {
+    const q = c.query("q") orelse "";
+    // keep the links whose label contains q, then:
+    try c.page(ui.sidebar(.{ .current = "#documents", .inline_ = true, .sections = kept }));
+}
+```
+
+## In a settings window
+
+A sidebar next to a card of settings, as in System Settings. The footer holds an account row and a storage meter; render them to a string first, since `footer` takes markup.
+
+```demo
+sidebar-settings
+```
+
 ## Props
 
 | Prop | Type | Default | Notes |
@@ -32,7 +76,7 @@ ui.sidebar(.{
 | `sections` | `[]const ui.SidebarSection` | required | `.{ .title, .links, .collapsible, .open }` |
 | `current` | string | required | the `href` to mark with `aria-current="page"` |
 | `label` | string | `"Navigation"` | accessible name of the `nav` |
-| `inline_` | bool | `false` | show it inside content (no popover, no id), like the demo above |
+| `inline_` | bool | `false` | show it inside content (no popover, no id), like every demo on this page |
 | `size` | `.small` / `.medium` / `.large` | `.medium` | row height and icon size, like the macOS Sidebar Icon Size setting (24, 28 and 32 px rows; 44 px on touch screens) |
 | `footer` | raw HTML string | `""` | pinned to the bottom of the sidebar: an account row, a storage note. Trusted markup, not escaped |
 
@@ -54,7 +98,7 @@ A link is `ui.SidebarLink`:
 | `icon` | inline SVG string | `""` | drawn in the accent color; use `currentColor` strokes and a square `viewBox`. Hidden from screen readers |
 | `badge` | string | `""` | trailing text, usually a count. Read after the label by screen readers |
 
-Build sections at comptime to share them between pages, as this site does.
+Build sections at comptime to share them between pages, as this site does. Build them from the request to change them per user, as the filter demo does. Links are plain `<a>` elements: they take no `z` props, so a link always loads its `href`.
 
 ## Notes
 
