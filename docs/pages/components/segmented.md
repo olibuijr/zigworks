@@ -18,7 +18,7 @@ segmented-variants
 
 ## States
 
-One segment is usually selected. Leave all of them unselected when there is no value yet. Disable a single option, or the whole control. Long labels are cut with an ellipsis.
+One segment is usually selected. Leave all of them unselected when there is no value yet. Disable a single option, or the whole control. Add `help` text under the control, or an `invalid` message that turns it red. Long labels are cut with an ellipsis.
 
 ```demo
 segmented-states
@@ -64,6 +64,15 @@ ui.segmented(.{
 })
 ```
 
+Show a validation error under the control. It outlines the control in red, sets `aria-invalid` and is announced to screen readers:
+
+```zig
+ui.segmented(.{ .name = "delivery", .label = "Delivery", .invalid = "Choose a delivery method.", .options = &.{
+    .{ .value = "post", .label = "Post" },
+    .{ .value = "pickup", .label = "Pickup" },
+} })
+```
+
 Icons only, small, with a disabled option:
 
 ```zig
@@ -81,11 +90,13 @@ ui.segmented(.{ .name = "layout", .label = "Layout", .size = .small, .icons_only
 | `name` | string | required | form field name |
 | `label` | string | required | accessible group name |
 | `options` | `[]const ui.SegmentedOption` | required | see option fields below |
-| `z` | `ui.Z` | none | request sent on `change` (on every segment), with `name=value` |
+| `z` | `ui.Z` | none | request sent on `change` (the attributes go on every radio, so each segment fires it), with `name=value` |
 | `size` | `.small` / `.regular` / `.large` | `.regular` | control height; touch screens always get 44px |
 | `full` | bool | `false` | fill the width of the container, segments stay equal |
 | `icons_only` | bool | `false` | hide the text of options that have an icon; it stays for screen readers |
 | `disabled` | bool | `false` | disable every segment |
+| `help` | string | none | help text under the control |
+| `invalid` | string | none | error text under the control (red, replaces `help`); also sets `aria-invalid` and outlines the control |
 
 Option fields:
 
@@ -99,9 +110,10 @@ Option fields:
 
 ## Notes
 
-- Long labels are cut with an ellipsis instead of overflowing, so the control fits a 390px phone.
+- Long labels are cut with an ellipsis instead of overflowing, so the control fits a 390px phone. Screen readers still read the full label, but sighted users cannot, so keep labels short or use a picker.
+- While a `z` request is in flight the control dims and ignores clicks (z.js marks the sending radio busy). There is no separate loading prop.
 - To send several controls together, put them in a `<form>` with the `z` attributes on the form and `trigger = "change"`, like the first demo.
 - Names must be unique on a page: radios with the same `name` form one group.
 - With no `selected` option the glass pill is hidden and nothing is submitted until the user picks one.
 - With `icons_only`, an option without an icon still shows its text.
-- At most eight options. For more than five choices, or longer labels, use a picker.
+- Two to eight options. Any other number panics in every build mode, because the pill could not be placed. For more than five choices, or longer labels, use a picker.

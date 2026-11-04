@@ -184,6 +184,14 @@ fn states(w: *Writer) Writer.Error!void {
         .{ .value = "dark", .label = "Dark", .selected = true },
         .{ .value = "auto", .label = "Auto" },
     } }));
+    try row(w, ".help", ui.segmented(.{ .name = "demo-segmented-help", .label = "Sync", .help = "Applies to every device.", .z = d.save, .options = &.{
+        .{ .value = "auto", .label = "Automatic", .selected = true },
+        .{ .value = "manual", .label = "Manual" },
+    } }));
+    try row(w, ".invalid", ui.segmented(.{ .name = "demo-segmented-invalid", .label = "Delivery", .help = "Choose how to ship.", .invalid = "Choose a delivery method.", .z = d.save, .options = &.{
+        .{ .value = "post", .label = "Post" },
+        .{ .value = "pickup", .label = "Pickup" },
+    } }));
     try row(w, "long labels", zw.view("<div class=\"demo-segmented-narrow\">{c}</div>", .{
         .c = ui.segmented(.{ .name = "demo-segmented-long", .label = "Backup frequency", .full = true, .z = d.save, .options = &.{
             .{ .value = "hourly", .label = "Every hour while plugged in", .selected = true },
