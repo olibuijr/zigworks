@@ -160,17 +160,49 @@ fn sidebar(w: *Writer) Writer.Error!void {
 }
 
 fn card(w: *Writer) Writer.Error!void {
-    try ui.card(.{ .title = "Storage", .body = zw.view("<p style=\"margin-bottom:10px\">41.2 GB of 64 GB used</p>{p}", .{ .p = ui.progress(.{ .value = 64, .label = "Storage used" }) }) }).render(w);
+    try ui.card(.{
+        .title = "Storage",
+        .subtitle = "Macintosh HD",
+        .accessory = ui.button(.{ .label = "Manage…", .variant = .plain }),
+        .footer = "Updated just now",
+        .body = zw.view("<p style=\"margin-bottom:10px\">41.2 GB of 64 GB used</p>{p}", .{ .p = ui.progress(.{ .value = 64, .label = "Storage used" }) }),
+    }).render(w);
+    try ui.card(.{
+        .variant = .inset,
+        .title = "Share this list",
+        .body = "Anyone with the link can view and edit.",
+        .footer = zw.view("{a}{b}", .{ .a = ui.button(.{ .label = "Cancel" }), .b = ui.button(.{ .label = "Copy Link", .variant = .primary }) }),
+    }).render(w);
+    try ui.card(.{ .href = "#card-link", .title = "zigworks", .subtitle = "A link card: the whole surface is the target", .body = "Updated today" }).render(w);
 }
 
 fn list(w: *Writer) Writer.Error!void {
     try ui.list(.{ .id = "demo-list", .body = zw.view("{a}{b}{c}", .{ .a = row(true, "Renew domain"), .b = row(false, "Write release notes"), .c = row(false, "Tag v0.2.0") }) }).render(w);
+    try ui.list(.{
+        .id = "demo-nav",
+        .header = "Network",
+        .footer = "Rows are links: the whole row is the target.",
+        .nav = true,
+        .body = zw.view("<li><a href=\"#demo-nav\">Wi-Fi</a></li><li><a href=\"#demo-nav\">Bluetooth</a></li><li><a href=\"#demo-nav\">VPN</a></li>", .{}),
+    }).render(w);
+    try ui.list(.{
+        .id = "demo-reveal",
+        .header = "Drafts",
+        .reveal = true,
+        .separators = .full,
+        .body = zw.view("<li><span class=\"zw-grow\">Launch notes</span>{a}</li><li><span class=\"zw-grow\">Old plan</span>{b}</li>", .{
+            .a = ui.button(.{ .label = "Delete", .variant = .destructive }),
+            .b = ui.button(.{ .label = "Delete", .variant = .destructive }),
+        }),
+    }).render(w);
 }
 
 fn setting(w: *Writer) Writer.Error!void {
-    try ui.card(.{ .body = zw.view("{a}{b}", .{
-        .a = ui.setting(.{ .label = "Appearance", .control = ui.segmented(.{ .name = "look", .label = "Appearance", .z = save, .options = &.{ .{ .value = "light", .label = "Light" }, .{ .value = "dark", .label = "Dark" }, .{ .value = "auto", .label = "Auto", .selected = true } } }) }),
+    try ui.card(.{ .body = zw.view("{a}{b}{c}{d}", .{
+        .a = ui.setting(.{ .label = "Appearance", .description = "Applies to every window.", .control = ui.segmented(.{ .name = "look", .label = "Appearance", .z = save, .options = &.{ .{ .value = "light", .label = "Light" }, .{ .value = "dark", .label = "Dark" }, .{ .value = "auto", .label = "Auto", .selected = true } } }) }),
         .b = ui.toggle(.{ .name = "sounds", .label = "Play sounds", .on = true, .z = save }),
+        .c = ui.setting(.{ .label = "Sync", .description = "Turned off by your administrator.", .disabled = true, .control = ui.stepper(.{ .name = "sync", .label = "Sync interval in minutes", .value = 15, .min = 5, .max = 60 }) }),
+        .d = ui.setting(.{ .label = "Wi-Fi", .icon = "📶", .href = "#setting-wifi", .control = "Home" }),
     }) }).render(w);
 }
 
@@ -356,7 +388,14 @@ fn tag(w: *Writer) Writer.Error!void {
 }
 
 fn empty(w: *Writer) Writer.Error!void {
-    try ui.card(.{ .body = ui.empty(.{ .title = "No Reminders", .text = "Reminders you add show up here.", .action = ui.button(.{ .label = "New Reminder", .variant = .primary }) }) }).render(w);
+    try ui.card(.{ .body = ui.empty(.{
+        .icon = "✓",
+        .title = "No Reminders",
+        .text = "Reminders you add show up here.",
+        .action = ui.button(.{ .label = "New Reminder", .variant = .primary }),
+        .secondary = ui.button(.{ .label = "Learn More", .variant = .plain }),
+    }) }).render(w);
+    try ui.card(.{ .variant = .inset, .body = ui.empty(.{ .title = "No results", .text = "Try a different search.", .size = .compact }) }).render(w);
 }
 
 fn skeleton(w: *Writer) Writer.Error!void {
