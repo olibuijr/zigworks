@@ -187,6 +187,9 @@ fn decl(comptime name: []const u8, comptime value: []const u8) []const u8 {
     return "--" ++ final ++ ":" ++ value ++ ";";
 }
 
+// Touch screens (pointer:coarse): text fields use at least 16px text, so iOS never zooms into
+// them on focus (it zooms below 16px; turning page zoom off instead would hurt accessibility),
+// and controls get taller for fingers.
 const base =
     \\*,*::before,*::after{box-sizing:border-box;margin:0}
     \\html{-webkit-text-size-adjust:100%;scrollbar-width:thin;scrollbar-color:var(--tertiary) transparent}
@@ -202,6 +205,7 @@ const base =
     \\.zw-grow{flex:1;min-width:0}
     \\.zw-secondary{color:var(--secondary)}
     \\.zw-callout{font:var(--callout)}
+    \\@media (pointer:coarse){:root{--control-h:34px}input:not([type=checkbox],[type=radio],[type=range]),textarea,select{font-size:max(16px,1em)!important}}
     \\@property --zw-glow{syntax:"<number>";inherits:true;initial-value:0}
     \\@supports not (transition-timing-function:linear(0,1)){:root{--spring:cubic-bezier(.25,1.1,.4,1);--spring-bouncy:cubic-bezier(.3,1.5,.5,1);--spring-snappy:cubic-bezier(.2,1,.3,1)}}
     \\@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}

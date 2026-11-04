@@ -43,6 +43,20 @@ const demos = [_]Demo{
     .{ "code", true, code },
     .{ "table", true, table },
     .{ "island", true, island },
+    .{ "tabs", true, tabs },
+    .{ "textarea", true, textarea },
+    .{ "stepper", false, stepper },
+    .{ "checkbox", true, checkbox },
+    .{ "radio", false, radio },
+    .{ "disclosure", true, disclosure },
+    .{ "tooltip", false, tooltip },
+    .{ "toast", false, toast },
+    .{ "avatar", false, avatar },
+    .{ "tag", false, tag },
+    .{ "empty", true, empty },
+    .{ "skeleton", true, skeleton },
+    .{ "kbd", false, kbd },
+    .{ "path", false, path },
 };
 
 /// Markdown fence hook: ```demo name``` renders a live demo; other fences fall through.
@@ -230,4 +244,93 @@ fn table(w: *Writer) Writer.Error!void {
 
 fn island(w: *Writer) Writer.Error!void {
     try ui.island(.{ .src = "/orbit.js", .props = "{\"planets\":5}", .height = "220px", .label = "Animated orbit drawn on a canvas" }).render(w);
+}
+
+fn tabs(w: *Writer) Writer.Error!void {
+    try ui.tabs(.{ .id = "demo-tabs", .labels = &.{ "General", "Sharing", "Advanced" }, .panels = .{
+        ui.card(.{ .body = zw.view("{a}{b}", .{
+            .a = ui.toggle(.{ .name = "sync", .label = "Sync across devices", .on = true, .z = save }),
+            .b = ui.toggle(.{ .name = "badge", .label = "Show badge", .z = save }),
+        }) }),
+        ui.card(.{ .body = ui.empty(.{ .title = "Not shared", .text = "Invite people to edit this list with you.", .action = ui.button(.{ .label = "Invite…" }) }) }),
+        ui.card(.{ .body = ui.setting(.{ .label = "Cache size", .control = ui.stepper(.{ .name = "cache", .label = "Cache size in GB", .value = 4, .min = 1, .max = 32, .z = save }) }) }),
+    } }).render(w);
+}
+
+fn textarea(w: *Writer) Writer.Error!void {
+    try ui.textarea(.{ .name = "notes", .label = "Notes", .placeholder = "Add notes. The field grows as you type." }).render(w);
+}
+
+fn stepper(w: *Writer) Writer.Error!void {
+    try ui.setting(.{ .label = "Copies", .control = ui.stepper(.{ .name = "copies", .label = "Copies", .value = 1, .min = 1, .max = 9, .z = save }) }).render(w);
+}
+
+fn checkbox(w: *Writer) Writer.Error!void {
+    try zw.view("<div class=\"zw-stack\" style=\"gap:6px\">{a}{b}{c}</div>", .{
+        .a = ui.checkbox(.{ .name = "spell", .label = "Check spelling while typing", .on = true, .z = save }),
+        .b = ui.checkbox(.{ .name = "grammar", .label = "Check grammar with spelling", .z = save }),
+        .c = ui.checkbox(.{ .name = "caps", .label = "Capitalize words automatically", .on = true, .z = save }),
+    }).render(w);
+}
+
+fn radio(w: *Writer) Writer.Error!void {
+    try ui.radio(.{ .name = "open", .label = "New windows open with", .z = save, .options = &.{
+        .{ .value = "recent", .label = "Recents", .selected = true },
+        .{ .value = "home", .label = "Home folder" },
+        .{ .value = "desktop", .label = "Desktop" },
+    } }).render(w);
+}
+
+fn disclosure(w: *Writer) Writer.Error!void {
+    try zw.view("{a}{b}", .{
+        .a = ui.disclosure(.{ .title = "What is zigworks?", .open = true, .body = "A small web framework in pure Zig, with a component library in Liquid Glass." }),
+        .b = ui.disclosure(.{ .title = "Does it need JavaScript?", .body = "No. Pages work without it; z.js adds requests, swaps, islands and the glass effects." }),
+    }).render(w);
+}
+
+fn tooltip(w: *Writer) Writer.Error!void {
+    try zw.view("{a}{b}", .{
+        .a = ui.tooltip(.{ .text = "Shares a link to this list", .body = ui.button(.{ .label = "Share" }) }),
+        .b = ui.tooltip(.{ .text = "Shown below", .side = .below, .body = ui.button(.{ .label = "Hover me", .variant = .plain }) }),
+    }).render(w);
+}
+
+fn toast(w: *Writer) Writer.Error!void {
+    try zw.view("{a}{b}", .{
+        .a = ui.button(.{ .label = "Save", .variant = .primary, .z = .{ .post = "/demo/toast?k=success", .swap = .none } }),
+        .b = ui.button(.{ .label = "Fail", .z = .{ .post = "/demo/toast?k=error", .swap = .none } }),
+    }).render(w);
+}
+
+fn avatar(w: *Writer) Writer.Error!void {
+    try zw.view("{a}{b}{c}{d}", .{
+        .a = ui.avatar(.{ .name = "Ada Lovelace", .size = 44 }),
+        .b = ui.avatar(.{ .name = "Grace Hopper", .size = 44 }),
+        .c = ui.avatar(.{ .name = "Linus Torvalds", .size = 32 }),
+        .d = ui.avatar(.{ .name = "Andrew Kelley", .size = 24 }),
+    }).render(w);
+}
+
+fn tag(w: *Writer) Writer.Error!void {
+    try zw.view("<div class=\"zw-tags\">{a}{b}{c}</div>", .{
+        .a = ui.tag(.{ .text = "zig" }),
+        .b = ui.tag(.{ .text = "web", .remove = .{ .delete = "/demo/todo" } }),
+        .c = ui.tag(.{ .text = "liquid glass", .remove = .{ .delete = "/demo/todo" } }),
+    }).render(w);
+}
+
+fn empty(w: *Writer) Writer.Error!void {
+    try ui.card(.{ .body = ui.empty(.{ .title = "No Reminders", .text = "Reminders you add show up here.", .action = ui.button(.{ .label = "New Reminder", .variant = .primary }) }) }).render(w);
+}
+
+fn skeleton(w: *Writer) Writer.Error!void {
+    try ui.card(.{ .body = ui.skeleton(.{ .lines = 3 }) }).render(w);
+}
+
+fn kbd(w: *Writer) Writer.Error!void {
+    try zw.view("<span>Search the docs</span>{a}<span style=\"margin-left:16px\">New window</span>{b}", .{ .a = ui.kbd(.{ .keys = "⌘ K" }), .b = ui.kbd(.{ .keys = "⌘ ⇧ N" }) }).render(w);
+}
+
+fn path(w: *Writer) Writer.Error!void {
+    try ui.path(.{ .items = &.{ .{ .label = "Docs", .href = "/" }, .{ .label = "Components", .href = "/components/layout" }, .{ .label = "Path" } } }).render(w);
 }

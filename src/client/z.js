@@ -1,7 +1,8 @@
 // z.js: htmx-style attributes and islands for zigworks. No dependencies.
 // z-get|z-post|z-put|z-patch|z-delete="/url"   z-target="#sel" | "closest li"   z-swap="inner|outer|beforeend|afterbegin|delete|none"
-// z-trigger="click|submit|change|input|load"   z-confirm="Sure?"   z-island="/mod.js" data-props='{}'
-// Response elements with z-oob and an id replace the element with that id, wherever it is.
+// z-trigger="click|submit|change|input|load"   z-confirm="Sure?"   z-keep (form keeps its values)   z-island="/mod.js" data-props='{}'
+// Response elements with z-oob and an id replace the element with that id, wherever it is;
+// z-oob="beforeend" appends their children to it instead (toasts use this).
 // Also wires ui components that need a touch of JS: picker label, slider fill, closing popovers.
 (() => {
   document.documentElement.classList.add('zw-js'); // CSS: JS-drawn parts may replace native ones
@@ -38,7 +39,7 @@
       if (to) return location.assign(to);
       if (!res.ok) throw new Error(`${res.status} ${verb.toUpperCase()} ${url}`);
       if (res.status !== 204 && target) swap(target, attr(el, 'swap') || 'inner', await res.text());
-      if (form && verb !== 'get') el.reset();
+      if (form && verb !== 'get' && !el.hasAttribute('z-keep')) el.reset();
       el.closest('[popover]')?.hidePopover();
     } catch (e) {
       console.error('z.js', e);
@@ -52,7 +53,13 @@
     tpl.innerHTML = html;
     for (const o of tpl.content.querySelectorAll('[z-oob][id]')) {
       const old = document.getElementById(o.id);
-      if (old) { unmount(old); old.replaceWith(o); mount(o); } else o.remove();
+      if (!old) { o.remove(); continue; }
+      if (o.getAttribute('z-oob') === 'beforeend') {
+        const kids = [...o.children];
+        old.append(...kids);
+        o.remove();
+        kids.forEach((k) => { mount(k); if (k.matches('.zw-toast')) setTimeout(() => leave(k), 4000); });
+      } else { unmount(old); old.replaceWith(o); mount(o); }
     }
     if (mode === 'none') return;
     if (mode === 'delete') { unmount(t); return leave(t); }
@@ -75,6 +82,7 @@
   // Removed elements collapse and fade before they leave (instantly with Reduce Motion).
   function leave(el) {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return el.remove();
+    if (el.matches('.zw-toast')) { el.classList.add('zw-leave'); return setTimeout(() => el.remove(), 280); }
     el.style.height = el.offsetHeight + 'px';
     el.classList.add('zw-leave');
     requestAnimationFrame(() => requestAnimationFrame(() => { el.style.height = '0px'; }));
@@ -95,6 +103,7 @@
       if (attr(el, 'trigger') === 'load') fire(el);
     }
     root.querySelectorAll('.zw-slider input').forEach(fill);
+    root.querySelectorAll('.zw-stepper input').forEach(clampStep);
   }
 
   // Slider fill and knob position (the knob is drawn over the track so glass can refract it).
@@ -113,6 +122,21 @@
   document.addEventListener('input', (e) => { if (e.target.closest('.zw-slider')) fill(e.target); });
   // Esc in a search field dismisses its results (they hide once the field loses focus).
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && e.target.closest('.zw-search')) e.target.blur(); });
+  // Stepper buttons: step the number field and fire input + change like typing would.
+  const clampStep = (i) => {
+    const b = i.parentElement.querySelectorAll('[data-step]');
+    if (b.length === 2) { b[0].disabled = i.min !== '' && +i.value <= +i.min; b[1].disabled = i.max !== '' && +i.value >= +i.max; }
+  };
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-step]');
+    const i = b?.closest('.zw-stepper')?.querySelector('input');
+    if (!i) return;
+    if (b.dataset.step === '1') i.stepUp(); else i.stepDown();
+    i.dispatchEvent(new Event('input', { bubbles: true }));
+    i.dispatchEvent(new Event('change', { bubbles: true }));
+    clampStep(i);
+  });
+  document.addEventListener('change', (e) => { if (e.target.closest?.('.zw-stepper')) clampStep(e.target); });
   document.addEventListener('click', async (e) => {
     const b = e.target.closest('[data-copy]');
     if (!b) return;

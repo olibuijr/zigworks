@@ -154,6 +154,20 @@ No stock browser UI: pickers replace `<select>`, a custom dialog replaces `confi
 | `table` | head=[]string, rows=[][]string | `Table` |
 | `code` | src, lang="zig" (highlighted, Copy button) | `Code` |
 | `island` | src, props="{}", height="360px", label | `Island` |
+| `tabs` | id, labels=[]string, panels=.{ ... } (one per label), selected=0 | `Tabs(Panels)` |
+| `disclosure` | title, body, open=false | `Disclosure(Body)` |
+| `path` | items=[{label, href=""}], label="Path" (breadcrumb) | `Path` |
+| `empty` | title, text="", action | `Empty(Action)` |
+| `textarea` | name, label, placeholder, value, rows=3, required, z | `Textarea` |
+| `stepper` | name, label, value=0, min=0, max=100, step=1, z | `Stepper` |
+| `checkbox` | name, label, value="on", on=false, z | `Checkbox` |
+| `radio` | name, label, options=[{value,label,selected}], z | `Radio` |
+| `tooltip` | text, body, side=.above (above/below) | `Tooltip(Body)` |
+| `tag` | text, remove (?Z: shows a remove button) | `Tag` |
+| `avatar` | name, src="", size=32 (initials on a color from the name) | `Avatar` |
+| `kbd` | keys ("⌘ K") | `Kbd` |
+| `skeleton` | lines=3, label="Loading" | `Skeleton` |
+| `toast` | text, kind=.info (info/success/error); return it from any handler | `Toast` |
 
 Option and item types: `ui.SegmentedOption`, `ui.PickerOption`, `ui.MenuItem`, `ui.SidebarSection`, `ui.SidebarLink`.
 A `sidebar` passed to `layout` makes a two-column app; on narrow screens it slides in from a title-bar button.
@@ -175,11 +189,13 @@ z-target="#id" | "closest li"                where to put the response (default:
 z-swap="inner|outer|beforeend|afterbegin|delete|none"
 z-trigger="click|submit|change|input|load"   default: submit for forms, change for inputs, click otherwise
 z-confirm="Delete all?"                      ask first (custom dialog)
+z-keep                                       on a form: keep its values after a successful send
 z-oob                                        on a response element with an id: replace that element anywhere
+z-oob="beforeend"                            append its children to that element instead (toasts)
 z-island="/mod.js" data-props='{"a":1}'      import the module, call default(el, props); return cleanup
 ```
 
-Requests carry `z-request: 1`. Successful non-GET forms reset; popovers close after an action.
+Requests carry `z-request: 1`. Successful non-GET forms reset unless they carry `z-keep`; popovers close after an action.
 Only content added by `beforeend`/`afterbegin` animates, so motion marks what changed.
 
 ## Markdown

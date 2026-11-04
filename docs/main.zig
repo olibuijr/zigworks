@@ -15,6 +15,7 @@ const app = .{
         .{ "POST /demo/todos", todoAdd },
         .{ "POST /demo/toggle", todoToggle },
         .{ "DELETE /demo/todo", todoDelete },
+        .{ "POST /demo/toast", toastDemo },
         .{ "GET /components/:name", component },
         .{ "GET /:page", guide },
     },
@@ -113,6 +114,11 @@ fn todoToggle(c: *zw.Ctx) !void {
 fn todoDelete(c: *zw.Ctx) !void {
     // An empty 200 lets z.js remove the row (204 would mean "change nothing").
     try c.send(.ok, "text/html; charset=utf-8", "");
+}
+
+fn toastDemo(c: *zw.Ctx) !void {
+    const err = std.mem.eql(u8, c.query("k") orelse "", "error");
+    try c.page(ui.toast(if (err) .{ .text = "Couldn't save: the disk is full", .kind = .@"error" } else .{ .text = "Saved", .kind = .success }));
 }
 
 fn notFound(c: *zw.Ctx) !void {

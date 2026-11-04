@@ -64,6 +64,7 @@ async function open(url, { dark = false, width = 900, height = 900 } = {}) {
   await send('Runtime.enable');
   await send('Log.enable');
   await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 2, mobile: width < 600 });
+  if (width < 600) await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
   await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: dark ? 'dark' : 'light' }] });
   const loaded = event('Page.loadEventFired');
   await send('Page.navigate', { url });
@@ -82,13 +83,17 @@ async function open(url, { dark = false, width = 900, height = 900 } = {}) {
       throw new Error(`timeout: ${expr}`);
     },
     async center(selector) {
-      const box = await page.eval(`(() => { const r = document.querySelector(${JSON.stringify(selector)})?.getBoundingClientRect(); return r && { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
+      const box = await page.eval(`(() => { const e = document.querySelector(${JSON.stringify(selector)}); e?.scrollIntoView({ block: 'nearest' }); const r = e?.getBoundingClientRect(); return r && { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
       if (!box) throw new Error(`no element: ${selector}`);
       return box;
     },
     async click(selector) {
       const box = await page.center(selector);
       for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: box.x, y: box.y, button: 'left', clickCount: 1 });
+    },
+    async hover(selector) {
+      const box = await page.center(selector);
+      await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: box.x, y: box.y });
     },
     /** Hold the mouse down on an element (optionally dragging by dx), for pressed-state shots. */
     async press(selector, dx = 0) {
@@ -219,6 +224,51 @@ await test('gallery: controls, menu, picker, sheet', async () => {
   }
 });
 
+await test('gallery: tabs, stepper, disclosure, tooltip, tags, toast, skeleton', async () => {
+  const p = await open(gallery, { height: 1100 });
+  const panel = (i) => `getComputedStyle(document.querySelectorAll('.zw-tabs > .zw-tab-panel')[${i}]).display !== 'none'`;
+  // skeleton is replaced by the activity list once it loads
+  await p.waitFor(`!!document.getElementById('activity') && !document.querySelector('.zw-skeleton')`, 4000);
+  eq(await p.eval(`document.querySelectorAll('#activity .zw-avatar').length`), 2, 'activity avatars');
+  // tabs: first panel shown, the second after a click
+  eq(await p.eval(panel(0)), true, 'first tab panel visible');
+  await p.click('.zw-tabs .zw-seg label:nth-of-type(2)');
+  await p.waitFor(panel(1));
+  eq(await p.eval(panel(0)), false, 'first tab panel hidden');
+  await p.click('.zw-tabs .zw-seg label:nth-of-type(1)');
+  await p.waitFor(panel(0));
+  // stepper: clamps at min, increments
+  const copies = `document.querySelector('input[name=copies]')`;
+  eq(await p.eval(`${copies}.parentElement.querySelector('[data-step="-1"]').disabled`), true, 'minus disabled at min');
+  await p.click('.zw-stepper [data-step="1"]');
+  await p.click('.zw-stepper [data-step="1"]');
+  eq(await p.eval(`${copies}.value`), '3', 'stepper incremented');
+  eq(await p.eval(`${copies}.parentElement.querySelector('[data-step="-1"]').disabled`), false, 'minus enabled');
+  // checkbox
+  await p.click('.zw-checkbox');
+  eq(await p.eval(`document.querySelector('input[name=news]').checked`), true, 'checkbox on');
+  // disclosure opens
+  await p.click('.zw-disclosure summary');
+  await p.waitFor(`document.querySelector('.zw-disclosure').open`);
+  // tag remove: the tag leaves
+  const tags = await p.eval(`document.querySelectorAll('.zw-tag').length`);
+  await p.click('.zw-tag:nth-child(2) button');
+  await p.waitFor(`document.querySelectorAll('.zw-tag').length === ${tags - 1}`);
+  // toast: saving the account shows a toast that leaves on its own
+  await p.click('form[z-post="/account"] [type=submit]');
+  await p.waitFor(`!!document.querySelector('#zw-toasts .zw-toast')`);
+  await p.shot('gallery-toast');
+  eq(await p.eval(`document.querySelector('input[name=news]').checked`), true, 'z-keep form kept its values');
+  await p.waitFor(`!document.querySelector('#zw-toasts .zw-toast')`, 7000);
+  // tooltip shows after hovering (500 ms delay)
+  await p.hover('.zw-tip .zw-btn');
+  await sleep(1100);
+  eq(await p.eval(`getComputedStyle(document.querySelector('.zw-tip-text')).opacity`), '1', 'tooltip visible');
+  await p.shot('gallery-tooltip');
+  noErrors(p);
+  await p.close();
+});
+
 await test('glass: refraction lenses, pressed knobs, springs', async () => {
   for (const dark of [false, true]) {
     const mode = dark ? 'dark' : 'light';
@@ -327,6 +377,17 @@ await test('docs: live search, copy button, pager', async () => {
   await p.waitFor(`document.querySelector('.zw-code [data-copy]').textContent === 'Copied'`);
   eq(await p.eval(`navigator.clipboard.readText()`), await p.eval(`document.querySelector('.zw-code code').textContent`), 'clipboard text');
   eq(await p.eval(`document.querySelector('.pager .next').getAttribute('href')`), '/interactivity', 'next page');
+  noErrors(p);
+  await p.close();
+});
+
+await test('docs: no zoom-on-focus on touch screens (text fields >= 16px)', async () => {
+  const p = await open(docs, { width: 390, height: 800 });
+  eq(await p.eval(`matchMedia('(pointer: coarse)').matches`), true, 'touch emulated');
+  const small = await p.eval(`[...document.querySelectorAll('input:not([type=checkbox]):not([type=radio]):not([type=range]), textarea')]
+    .filter((i) => parseFloat(getComputedStyle(i).fontSize) < 16).map((i) => i.name || i.type)`);
+  eq(small.length, 0, `fields under 16px: ${small.join(', ')}`);
+  await p.shot('docs-mobile-home');
   noErrors(p);
   await p.close();
 });

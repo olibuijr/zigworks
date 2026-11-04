@@ -25,10 +25,25 @@ const Table_ = @import("ui/table.zig");
 const Progress_ = @import("ui/progress.zig");
 const Search_ = @import("ui/search.zig");
 const Prose_ = @import("ui/prose.zig");
+const Tabs_ = @import("ui/tabs.zig");
+const Textarea_ = @import("ui/textarea.zig");
+const Stepper_ = @import("ui/stepper.zig");
+const Checkbox_ = @import("ui/checkbox.zig");
+const Radio_ = @import("ui/radio.zig");
+const Disclosure_ = @import("ui/disclosure.zig");
+const Tooltip_ = @import("ui/tooltip.zig");
+const Toast_ = @import("ui/toast.zig");
+const Avatar_ = @import("ui/avatar.zig");
+const Tag_ = @import("ui/tag.zig");
+const Empty_ = @import("ui/empty.zig");
+const Skeleton_ = @import("ui/skeleton.zig");
+const Kbd_ = @import("ui/kbd.zig");
+const Path_ = @import("ui/path.zig");
 
 const Glass_ = @import("ui/glass.zig");
 // Glass comes first: it is the shared material, and component rules after it refine it.
-const all = .{ Glass_, Layout_, Card_, List_, Sheet_, Setting_, Button_, Field_, Check_, Toggle_, Segmented_, Slider_, Picker_, Menu_, Badge_, Island_, Sidebar_, Code_, Callout_, Table_, Progress_, Search_, Prose_ };
+const all = .{ Glass_, Layout_, Card_, List_, Sheet_, Setting_, Button_, Field_, Check_, Toggle_, Segmented_, Slider_, Picker_, Menu_, Badge_, Island_, Sidebar_, Code_, Callout_, Table_, Progress_, Search_, Prose_,
+    Tabs_, Textarea_, Stepper_, Checkbox_, Radio_, Disclosure_, Tooltip_, Toast_, Avatar_, Tag_, Empty_, Skeleton_, Kbd_, Path_ };
 
 pub const Z = @import("ui/z.zig").Z;
 pub const Swap = @import("ui/z.zig").Swap;
@@ -48,6 +63,14 @@ pub const sidebar = Sidebar_.sidebar;
 pub const Sidebar = Sidebar_.Sidebar;
 pub const SidebarSection = Sidebar_.Section;
 pub const SidebarLink = Sidebar_.Link;
+pub const tabs = Tabs_.tabs;
+pub const Tabs = Tabs_.Tabs;
+pub const disclosure = Disclosure_.disclosure;
+pub const Disclosure = Disclosure_.Disclosure;
+pub const tooltip = Tooltip_.tooltip;
+pub const Tooltip = Tooltip_.Tooltip;
+pub const empty = Empty_.empty;
+pub const Empty = Empty_.Empty;
 pub const callout = Callout_.callout;
 pub const Callout = Callout_.Callout;
 
@@ -71,6 +94,20 @@ pub const PickerOption = Picker_.Option;
 pub const menu = Menu_.menu;
 pub const Menu = Menu_.Menu;
 pub const MenuItem = Menu_.Item;
+pub const textarea = Textarea_.textarea;
+pub const Textarea = Textarea_.Textarea;
+pub const stepper = Stepper_.stepper;
+pub const Stepper = Stepper_.Stepper;
+pub const checkbox = Checkbox_.checkbox;
+pub const Checkbox = Checkbox_.Checkbox;
+pub const radio = Radio_.radio;
+pub const Radio = Radio_.Radio;
+pub const RadioOption = Radio_.Option;
+pub const tag = Tag_.tag;
+pub const Tag = Tag_.Tag;
+pub const path = Path_.path;
+pub const Path = Path_.Path;
+pub const PathItem = Path_.Item;
 pub const search = Search_.search;
 pub const Search = Search_.Search;
 
@@ -83,6 +120,14 @@ pub const code = Code_.code;
 pub const Code = Code_.Code;
 pub const table = Table_.table;
 pub const Table = Table_.Table;
+pub const toast = Toast_.toast;
+pub const Toast = Toast_.Toast;
+pub const avatar = Avatar_.avatar;
+pub const Avatar = Avatar_.Avatar;
+pub const skeleton = Skeleton_.skeleton;
+pub const Skeleton = Skeleton_.Skeleton;
+pub const kbd = Kbd_.kbd;
+pub const Kbd = Kbd_.Kbd;
 pub const progress = Progress_.progress;
 pub const Progress = Progress_.Progress;
 
@@ -95,4 +140,5 @@ pub const css = blk: {
 
 test {
     _ = @import("ui/z.zig");
+    _ = Avatar_;
 }

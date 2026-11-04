@@ -35,7 +35,7 @@ try c.html("{row}{count}", .{
 
 - A `z-redirect` response header sends the browser to that URL (`c.redirect` does this for you).
 - `204 No Content` swaps nothing.
-- A successful non-GET form is reset, and an open menu or sheet closes.
+- A successful non-GET form is reset (add `z-keep`, or `.keep = true` in `ui.Z`, to keep its values, as settings forms should), and an open menu or sheet closes.
 - Errors are logged to the console and nothing is swapped.
 
 ## Motion

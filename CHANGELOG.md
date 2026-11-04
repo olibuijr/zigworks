@@ -2,6 +2,18 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [SemVer](https://semver.org/).
 
+## [0.4.0] - 2026-11-04
+
+### Added
+- 14 components: `tabs`, `disclosure`, `path`, `empty`, `textarea`, `stepper`, `checkbox`, `radio`, `tooltip`, `tag`, `avatar`, `kbd`, `skeleton`, `toast` (35 in all), each with a docs page and live demo.
+- Toasts: return `ui.toast(...)` from any handler; it lands in the layout's toast region (`z-oob="beforeend"`) and leaves after 4 s.
+- `z-keep` / `ui.Z{ .keep = true }`: a form keeps its values after a successful send (settings forms).
+- Gallery: Account (avatar, textarea, removable tags, checkbox, toast on save), Printing (tabs with stepper, radio, empty state), Activity (skeleton while loading), Developer (path, disclosure, kbd), tooltip on the toolbar.
+- e2e tests for the new components and for no zoom-on-focus on touch screens.
+
+### Fixed
+- iOS no longer zooms into text fields on focus: on touch screens (`pointer: coarse`) inputs and textareas use at least 16px text. Page zoom stays enabled.
+
 ## [0.3.0] - 2026-11-04
 
 ### Added

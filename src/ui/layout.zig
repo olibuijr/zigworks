@@ -31,7 +31,7 @@ const src =
     \\</head><body{#if has_sidebar} class="zw-app"{/if}><header class="zw-bar">
     \\{#if has_sidebar}<button type="button" class="zw-btn zw-btn--secondary zw-glass zw-press zw-sidebar-toggle" popovertarget="zw-sidebar" aria-label="Show sidebar"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.75" y="2.75" width="14.5" height="12.5" rx="2.5"/><path d="M6.5 3v12"/></svg></button>{/if}
     \\<h1>{#if brand}<a href="/">{brand}</a>{:else}{title}{/if}</h1>{toolbar}</header>
-    \\{#if has_sidebar}<div class="zw-shell">{sidebar}<main class="zw-main">{body}</main></div>{:else}<main class="zw-main">{body}</main>{/if}</body></html>
+    \\{#if has_sidebar}<div class="zw-shell">{sidebar}<main class="zw-main">{body}</main></div>{:else}<main class="zw-main">{body}</main>{/if}<div class="zw-toasts" id="zw-toasts" aria-live="polite"></div></body></html>
 ;
 
 pub fn Props(comptime Toolbar: type, comptime Sidebar: type, comptime Body: type) type {

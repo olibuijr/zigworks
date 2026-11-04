@@ -8,12 +8,18 @@ const app = .{
     .routes = .{
         .{ "GET /", index },
         .{ "POST /pref", pref },
+        .{ "POST /account", saveAccount },
+        .{ "GET /activity", activity },
+        .{ "DELETE /tag", untag },
     },
     .css = css,
 };
 
 const css =
     \\.actions{display:flex;justify-content:flex-end;gap:8px}
+    \\.who{display:flex;align-items:center;gap:12px}
+    \\.who b{display:block;font:var(--headline)}
+    \\.who small{color:var(--secondary);font:var(--callout)}
     \\
 ;
 
@@ -27,6 +33,25 @@ fn pref(c: *zw.Ctx) !void {
 }
 
 const save: ui.Z = .{ .post = "/pref", .swap = .none };
+
+fn saveAccount(c: *zw.Ctx) !void {
+    std.log.info("account {s}", .{c.body});
+    try c.page(ui.toast(.{ .text = "Account saved", .kind = .success }));
+}
+
+fn untag(c: *zw.Ctx) !void {
+    try c.send(.ok, "text/html; charset=utf-8", ""); // empty 200: z.js removes the tag
+}
+
+// Loaded by the Activity card's skeleton (z-trigger=load); the pause shows the skeleton.
+fn activity(c: *zw.Ctx) !void {
+    c.io.sleep(.fromMilliseconds(600), .awake) catch {};
+    try c.page(ui.list(.{ .id = "activity", .body = zw.view("{a}{b}", .{ .a = event("Ada Lovelace", "shared “Groceries”"), .b = event("Grace Hopper", "completed 3 reminders") }) }));
+}
+
+fn event(who: []const u8, what: []const u8) zw.View("<li>{a}<span><b>{who}</b> {what}</span></li>", struct { a: ui.Avatar, who: []const u8, what: []const u8 }) {
+    return .{ .data = .{ .a = ui.avatar(.{ .name = who, .size = 28 }), .who = who, .what = what } };
+}
 
 fn index(c: *zw.Ctx) !void {
     const general = ui.card(.{ .title = "General", .body = zw.view("{a}{b}", .{
@@ -48,9 +73,18 @@ fn index(c: *zw.Ctx) !void {
         .size = ui.setting(.{ .label = "Text size", .control = ui.slider(.{ .name = "size", .label = "Text size", .min = 10, .max = 20, .value = 13, .z = save }) }),
     }) });
 
-    const account = ui.card(.{ .title = "Account", .body = zw.view("<form class=\"zw-stack\"{z}>{email}<div class=\"actions\">{cancel}{ok}</div></form>", .{
-        .z = save,
+    const account = ui.card(.{ .title = "Account", .body = zw.view(
+        \\<form class="zw-stack"{z}><div class="who">{avatar}<div><b>Ada Lovelace</b><small>ada@example.com</small></div></div>{email}{bio}
+        \\<div class="zw-tags">{t1}{t2}{t3}</div>{news}<div class="actions">{cancel}{ok}</div></form>
+    , .{
+        .z = ui.Z{ .post = "/account", .swap = .none, .keep = true },
+        .avatar = ui.avatar(.{ .name = "Ada Lovelace", .size = 44 }),
         .email = ui.field(.{ .name = "email", .label = "Email", .placeholder = "name@example.com", .type = "email" }),
+        .bio = ui.textarea(.{ .name = "bio", .label = "About", .placeholder = "A few words about you" }),
+        .t1 = ui.tag(.{ .text = "mathematics" }),
+        .t2 = ui.tag(.{ .text = "engines", .remove = .{ .delete = "/tag" } }),
+        .t3 = ui.tag(.{ .text = "poetry", .remove = .{ .delete = "/tag" } }),
+        .news = ui.checkbox(.{ .name = "news", .label = "Email me product news" }),
         .cancel = ui.button(.{ .label = "Sign Out", .variant = .destructive }),
         .ok = ui.button(.{ .label = "Save", .variant = .primary, .type = .submit }),
     }) });
@@ -68,7 +102,27 @@ fn index(c: *zw.Ctx) !void {
         .tip = ui.callout(.{ .kind = .tip, .title = "Tip", .body = "Empty the Trash to free 2.1 GB." }),
     }) });
 
-    const developer = ui.card(.{ .title = "Developer", .body = ui.code(.{ .lang = "sh", .src = "zig build gallery" }) });
+    const developer = ui.card(.{ .title = "Developer", .body = zw.view("<div class=\"zw-stack\">{path}{code}{help}</div>", .{
+        .path = ui.path(.{ .items = &.{ .{ .label = "zigworks", .href = "/" }, .{ .label = "examples", .href = "/" }, .{ .label = "gallery" } } }),
+        .code = ui.code(.{ .lang = "sh", .src = "zig build gallery" }),
+        .help = ui.disclosure(.{ .title = "Keyboard shortcuts", .body = zw.view(
+            \\<div class="zw-stack" style="gap:8px"><div class="zw-row"><span class="zw-grow">New list</span>{a}</div><div class="zw-row"><span class="zw-grow">Search</span>{b}</div></div>
+        , .{ .a = ui.kbd(.{ .keys = "⌘ N" }), .b = ui.kbd(.{ .keys = "⌘ F" }) }) }),
+    }) });
+
+    const printing = ui.card(.{ .title = "Printing", .body = ui.tabs(.{ .id = "print", .labels = &.{ "Copies", "Layout", "Shared" }, .panels = .{
+        zw.view("{copies}{both}", .{
+            .copies = ui.setting(.{ .label = "Copies", .control = ui.stepper(.{ .name = "copies", .label = "Copies", .value = 1, .min = 1, .max = 99, .z = save }) }),
+            .both = ui.toggle(.{ .name = "duplex", .label = "Print on both sides", .z = save }),
+        }),
+        ui.radio(.{ .name = "orientation", .label = "Orientation", .z = save, .options = &.{
+            .{ .value = "portrait", .label = "Portrait", .selected = true },
+            .{ .value = "landscape", .label = "Landscape" },
+        } }),
+        ui.empty(.{ .title = "No shared printers", .text = "Printers shared on your network show up here." }),
+    } }) });
+
+    const recent = ui.card(.{ .title = "Activity", .body = zw.view("<div z-get=\"/activity\" z-trigger=\"load\" z-swap=\"outer\">{s}</div>", .{ .s = ui.skeleton(.{ .lines = 2, .label = "Loading activity" }) }) });
 
     const reminders = ui.list(.{ .id = "reminders", .body = zw.view("{a}{b}{c}", .{
         .a = item(true, "Renew domain"),
@@ -93,12 +147,14 @@ fn index(c: *zw.Ctx) !void {
         .title = "Preferences",
         .toolbar = zw.view("{badge}{more}{menu}{add}{sheet}", .{
             .badge = ui.badge(.{ .text = "2 due" }),
-            .more = ui.button(.{ .label = "•••", .aria = "More actions", .variant = .plain, .opens = "more" }),
+            .more = ui.tooltip(.{ .text = "More actions", .side = .below, .body = ui.button(.{ .label = "•••", .aria = "More actions", .variant = .plain, .opens = "more" }) }),
             .menu = actions,
             .add = ui.button(.{ .label = "New List", .variant = .primary, .opens = "new-list" }),
             .sheet = new_list,
         }),
-        .body = zw.view("<div class=\"zw-stack\">{general}{appearance}{account}{storage}{developer}{reminders}</div>", .{
+        .body = zw.view("<div class=\"zw-stack\">{general}{appearance}{account}{printing}{storage}{recent}{developer}{reminders}</div>", .{
+            .printing = printing,
+            .recent = recent,
             .general = general,
             .appearance = appearance,
             .account = account,

@@ -17,11 +17,16 @@ pub const Z = struct {
     trigger: ?[]const u8 = null,
     /// Ask before sending.
     confirm: ?[]const u8 = null,
+    /// Keep a form's values after a successful send (settings forms). By default a successful
+    /// non-GET form is reset, which suits "add" forms.
+    keep: bool = false,
 
     pub fn render(z: Z, w: *std.Io.Writer) std.Io.Writer.Error!void {
         const info = @typeInfo(Z).@"struct";
         inline for (info.field_names, info.field_types) |name, T| {
-            if (@field(z, name)) |v| {
+            if (T == bool) {
+                if (@field(z, name)) try w.writeAll(" z-" ++ name);
+            } else if (@field(z, name)) |v| {
                 try w.writeAll(" z-" ++ name ++ "=\"");
                 try writeEscaped(w, if (T == ?Swap) @tagName(v) else v);
                 try w.writeByte('"');
@@ -35,4 +40,7 @@ test Z {
     var w: std.Io.Writer = .fixed(&buf);
     try (Z{ .post = "/a?x=\"1\"", .swap = .outer }).render(&w);
     try std.testing.expectEqualStrings(" z-post=\"/a?x=&quot;1&quot;\" z-swap=\"outer\"", w.buffered());
+    w = .fixed(&buf);
+    try (Z{ .post = "/s", .keep = true }).render(&w);
+    try std.testing.expectEqualStrings(" z-post=\"/s\" z-keep", w.buffered());
 }
