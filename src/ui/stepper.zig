@@ -8,20 +8,19 @@ const Z = @import("z.zig").Z;
 
 pub const css =
     \\.zw-stepper{display:inline-flex;align-items:center;gap:6px}
-    \\.zw-stepper input{-moz-appearance:textfield;width:56px;height:var(--control-h);padding:0 8px;text-align:center;font-variant-numeric:tabular-nums}
-    \\.zw-stepper input::-webkit-inner-spin-button,.zw-stepper input::-webkit-outer-spin-button{appearance:none;margin:0}
-    \\.zw-stepper-btns{display:inline-flex;height:var(--control-h);border-radius:999px;padding:0}
-    \\.zw-stepper-btns button{appearance:none;width:34px;height:100%;border:0;background:transparent;color:var(--label);font:500 16px/1 var(--font);cursor:default;
-    \\border-radius:999px;transition:background-color var(--speed),scale var(--dur-bouncy) var(--spring-bouncy)}
-    \\.zw-stepper-btns button:hover{background:var(--fill)}
-    \\.zw-stepper-btns button:active{scale:1.15;background:var(--fill-strong);transition-duration:var(--dur-snappy)}
-    \\.zw-stepper-btns button+button{box-shadow:-.5px 0 0 var(--separator)}
-    \\.zw-stepper-btns button:disabled{opacity:.35}
-    \\.zw-stepper-btns button:focus-visible{outline-offset:-2px}
-    \\.zw-stepper input:read-only:not(:focus){background:transparent;box-shadow:none}
+    \\.zw-stepper input{-moz-appearance:textfield;width:56px;height:var(--control-h);padding:0 8px;text-align:center;font-variant-numeric:tabular-nums;
+    \\&::-webkit-inner-spin-button,&::-webkit-outer-spin-button{appearance:none;margin:0}
+    \\&:read-only:not(:focus){background:transparent;box-shadow:none}}
+    \\.zw-stepper-btns{display:inline-flex;height:var(--control-h);border-radius:999px;
+    \\& button{appearance:none;width:34px;height:100%;border:0;background:transparent;color:var(--label);font:500 16px/1 var(--font);cursor:default;
+    \\border-radius:999px;transition:background-color var(--speed),scale var(--dur-bouncy) var(--spring-bouncy);
+    \\&:hover{background:var(--fill)}
+    \\&:active{scale:1.15;background:var(--fill-strong);transition-duration:var(--dur-snappy)}
+    \\&+button{box-shadow:-.5px 0 0 var(--separator)}
+    \\&:disabled{opacity:.35}
+    \\&:focus-visible{outline-offset:-2px}}}
     \\.zw-stepper-unit{margin-inline:-2px 2px;font:var(--body);color:var(--secondary);white-space:nowrap}
-    \\.zw-stepper.is-disabled{opacity:.4}
-    \\.zw-stepper.is-disabled .zw-stepper-btns{pointer-events:none}
+    \\.zw-stepper.is-disabled{opacity:.4;& .zw-stepper-btns{pointer-events:none}}
     \\@media (pointer:coarse){.zw-stepper input,.zw-stepper-btns{height:44px}.zw-stepper-btns button{width:44px}}
     \\
 ;
