@@ -207,6 +207,10 @@ const base =
     \\.zw-grow{flex:1;min-width:0}
     \\.zw-secondary{color:var(--secondary)}
     \\.zw-callout{font:var(--callout)}
+    \\.zw-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+    \\.zw-input{appearance:none;font:var(--body);letter-spacing:-.08px;color:var(--label);background:var(--content);border:0;border-radius:var(--radius-control);outline:none;box-shadow:var(--shadow);transition:box-shadow var(--dur) var(--spring)}
+    \\.zw-input::placeholder{color:var(--secondary);opacity:.75}
+    \\.zw-input:focus{box-shadow:0 0 0 .5px var(--accent),0 0 0 4px color-mix(in srgb,var(--accent) 40%,transparent)}
     \\@media (pointer:coarse){:root{--control-h:34px}input:not([type=checkbox],[type=radio],[type=range]),textarea,select{font-size:max(16px,1em)!important}}
     \\@property --zw-glow{syntax:"<number>";inherits:true;initial-value:0}
     \\@supports not (transition-timing-function:linear(0,1)){:root{--spring:cubic-bezier(.25,1.1,.4,1);--spring-bouncy:cubic-bezier(.3,1.5,.5,1);--spring-snappy:cubic-bezier(.2,1,.3,1)}}
