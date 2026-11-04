@@ -6,6 +6,50 @@ A small count or status. Tint it with a system color, fill it for a notification
 badge
 ```
 
+## Variants and sizes
+
+`tone` tints the badge with a system color. `solid` fills it, `size` shrinks it, and `dot` drops the text for a bare status dot. Each row below changes one prop across all five tones.
+
+```demo
+badge-variants
+```
+
+## Counts and status
+
+Give `count` a number and the badge keeps it tidy: above `max` it reads `99+`, and `hide_zero` hides it at 0. A `dot` with `text` is named for screen readers; one without is decorative. A badge has no disabled or loading state: hide it or leave it out.
+
+```demo
+badge-states
+```
+
+## Update it from the server
+
+Give the badge an `id`, and send it back with `oob` in any z.js response. It replaces the badge with the same `id`, wherever it is on the page. Here one form change updates the header badge and the Dock icon badge together. Check the messages, or mark them all read: the count drops, and `hide_zero` hides the badge at 0.
+
+```demo
+badge-live
+```
+
+The server keeps no state. The count comes from the checked boxes in the request.
+
+```zig
+fn mail(c: *zw.Ctx) !void {
+    const unread = total - checked(c.body);
+    try c.html("{head}{dock}", .{
+        .head = ui.badge(.{ .id = "unread", .count = unread, .tone = .red, .solid = true, .hide_zero = true, .oob = true }),
+        .dock = ui.badge(.{ .id = "dock", .count = unread, .tone = .red, .solid = true, .size = .small, .hide_zero = true, .oob = true }),
+    });
+}
+```
+
+## With other components
+
+A badge sits next to an avatar, in a card header, or at the end of a list row. It labels the thing beside it and never carries an action itself.
+
+```demo
+badge-compose
+```
+
 ## Usage
 
 ```zig
@@ -20,6 +64,9 @@ ui.badge(.{ .count = unread, .tone = .red, .solid = true, .hide_zero = true, .id
 
 // A status dot, named for screen readers:
 ui.badge(.{ .dot = true, .tone = .green, .text = "Online" })
+
+// Smaller, tinted, with a lower cap:
+ui.badge(.{ .count = 25, .max = 9, .tone = .accent, .size = .small })
 ```
 
 ## Props
