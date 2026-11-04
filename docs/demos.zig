@@ -235,12 +235,22 @@ fn sheet(w: *Writer) Writer.Error!void {
 }
 
 fn button(w: *Writer) Writer.Error!void {
-    try zw.view("{a}{b}{c}{d}{e}", .{
+    const plus = "<svg viewBox=\"0 0 18 18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"><path d=\"M9 3.5v11M3.5 9h11\"/></svg>";
+    const chevron = "<svg viewBox=\"0 0 18 18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6.5 4l5 5-5 5\"/></svg>";
+    try zw.view("{a}{b}{c}{d}{e}{f}{g}{h}{i}{j}{k}{l}{m}", .{
         .a = ui.button(.{ .label = "Save", .variant = .primary }),
         .b = ui.button(.{ .label = "Cancel" }),
         .c = ui.button(.{ .label = "Learn More", .variant = .plain }),
         .d = ui.button(.{ .label = "Delete", .variant = .destructive }),
         .e = ui.button(.{ .label = "Disabled", .disabled = true }),
+        .f = ui.button(.{ .label = "Small", .size = .small }),
+        .g = ui.button(.{ .label = "Large", .size = .large, .variant = .primary }),
+        .h = ui.button(.{ .label = "New Item", .icon = plus }),
+        .i = ui.button(.{ .label = "Add", .icon = plus, .icon_only = true, .variant = .primary }),
+        .j = ui.button(.{ .label = "Saving…", .variant = .primary, .loading = true }),
+        .k = ui.button(.{ .label = "Read the Docs", .href = "/components/layout", .icon = chevron, .icon_end = true, .variant = .plain }),
+        .l = ui.button(.{ .label = "Link, disabled", .href = "/components/layout", .disabled = true }),
+        .m = ui.button(.{ .label = "Continue", .variant = .primary, .full = true }),
     }).render(w);
 }
 
@@ -273,9 +283,26 @@ fn picker(w: *Writer) Writer.Error!void {
 }
 
 fn menu(w: *Writer) Writer.Error!void {
-    try zw.view("{b}{m}", .{
+    const copy = "<svg viewBox=\"0 0 18 18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linejoin=\"round\"><rect x=\"6\" y=\"6\" width=\"9\" height=\"9\" rx=\"2\"/><path d=\"M12 4.5V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h.5\"/></svg>";
+    const share = "<svg viewBox=\"0 0 18 18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 11V2.5M6 5l3-3 3 3M4.5 8H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1h-.5\"/></svg>";
+    const trash = "<svg viewBox=\"0 0 18 18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 5h12M7 5V3h4v2M5 5l.7 10h6.6L13 5\"/></svg>";
+    try zw.view("{b}{m}{b2}{m2}", .{
         .b = ui.button(.{ .label = "Actions", .opens = "demo-menu" }),
-        .m = ui.menu(.{ .id = "demo-menu", .items = &.{ .{ .label = "Duplicate", .z = save }, .{ .label = "Share…", .z = save }, .{ .label = "Move to Trash", .z = save, .destructive = true, .separated = true } } }),
+        .m = ui.menu(.{ .id = "demo-menu", .label = "Actions", .items = &.{
+            .{ .label = "Duplicate", .icon = copy, .shortcut = "⌘D", .z = save },
+            .{ .label = "Share…", .icon = share, .z = save },
+            .{ .label = "Archive", .disabled = true },
+            .{ .label = "Move to Trash", .icon = trash, .shortcut = "⌘⌫", .z = save, .destructive = true, .separated = true },
+        } }),
+        .b2 = ui.button(.{ .label = "View", .opens = "demo-menu-view" }),
+        .m2 = ui.menu(.{ .id = "demo-menu-view", .label = "View", .alignment = .end, .items = &.{
+            .{ .label = "Show Sidebar", .checked = true, .shortcut = "⌘B", .header = "Layout", .z = save },
+            .{ .label = "Show Toolbar", .checked = true, .z = save },
+            .{ .label = "Show Status Bar", .checked = false, .z = save },
+            .{ .label = "Sort by Name", .checked = true, .header = "Sort", .separated = true, .z = save },
+            .{ .label = "Sort by Date", .checked = false, .z = save },
+            .{ .label = "Documentation", .href = "/components/layout", .separated = true },
+        } }),
     }).render(w);
 }
 
@@ -364,9 +391,19 @@ fn disclosure(w: *Writer) Writer.Error!void {
 }
 
 fn tooltip(w: *Writer) Writer.Error!void {
-    try zw.view("{a}{b}", .{
+    try zw.view("{a}{b}{c}{d}{e}{f}", .{
         .a = ui.tooltip(.{ .text = "Shares a link to this list", .body = ui.button(.{ .label = "Share" }) }),
         .b = ui.tooltip(.{ .text = "Shown below", .side = .below, .body = ui.button(.{ .label = "Hover me", .variant = .plain }) }),
+        .c = ui.tooltip(.{ .text = "Shown on the left", .side = .left, .body = ui.button(.{ .label = "Left", .variant = .plain }) }),
+        .d = ui.tooltip(.{ .text = "Shown on the right", .side = .right, .body = ui.button(.{ .label = "Right", .variant = .plain }) }),
+        .e = ui.tooltip(.{ .text = "Appears at once", .delay = 0, .body = ui.button(.{ .label = "No Delay" }) }),
+        .f = ui.tooltip(.{
+            .id = "demo-tip",
+            .text = "Save",
+            .shortcut = "⌘S",
+            .detail = "Writes the document to disk.",
+            .body = ui.button(.{ .label = "Save", .variant = .primary, .describedby = "demo-tip" }),
+        }),
     }).render(w);
 }
 
