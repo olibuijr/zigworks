@@ -353,7 +353,14 @@ fn tag(w: *Writer) Writer.Error!void {
 }
 
 fn empty(w: *Writer) Writer.Error!void {
-    try ui.card(.{ .body = ui.empty(.{ .title = "No Reminders", .text = "Reminders you add show up here.", .action = ui.button(.{ .label = "New Reminder", .variant = .primary }) }) }).render(w);
+    try ui.card(.{ .body = ui.empty(.{
+        .icon = "✓",
+        .title = "No Reminders",
+        .text = "Reminders you add show up here.",
+        .action = ui.button(.{ .label = "New Reminder", .variant = .primary }),
+        .secondary = ui.button(.{ .label = "Learn More", .variant = .plain }),
+    }) }).render(w);
+    try ui.card(.{ .variant = .inset, .body = ui.empty(.{ .title = "No results", .text = "Try a different search.", .size = .compact }) }).render(w);
 }
 
 fn skeleton(w: *Writer) Writer.Error!void {
