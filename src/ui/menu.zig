@@ -1,6 +1,6 @@
 //! Menu: a glass popover anchored to the button that opens it (`button(.{ .opens = id })`).
 //! Popover API + CSS anchor positioning: light dismiss and Esc for free. z.js closes it after an item fires.
-//! Items can have an icon, a shortcut hint, a checkmark, a section header, or be disabled links.
+//! Items can have an icon, a shortcut hint, a checkmark (checkbox or radio), a section header, or be disabled links.
 const std = @import("std");
 const Writer = std.Io.Writer;
 const zv = @import("../view.zig");
@@ -33,6 +33,8 @@ pub const css =
 
 pub const Item = struct {
     label: []const u8,
+    /// z.js request; the menu closes after it fires. Unless it names a `target` or a `swap`, the response
+    /// is not swapped in (`.swap = .none`), so a handler never overwrites the item's own label.
     z: Z = .{},
     destructive: bool = false,
     /// Draw a separator above this item.
@@ -43,6 +45,8 @@ pub const Item = struct {
     shortcut: []const u8 = "",
     /// Makes this a checkable item (`menuitemcheckbox`): `false` is unchecked, `true` shows a checkmark.
     checked: ?bool = null,
+    /// With `checked`: an exclusive choice (`menuitemradio`, e.g. a sort order) instead of a checkbox.
+    radio: bool = false,
     /// Greyed out and skipped by the keyboard and pointer.
     disabled: bool = false,
     /// Section header drawn above this item (after the separator, if any).
@@ -76,8 +80,8 @@ const item_inner = "{#if marks}<span class=\"zw-menu-mark\" aria-hidden=\"true\"
     "<span class=\"zw-menu-label\">{it.label}</span>{#if it.shortcut}<span class=\"zw-menu-kbd\">{it.shortcut}</span>{/if}";
 
 const lead_src = "{#if it.separated}<hr>{/if}{#if it.header}<div class=\"zw-menu-head\" role=\"presentation\">{it.header}</div>{/if}";
-const button_src = "<button type=\"button\" " ++ item_attrs ++ "{#if it.disabled} disabled{/if}{it.z}>" ++ item_inner ++ "</button>";
-const link_src = "<a " ++ item_attrs ++ "{#if it.disabled} aria-disabled=\"true\" tabindex=\"-1\"{:else} href=\"{it.href}\"{/if}{it.z}>" ++ item_inner ++ "</a>";
+const button_src = "<button type=\"button\" " ++ item_attrs ++ "{#if it.disabled} disabled{/if}{z}>" ++ item_inner ++ "</button>";
+const link_src = "<a " ++ item_attrs ++ "{#if it.disabled} aria-disabled=\"true\" tabindex=\"-1\"{:else} href=\"{it.href}\"{/if}{z}>" ++ item_inner ++ "</a>";
 
 pub const Menu = struct {
     p: Props,
@@ -92,9 +96,12 @@ pub const Menu = struct {
         }
         try zv.render(w, head_src, .{ .id = p.id, .label = p.label, .end = p.alignment == .end });
         for (p.items) |it| {
-            const role: []const u8 = if (it.checked != null) "menuitemcheckbox" else "menuitem";
+            const role: []const u8 = if (it.checked == null) "menuitem" else if (it.radio) "menuitemradio" else "menuitemcheckbox";
+            var z = it.z;
+            const request = z.get != null or z.post != null or z.put != null or z.patch != null or z.delete != null;
+            if (request and z.target == null and z.swap == null) z.swap = .none;
             const aria_checked: []const u8 = if (it.checked) |c| (if (c) "true" else "false") else "";
-            const d = .{ .it = it, .role = role, .aria_checked = aria_checked, .marks = marks, .icons = icons };
+            const d = .{ .it = it, .role = role, .aria_checked = aria_checked, .z = z, .marks = marks, .icons = icons };
             try zv.render(w, lead_src, d);
             if (it.href.len > 0) try zv.render(w, link_src, d) else try zv.render(w, button_src, d);
         }
@@ -132,6 +139,8 @@ test "checkmarks, shortcuts, headers, disabled and links" {
         .{ .label = "Sidebar", .checked = true, .shortcut = "⌘B", .header = "Show" },
         .{ .label = "Toolbar", .checked = false, .disabled = true },
         .{ .label = "Help", .href = "/help", .icon = "<svg/>" },
+        .{ .label = "Name", .checked = true, .radio = true, .z = .{ .post = "/s" } },
+        .{ .label = "Size", .checked = false, .radio = true, .z = .{ .post = "/s", .target = "#m", .swap = .outer } },
     } }, &buf);
     try expectHas(out, "zw-menu--end");
     try expectHas(out, "aria-label=\"View\"");
@@ -140,4 +149,6 @@ test "checkmarks, shortcuts, headers, disabled and links" {
     try expectHas(out, "aria-checked=\"false\" disabled");
     try expectHas(out, "<span class=\"zw-menu-kbd\">⌘B</span>");
     try expectHas(out, "<a role=\"menuitem\" href=\"/help\">");
+    try expectHas(out, "role=\"menuitemradio\" aria-checked=\"true\" z-post=\"/s\" z-swap=\"none\"");
+    try expectHas(out, "role=\"menuitemradio\" aria-checked=\"false\" z-post=\"/s\" z-target=\"#m\" z-swap=\"outer\"");
 }
