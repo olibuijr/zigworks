@@ -40,6 +40,13 @@ card-variants
 ui.card(.{ .variant = .inset, .title = "Last backup", .body = "Today at 9:41 AM" })
 ```
 
+`ui.card` takes its props loosely, so a literal like `.inset` works but `if (x) .inset else .elevated` does not compile. To choose the variant at run time, give it a type with `ui.CardVariant`:
+
+```zig
+const v: ui.CardVariant = if (nested) .inset else .elevated;
+ui.card(.{ .variant = v, .title = "Last backup", .body = "Today at 9:41 AM" })
+```
+
 ## States
 
 A card has no states of its own; it shows the state of what is inside. Put a skeleton in the body while content loads, an empty state when there is none, a callout or a field error when something went wrong, and disabled controls with the reason in the footer.
@@ -118,7 +125,7 @@ ui.card(.{
 | `subtitle` | string | `""` | secondary line under the title |
 | `accessory` | component or string | none | trailing side of the header: a button, a badge, a spinner |
 | `footer` | component or string | none | text becomes a caption; a component (usually buttons) is right-aligned |
-| `variant` | enum | `.elevated` | `.elevated` (shadow), `.inset` (grouped fill, no shadow), `.plain` (no surface) |
+| `variant` | `ui.CardVariant` | `.elevated` | `.elevated` (shadow), `.inset` (grouped fill, no shadow), `.plain` (no surface) |
 | `flush` | bool | `false` | no padding, content clipped to the corners: for lists, tables and images that run edge to edge |
 | `href` | string | `""` | renders an `<a>` so the whole card is a link, with hover and press feedback |
 | `id` | string | `""` | sets the element id; with a title it also names the section for screen readers |
@@ -130,6 +137,7 @@ ui.card(.{
 ## Notes
 
 - A link card must not contain buttons, fields or other links, and takes no `footer` actions; put those in a regular card.
-- A `flush` card with a `ui.list` inside drops the list's own shadow and corners, so the card provides them.
+- A `flush` card with a `ui.list` inside drops the list's own shadow and corners, so the card provides them. The list keeps its background, which matches the card's.
+- A card with `z` and no `href` is a plain `<section>`: a click fires the request, but the card cannot be focused or used from the keyboard. Put a real `ui.button` inside for anything a keyboard user must reach, as the plans above do. `z` on a card suits `.trigger = "load"`.
 - Pass `z` as `ui.Z{ ... }` to `ui.card`, which takes its props loosely; the buttons and fields inside take a plain `.z = .{ ... }`.
 - Titles are `<h2>`. Keep the order of headings on the page sensible.
