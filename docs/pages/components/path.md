@@ -8,7 +8,7 @@ Here it is in a small Finder. Open a folder to go deeper and use the back button
 path
 ```
 
-In your own app each ancestor is a link to its own page, so the browser (or z.js) does the navigating. Here the ancestors point back at the demo, and the Up button stands in for them.
+Each ancestor is a link with a `z` request, so a click opens that folder in place; without JavaScript the `href` takes over. The Up button does the same for the parent.
 
 ## Usage
 
@@ -28,6 +28,12 @@ items[0] = .{ .label = "Home", .href = "/", .icon = "⌂" };
 // ... one item per segment ...
 items[n - 1].href = ""; // the current page
 try c.page(ui.path(.{ .items = items[0..n], .max = 4 }));
+```
+
+To navigate without a full page load, give an item a `z` request. Keep the `href` as the fallback:
+
+```zig
+.{ .label = "Projects", .href = "/projects", .z = .{ .get = "/projects?partial", .target = "#content", .swap = .inner } },
 ```
 
 ## Separators and icons
@@ -105,10 +111,13 @@ Each `ui.PathItem` has:
 | `label` | string | required | |
 | `href` | string | `""` | empty shows the item as plain text instead of a link |
 | `icon` | string | `""` | a short glyph such as `⌂` before the label; hidden from screen readers |
+| `z` | `ui.Z` | `.{}` | z.js request fired when the link is clicked; keep `href` as the no-JS fallback. Ignored on the last item and on plain-text items |
 
 ## Notes
 
 - The last item is marked `aria-current="page"` and is never a link, whatever its `href`.
 - The "…" button opens a glass menu with the folded items; tapping anywhere outside closes it. It needs no JavaScript, and its accessible name says how many items it holds.
-- Items are plain links with no `z` props. To update part of the page on click, put the request on a button next to the bar, as the Finder demo does, or let the link load the new page.
+- An item's `z` makes a click update part of the page (the Finder demo swaps the folder). A bar that is itself inside the swapped region is replaced by the response, so return the new bar with it.
+- An empty `items` renders nothing, so no empty landmark reaches screen readers. Build the slice with at least the current page when you want the bar shown.
+- Every item with an `href` is a real link. An empty `href` is the only way to get a plain-text level; there is no inert link-styled item, because a link that goes nowhere should not look clickable.
 - Long labels are shortened with an ellipsis. Links get a focus ring and are 44px tall on touch screens.

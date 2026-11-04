@@ -78,20 +78,30 @@ const Folders = struct {
     }
 };
 
+/// A path item that opens the folder `dir` in place, with a plain link to the browser as the fallback.
+fn crumb(buf: *[96]u8, label: []const u8, dir: []const u8, icon: []const u8) ui.PathItem {
+    const url = std.fmt.bufPrint(buf, "/demo/path/browse?p={s}", .{dir}) catch unreachable;
+    return .{ .label = label, .href = "#" ++ browser_id, .icon = icon, .z = .{ .get = url, .target = "#" ++ browser_id, .swap = .inner } };
+}
+
 /// The path bar with an Up button, and the folder's contents under it.
 const Browse = struct {
     p: []const u8,
 
     pub fn render(self: Browse, w: *Writer) Writer.Error!void {
         const p = self.p;
+        // Every ancestor is a link that opens its folder in place; the last one is the current folder.
         var items: [tree.len + 1]ui.PathItem = undefined;
-        items[0] = .{ .label = "Home", .href = "#" ++ browser_id, .icon = "⌂" };
+        var urls: [tree.len + 1][96]u8 = undefined;
+        items[0] = crumb(&urls[0], "Home", "", "⌂");
         var n: usize = 1;
         if (p.len > 0) {
             var it = std.mem.splitScalar(u8, p, '/');
-            while (it.next()) |seg| : (n += 1) items[n] = .{ .label = seg, .href = "#" ++ browser_id };
+            while (it.next()) |seg| : (n += 1) {
+                const end = @intFromPtr(seg.ptr) - @intFromPtr(p.ptr) + seg.len; // the path up to and including seg
+                items[n] = crumb(&urls[n], seg, p[0..end], "");
+            }
         }
-        items[n - 1].href = ""; // the current folder is the page you are on
 
         const parent = if (std.mem.cutScalarLast(u8, p, '/')) |c| c[0] else "";
         var buf: [96]u8 = undefined;
