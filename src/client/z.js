@@ -91,6 +91,15 @@
   }
 
   document.addEventListener('input', (e) => { if (e.target.closest('.zw-slider')) fill(e.target); });
+  // Esc in a search field dismisses its results (they hide once the field loses focus).
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && e.target.closest('.zw-search')) e.target.blur(); });
+  document.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-copy]');
+    if (!b) return;
+    try { await navigator.clipboard.writeText(b.closest('figure').querySelector('code').textContent); b.textContent = 'Copied'; }
+    catch { b.textContent = 'Copy failed'; }
+    setTimeout(() => (b.textContent = 'Copy'), 1500);
+  });
   document.addEventListener('change', (e) => {
     const picker = e.target.closest('.zw-picker');
     if (!picker) return;

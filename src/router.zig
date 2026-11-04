@@ -6,7 +6,7 @@ const Ctx = @import("ctx.zig").Ctx;
 const Params = @import("ctx.zig").Params;
 const max_params = @import("ctx.zig").max_params;
 
-/// Runs the first matching route. Returns false when none matched.
+/// Runs the first matching route that doesn't `c.pass()`. Returns false when none responded.
 pub fn dispatch(comptime routes: anytype, c: *Ctx) !bool {
     inline for (routes) |route| {
         const method, const pattern = comptime std.mem.cutScalar(u8, route[0], ' ') orelse
@@ -16,7 +16,8 @@ pub fn dispatch(comptime routes: anytype, c: *Ctx) !bool {
         if (comptime pattern.len == 0 or pattern[0] != '/') @compileError("route path must start with '/': " ++ route[0]);
         if ((c.method == m or (m == .GET and c.method == .HEAD)) and match(pattern, c.path, &c.params)) {
             try route[1](c);
-            return true;
+            if (!c.passed or c.responded) return true;
+            c.passed = false;
         }
     }
     return false;

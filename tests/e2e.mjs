@@ -22,8 +22,9 @@ async function waitHttp(url, ms = 10000) {
   throw new Error(`timeout waiting for ${url}`);
 }
 
-function app(name, port) {
-  const p = spawn(join(bin, name), [], { cwd: join(root, 'examples', name), env: { ...process.env, PORT: String(port) }, stdio: ['ignore', 'ignore', 'pipe'] });
+// Apps run on loopback during tests (the framework default is every interface).
+function app(name, port, dir = join('examples', name)) {
+  const p = spawn(join(bin, name), [], { cwd: join(root, dir), env: { ...process.env, HOST: '127.0.0.1', PORT: String(port) }, stdio: ['ignore', 'ignore', 'pipe'] });
   p.stderr.on('data', (d) => { if (/error/i.test(d)) process.stderr.write(`[${name}] ${d}`); });
   children.push(p);
   return `http://127.0.0.1:${port}`;
@@ -70,6 +71,7 @@ async function open(url, { dark = false, width = 900, height = 900 } = {}) {
 
   const page = {
     errors,
+    send,
     async eval(expr) {
       const r = await send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true });
       if (r.exceptionDetails) throw new Error(`eval failed: ${expr}\n${r.exceptionDetails.exception?.description}`);
@@ -124,7 +126,8 @@ const noErrors = (p) => { if (p.errors.length) throw new Error(`browser errors:\
 const todo = app('todo', 8901);
 const gallery = app('gallery', 8902);
 const scene = app('scene', 8903);
-await Promise.all([waitHttp(todo), waitHttp(gallery), waitHttp(scene), waitHttp(`http://127.0.0.1:${cdpPort}/json/version`)]);
+const docs = app('docs', 8904, 'docs');
+await Promise.all([waitHttp(todo), waitHttp(gallery), waitHttp(scene), waitHttp(docs), waitHttp(`http://127.0.0.1:${cdpPort}/json/version`)]);
 
 await test('todo: add, complete, delete via z.js', async () => {
   const p = await open(todo);
@@ -212,6 +215,66 @@ await test('scene: three.js island renders', async () => {
   await p.eval(`document.querySelector('.zw-island canvas').style.visibility = ''`);
   if (withCanvas === without) throw new Error('canvas paints nothing');
   await p.shot('scene-light');
+  noErrors(p);
+  await p.close();
+});
+
+await test('docs: every page renders its demos without errors', async () => {
+  const p = await open(docs);
+  const links = await p.eval(`[...document.querySelectorAll('.zw-sidebar a')].map((a) => a.getAttribute('href'))`);
+  if (links.length < 30) throw new Error(`only ${links.length} sidebar links`);
+  for (const href of links) {
+    const res = await fetch(docs + href);
+    eq(res.status, 200, `status of ${href}`);
+    const html = await res.text();
+    if (html.includes('Missing demo')) throw new Error(`missing demo on ${href}`);
+    if (!html.includes(`aria-current="page" href="${href}"`) && !html.includes(`href="${href}" aria-current="page"`)) throw new Error(`${href} not marked current`);
+  }
+  eq((await fetch(docs + '/nope')).status, 404, 'unknown page');
+  eq((await fetch(docs + '/orbit.js')).status, 200, 'static file behind GET /:page');
+  await p.shot('docs-home-light');
+  noErrors(p);
+  await p.close();
+  for (const dark of [false, true]) {
+    const mode = dark ? 'dark' : 'light';
+    for (const page of ['templates', 'components/picker', 'components/setting']) {
+      const d = await open(`${docs}/${page}`, { dark, width: 1280, height: 1000 });
+      await d.shot(`docs-${page.replace('/', '-')}-${mode}`);
+      noErrors(d);
+      await d.close();
+    }
+  }
+});
+
+await test('docs: live search, copy button, pager', async () => {
+  const p = await open(`${docs}/templates`, { width: 1280 });
+  await p.send('Browser.grantPermissions', { permissions: ['clipboardReadWrite', 'clipboardSanitizedWrite'], origin: docs });
+  await p.type('.zw-bar .zw-search input', 'picker');
+  await p.waitFor(`!!document.querySelector('#zw-results a[href="/components/picker"]')`);
+  await p.shot('docs-search-light');
+  await p.key('Escape');
+  await p.waitFor(`getComputedStyle(document.getElementById('zw-results')).display === 'none'`);
+  await p.click('.zw-code [data-copy]');
+  await p.waitFor(`document.querySelector('.zw-code [data-copy]').textContent === 'Copied'`);
+  eq(await p.eval(`navigator.clipboard.readText()`), await p.eval(`document.querySelector('.zw-code code').textContent`), 'clipboard text');
+  eq(await p.eval(`document.querySelector('.pager .next').getAttribute('href')`), '/interactivity', 'next page');
+  noErrors(p);
+  await p.close();
+});
+
+await test('docs: mobile sidebar and island', async () => {
+  const p = await open(`${docs}/islands`, { width: 390, height: 800 });
+  eq(await p.eval(`document.documentElement.scrollWidth <= innerWidth`), true, 'no horizontal scroll');
+  await p.waitFor(`!!document.querySelector('.zw-island canvas')`);
+  await sleep(300);
+  const withCanvas = await p.grab('.zw-island');
+  await p.eval(`document.querySelector('.zw-island canvas').style.visibility = 'hidden'`);
+  if (withCanvas === await p.grab('.zw-island')) throw new Error('orbit island paints nothing');
+  await p.eval(`document.querySelector('.zw-island canvas').style.visibility = ''`);
+  await p.shot('docs-mobile');
+  await p.click('.zw-sidebar-toggle');
+  await p.waitFor(`document.getElementById('zw-sidebar').matches(':popover-open')`);
+  await p.shot('docs-mobile-sidebar');
   noErrors(p);
   await p.close();
 });

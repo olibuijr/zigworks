@@ -12,11 +12,18 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run all tests");
     test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = zigworks })).step);
 
-    // Examples: `zig build todo`, `zig build scene`, `zig build gallery`. `zig build run` = todo.
-    const examples = [_][]const u8{ "todo", "scene", "gallery" };
-    for (examples) |name| {
+    // Apps: `zig build todo|scene|gallery` (examples) and `zig build docs` (the docs site).
+    // Each runs with its own directory as cwd so `public/` resolves. `zig build run` = todo.
+    const apps = [_]struct { []const u8, []const u8 }{
+        .{ "todo", "examples/todo" },
+        .{ "scene", "examples/scene" },
+        .{ "gallery", "examples/gallery" },
+        .{ "docs", "docs" },
+    };
+    for (apps) |app| {
+        const name, const dir = app;
         const mod = b.createModule(.{
-            .root_source_file = b.path(b.fmt("examples/{s}/main.zig", .{name})),
+            .root_source_file = b.path(b.fmt("{s}/main.zig", .{dir})),
             .target = target,
             .optimize = optimize,
             .imports = &.{.{ .name = "zigworks", .module = zigworks }},
@@ -25,9 +32,9 @@ pub fn build(b: *std.Build) void {
         b.installArtifact(exe);
 
         const run = b.addRunArtifact(exe);
-        run.setCwd(b.path(b.fmt("examples/{s}", .{name})));
+        run.setCwd(b.path(dir));
         run.addPassthruArgs();
-        b.step(name, b.fmt("Run the {s} example", .{name})).dependOn(&run.step);
+        b.step(name, b.fmt("Run {s}", .{dir})).dependOn(&run.step);
         if (std.mem.eql(u8, name, "todo")) b.step("run", "Run the todo example").dependOn(&run.step);
 
         test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = mod })).step);

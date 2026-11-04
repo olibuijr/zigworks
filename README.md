@@ -10,10 +10,14 @@ a macOS-quality component library, and islands for three.js and other client JS.
 ```sh
 zig build test      # unit tests
 zig build e2e       # browser tests + screenshots in zig-out/e2e (needs chromium + node)
-zig build run       # todo example on http://127.0.0.1:8080 (PORT=... to change)
+zig build run       # todo example on http://<this machine>:8080 (PORT=..., HOST=... to change)
 zig build gallery   # every ui component in a preferences window
 zig build scene     # three.js island
+zig build docs      # the documentation site, built with zigworks
 ```
+
+Apps listen on every interface (`0.0.0.0`) by default so they are reachable on the LAN.
+Set `HOST=127.0.0.1` (or `Options.host`) to keep one local.
 
 ## Layout
 
@@ -24,6 +28,8 @@ src/
   router.zig    comptime routes
   ctx.zig       request context and responses
   view.zig      templates, props(), each()
+  markdown.zig  safe Markdown subset -> HTML, custom fences
+  highlight.zig Zig syntax highlighting with std.zig.Tokenizer
   css.zig       design tokens -> CSS variables (macOS HIG defaults)
   static.zig    public/ files (JS modules, wasm, glb/gltf/hdr/ktx2, images, fonts)
   client/z.js   browser runtime
@@ -31,6 +37,7 @@ src/
   ui.zig        component library index
   ui/*.zig      one component per file, each with its own css
 examples/       todo (CRUD, works without JS), gallery (all components), scene (three.js)
+docs/           documentation site: Markdown pages, live component demos, search
 tests/e2e.mjs   Chromium over DevTools protocol, zero npm packages
 ```
 
@@ -59,7 +66,9 @@ fn index(c: *zw.Ctx) !void {
 }
 ```
 
-Request order: `/_zw/*` built-ins, then routes in order, then files in `public/`, then 404.
+Request order: `/_zw/*` built-ins, then routes in order, then files in `public/`, then 404
+(`app.not_found`, a handler, renders a custom 404 page). A handler that calls `c.pass()` without
+responding hands the request to the next matching route, then to `public/`.
 A handler that sends nothing answers 204. A handler error answers 500 and is logged.
 
 ## Routes
@@ -87,6 +96,7 @@ Patterns are checked at compile time.
 | `c.redirect("/")` | 303, or `z-redirect` header for z.js |
 | `c.send(status, content_type, body)` | anything |
 | `c.status = .created`, `c.setHeader(k, v)` | before responding |
+| `c.pass()` | decline: next route, then `public/`, then 404 |
 
 All memory from `c.arena` is freed after the response. Bodies over `Options.max_body` (1 MiB) get 413.
 
@@ -118,11 +128,13 @@ No stock browser UI: pickers replace `<select>`, a custom dialog replaces `confi
 
 | Component | Props (defaults) | Type |
 |---|---|---|
-| `layout` | title, body, toolbar="", head="" | `Layout(Toolbar, Body)` |
+| `layout` | title, body, brand="", toolbar, sidebar, head="" | `Layout(Toolbar, Sidebar, Body)` |
+| `sidebar` | sections=[{title, links=[{label, href}]}], current, label="Navigation" | `Sidebar` |
 | `card` | body, title="", z | `Card(Body)` |
 | `list` | id, body, empty="Nothing here yet" | `List(Body)` |
 | `setting` | label, control | `Setting(Control)` |
 | `sheet` | id, title, body | `Sheet(Body)` |
+| `callout` | body, kind=.note (note/tip/warning), title="" | `Callout(Body)` |
 | `button` | label, variant=.secondary (primary/secondary/plain/destructive), type=.button, aria, opens, disabled, z | `Button` |
 | `field` | name, label, placeholder, value, type="text", required, autofocus, z | `Field` |
 | `check` | on, label, z | `Check` |
@@ -131,8 +143,16 @@ No stock browser UI: pickers replace `<select>`, a custom dialog replaces `confi
 | `slider` | name, label, min=0, max=100, step=1, value=50, z | `Slider` |
 | `picker` | id, name, label, options=[{value,label,selected}], z | `Picker` |
 | `menu` | id, items=[{label, z, destructive, separated}] | `Menu` |
+| `search` | action, label="Search", placeholder="Search", id="zw-results" | `Search` |
 | `badge` | text, id, oob | `Badge` |
+| `progress` | value (?u8, null = spinner), label | `Progress` |
+| `table` | head=[]string, rows=[][]string | `Table` |
+| `code` | src, lang="zig" (highlighted, Copy button) | `Code` |
 | `island` | src, props="{}", height="360px", label | `Island` |
+
+Option and item types: `ui.SegmentedOption`, `ui.PickerOption`, `ui.MenuItem`, `ui.SidebarSection`, `ui.SidebarLink`.
+A `sidebar` passed to `layout` makes a two-column app; on narrow screens it slides in from a title-bar button.
+`zw.markdown` output is styled by `.zw-prose`.
 
 `button(.{ .opens = "id" })` toggles a `menu` or `sheet` (Popover API + CSS anchor positioning, no JS).
 `id`s used with `opens` must be valid CSS identifiers.
@@ -157,6 +177,14 @@ z-island="/mod.js" data-props='{"a":1}'      import the module, call default(el,
 Requests carry `z-request: 1`. Successful non-GET forms reset; popovers close after an action.
 Only content added by `beforeend`/`afterbegin` animates, so motion marks what changed.
 
+## Markdown
+
+`zw.markdown(src)` is a component: headings with anchors, lists, fenced code (Zig highlighted on
+the server), `> [!NOTE|TIP|WARNING]` callouts, tables, rules, inline code/bold/emphasis/links.
+Raw HTML is escaped and links are limited to http(s), mailto, relative and `#` URLs, so it is safe
+for user input. `zw.markdownWith(src, fences)` lets `fences.fence(w, lang, body) !bool` render
+custom fences (the docs turn ```` ```demo ```` into live components). `zw.highlight(w, "zig", src)` stands alone.
+
 ## Design tokens
 
 `css.Tokens` fields become CSS variables (`radius_control` becomes `--radius-control`). `light`/`dark`
@@ -174,6 +202,7 @@ See `examples/scene`. Vendor three into `public/` to run offline.
 
 ## Limits
 
-- One task per connection, no idle timeout: run behind a reverse proxy on the open internet.
+- Listens on all interfaces by default: fine on a LAN, but on the open internet run behind a
+  reverse proxy (one task per connection, no idle timeout) or set `HOST=127.0.0.1`.
 - Static files are read into memory per request (64 MiB cap); no ETag or range requests yet.
 - No TLS, HTTP/2, sessions or CSRF tokens; add them when an app needs them.

@@ -11,7 +11,9 @@ const client = @import("client.zig");
 const css = @import("css.zig");
 
 pub const Options = struct {
-    host: []const u8 = "127.0.0.1",
+    /// Every interface, so apps are reachable on the LAN. "127.0.0.1" keeps an app local.
+    /// Overridden by the HOST environment variable.
+    host: []const u8 = "0.0.0.0",
     /// Overridden by the PORT environment variable.
     port: u16 = 8080,
     /// Directory served as static files at "/". Null disables it.
@@ -29,10 +31,12 @@ const State = struct {
 
 /// Serves `app` until the process exits.
 /// `app`: `.{ .routes = .{ .{ "GET /", index }, ... }, .tokens = .{...}, .css = "..." }`.
-/// `tokens` and `css` (app styles, appended to /_zw/zw.css) are optional.
+/// `tokens`, `css` (app styles, appended to /_zw/zw.css) and `not_found` (a handler run with
+/// status 404 when no route or static file answered) are optional.
 pub fn serve(init: std.process.Init, comptime app: anytype, options: Options) !void {
     const io = init.io;
     var opts = options;
+    if (init.environ_map.get("HOST")) |h| opts.host = h;
     if (init.environ_map.get("PORT")) |p| opts.port = std.fmt.parseInt(u16, p, 10) catch return error.InvalidPort;
 
     const public: ?Io.Dir = if (opts.public) |p| Io.Dir.cwd().openDir(io, p, .{}) catch |err| switch (err) {
@@ -133,6 +137,11 @@ fn route(comptime app: anytype, state: *const State, c: *Ctx) !void {
     }
     if (try router.dispatch(app.routes, c)) return;
     if (state.public) |dir| if (try static.serve(c, dir)) return;
+    c.status = .not_found;
+    if (@hasField(@TypeOf(app), "not_found")) {
+        try app.not_found(c);
+        if (c.responded) return;
+    }
     try c.send(.not_found, "text/plain", "not found");
 }
 

@@ -22,6 +22,8 @@ pub const Ctx = struct {
     body: []const u8 = "",
     status: http.Status = .ok,
     responded: bool = false,
+    /// Set by `pass()`: the router tries the next matching route, then static files.
+    passed: bool = false,
     params: Params = .{},
     headers: std.ArrayList(http.Header) = .empty,
     req: *http.Server.Request,
@@ -97,6 +99,12 @@ pub const Ctx = struct {
         }
         try c.setHeader("location", location);
         try c.send(.see_other, "text/plain", "");
+    }
+
+    /// Declines the request without responding: the next matching route runs, then `public/`,
+    /// then 404. Use it in catch-all routes like `GET /:page` for paths they don't know.
+    pub fn pass(c: *Ctx) void {
+        c.passed = true;
     }
 
     /// Sends the response. Call exactly once per request.

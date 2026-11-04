@@ -1,5 +1,5 @@
 //! Component gallery, laid out as a real preferences window so every ui component is seen in context.
-//! Run `zig build gallery`, open http://127.0.0.1:8080. Changes post back and are logged.
+//! Run `zig build gallery`, open http://127.0.0.1:8080 (or this machine's LAN address). Changes post back and are logged.
 const std = @import("std");
 const zw = @import("zigworks");
 const ui = zw.ui;
@@ -55,9 +55,24 @@ fn index(c: *zw.Ctx) !void {
         .ok = ui.button(.{ .label = "Save", .variant = .primary, .type = .submit }),
     }) });
 
+    const storage = ui.card(.{ .title = "Storage", .body = zw.view(
+        \\<div class="zw-stack"><div><p class="zw-row" style="margin-bottom:8px"><span class="zw-grow">Macintosh HD</span><span class="zw-secondary">41.2 GB of 64 GB used</span></p>{bar}</div>{table}<p class="zw-row">{spin}<span class="zw-secondary">Calculating System Data…</span></p>{tip}</div>
+    , .{
+        .bar = ui.progress(.{ .value = 64, .label = "41.2 GB of 64 GB used" }),
+        .table = ui.table(.{ .head = &.{ "Category", "Size" }, .rows = &.{
+            &.{ "Applications", "18.4 GB" },
+            &.{ "Documents", "12.9 GB" },
+            &.{ "Photos", "9.9 GB" },
+        } }),
+        .spin = ui.progress(.{ .value = null, .label = "Calculating" }),
+        .tip = ui.callout(.{ .kind = .tip, .title = "Tip", .body = "Empty the Trash to free 2.1 GB." }),
+    }) });
+
+    const developer = ui.card(.{ .title = "Developer", .body = ui.code(.{ .lang = "sh", .src = "zig build gallery" }) });
+
     const reminders = ui.list(.{ .id = "reminders", .body = zw.view("{a}{b}{c}", .{
         .a = item(true, "Renew domain"),
-        .b = item(false, "Ship zigworks 0.1"),
+        .b = item(false, "Ship zigworks 0.2"),
         .c = item(false, "Write release notes"),
     }) });
 
@@ -83,10 +98,12 @@ fn index(c: *zw.Ctx) !void {
             .add = ui.button(.{ .label = "New List", .variant = .primary, .opens = "new-list" }),
             .sheet = new_list,
         }),
-        .body = zw.view("<div class=\"zw-stack\">{general}{appearance}{account}{reminders}</div>", .{
+        .body = zw.view("<div class=\"zw-stack\">{general}{appearance}{account}{storage}{developer}{reminders}</div>", .{
             .general = general,
             .appearance = appearance,
             .account = account,
+            .storage = storage,
+            .developer = developer,
             .reminders = reminders,
         }),
     }));

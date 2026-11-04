@@ -24,7 +24,16 @@ pub const Palette = struct {
     on_accent: []const u8,
     red: []const u8,
     green: []const u8,
+    orange: []const u8,
     shadow: []const u8,
+    /// Code blocks and syntax colors (Xcode default themes).
+    code_bg: []const u8,
+    tok_keyword: []const u8,
+    tok_string: []const u8,
+    tok_number: []const u8,
+    tok_comment: []const u8,
+    tok_type: []const u8,
+    tok_fn: []const u8,
 };
 
 pub const light: Palette = .{
@@ -44,7 +53,15 @@ pub const light: Palette = .{
     .on_accent = "#ffffff",
     .red = "#ff3b30",
     .green = "#28cd41",
+    .orange = "#ff9500",
     .shadow = "0 0 0 .5px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.08)",
+    .code_bg = "#f7f7f8",
+    .tok_keyword = "#9b2393",
+    .tok_string = "#c41a16",
+    .tok_number = "#1c00cf",
+    .tok_comment = "#5d6c79",
+    .tok_type = "#0b4f79",
+    .tok_fn = "#326d74",
 };
 
 pub const dark: Palette = .{
@@ -64,7 +81,15 @@ pub const dark: Palette = .{
     .on_accent = "#ffffff",
     .red = "#ff453a",
     .green = "#32d74b",
+    .orange = "#ff9f0a",
     .shadow = "0 0 0 .5px rgba(0,0,0,.6), 0 1px 3px rgba(0,0,0,.4)",
+    .code_bg = "#1f1f22",
+    .tok_keyword = "#fc5fa3",
+    .tok_string = "#fc6a5d",
+    .tok_number = "#d0bf69",
+    .tok_comment = "#7f8c98",
+    .tok_type = "#5dd8ff",
+    .tok_fn = "#67b7a4",
 };
 
 pub const Tokens = struct {
