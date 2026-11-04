@@ -48,10 +48,11 @@ fn props(w: *Writer) Writer.Error!void {
 
 // The bounds, wrapping and disabled, side by side.
 fn states(w: *Writer) Writer.Error!void {
-    try ui.card(.{ .body = zw.view("{a}{b}{c}{d}{e}", .{
+    try ui.card(.{ .body = zw.view("{a}{b}{c}{f}{d}{e}", .{
         .a = ui.setting(.{ .label = "At the minimum", .description = "value equals min: the − button is off", .control = ui.stepper(.{ .name = "s-min", .label = "Guests at the minimum", .value = 1, .min = 1, .max = 10, .z = d.save }) }),
         .b = ui.setting(.{ .label = "At the maximum", .description = "value equals max: the + button is off", .control = ui.stepper(.{ .name = "s-max", .label = "Guests at the maximum", .value = 10, .min = 1, .max = 10, .z = d.save }) }),
         .c = ui.setting(.{ .label = "Wrapping", .description = "+ at 23 goes to 0; buttons never turn off", .control = ui.stepper(.{ .name = "s-wrap", .label = "Wrapping hour", .value = 23, .min = 0, .max = 23, .wrap = true, .editable = false, .z = d.save }) }),
+        .f = ui.setting(.{ .label = "Invalid", .description = "invalid: true; typing a value out of range shows it too", .control = ui.stepper(.{ .name = "s-bad", .label = "Guests, invalid", .value = 12, .min = 1, .max = 10, .invalid = true }) }),
         .d = ui.setting(.{ .label = "Disabled", .description = "disabled: true", .control = ui.stepper(.{ .name = "s-off", .label = "Retries", .value = 3, .min = 0, .max = 5, .disabled = true }) }),
         .e = ui.setting(.{ .label = "Locked by policy", .description = "the whole row is disabled", .disabled = true, .control = ui.stepper(.{ .name = "s-row", .label = "Sync interval in minutes", .value = 15, .min = 5, .max = 60, .unit = "min" }) }),
     }) }).render(w);
