@@ -170,7 +170,7 @@ fn variants(w: *Writer) Writer.Error!void {
         \\<div class="demo-menu-cell"><span class="demo-menu-cap">Labels only</span>{b1}{m1}</div>
         \\<div class="demo-menu-cell"><span class="demo-menu-cap"><code>icon</code> <code>shortcut</code></span>{b2}{m2}</div>
         \\<div class="demo-menu-cell"><span class="demo-menu-cap"><code>checked</code></span>{b3}{m3}</div>
-        \\<div class="demo-menu-cell"><span class="demo-menu-cap"><code>header</code> <code>separated</code></span>{b4}{m4}</div>
+        \\<div class="demo-menu-cell"><span class="demo-menu-cap"><code>radio</code> <code>header</code> <code>separated</code></span>{b4}{m4}</div>
         \\<div class="demo-menu-cell"><span class="demo-menu-cap"><code>href</code> <code>disabled</code></span>{b5}{m5}</div>
         \\<div class="demo-menu-cell"><span class="demo-menu-cap"><code>destructive</code></span>{b6}{m6}</div>
         \\<div class="demo-menu-ends">
@@ -199,11 +199,11 @@ fn variants(w: *Writer) Writer.Error!void {
         } }),
         .b4 = ui.button(.{ .label = "Sort", .opens = "demo-menu-v-sections" }),
         .m4 = ui.menu(.{ .id = "demo-menu-v-sections", .label = "Sort", .items = &.{
-            .{ .label = "Name", .checked = true, .header = "Sort by", .z = d.save },
-            .{ .label = "Date Modified", .checked = false, .z = d.save },
-            .{ .label = "Size", .checked = false, .z = d.save },
-            .{ .label = "Ascending", .checked = true, .separated = true, .header = "Order", .z = d.save },
-            .{ .label = "Descending", .checked = false, .z = d.save },
+            .{ .label = "Name", .checked = true, .radio = true, .header = "Sort by", .z = d.save },
+            .{ .label = "Date Modified", .checked = false, .radio = true, .z = d.save },
+            .{ .label = "Size", .checked = false, .radio = true, .z = d.save },
+            .{ .label = "Ascending", .checked = true, .radio = true, .separated = true, .header = "Order", .z = d.save },
+            .{ .label = "Descending", .checked = false, .radio = true, .z = d.save },
         } }),
         .b5 = ui.button(.{ .label = "Help", .opens = "demo-menu-v-links" }),
         .m5 = ui.menu(.{ .id = "demo-menu-v-links", .label = "Help", .items = &.{
@@ -268,9 +268,9 @@ fn states(w: *Writer) Writer.Error!void {
         .m4 = ui.menu(.{ .id = "demo-menu-s-window", .label = "Window", .items = &.{
             .{ .label = "Minimize", .shortcut = "⌘M", .z = d.save },
             .{ .label = "Zoom", .z = d.save },
-            .{ .label = "Inbox", .checked = true, .separated = true, .header = "Open windows", .z = d.save },
-            .{ .label = "Drafts", .checked = false, .z = d.save },
-            .{ .label = "Sent", .checked = false, .z = d.save },
+            .{ .label = "Inbox", .checked = true, .radio = true, .separated = true, .header = "Open windows", .z = d.save },
+            .{ .label = "Drafts", .checked = false, .radio = true, .z = d.save },
+            .{ .label = "Sent", .checked = false, .radio = true, .z = d.save },
         } }),
         .b5 = ui.button(.{ .label = "Share", .opens = "demo-menu-s-long" }),
         .m5 = ui.menu(.{ .id = "demo-menu-s-long", .label = "Share", .items = &.{
@@ -336,9 +336,9 @@ fn viewMenu(a: Allocator, st: ViewState) Allocator.Error!ui.Menu {
         .{ .label = "Sidebar", .checked = st.sidebar, .header = "Show", .z = try viewZ(a, sidebar) },
         .{ .label = "Toolbar", .checked = st.toolbar, .z = try viewZ(a, toolbar) },
         .{ .label = "Status Bar", .checked = st.status, .z = try viewZ(a, status) },
-        .{ .label = "Name", .checked = st.sort == .name, .separated = true, .header = "Sort by", .z = try viewZ(a, by_name) },
-        .{ .label = "Date Modified", .checked = st.sort == .date, .z = try viewZ(a, by_date) },
-        .{ .label = "Size", .checked = st.sort == .size, .z = try viewZ(a, by_size) },
+        .{ .label = "Name", .checked = st.sort == .name, .radio = true, .separated = true, .header = "Sort by", .z = try viewZ(a, by_name) },
+        .{ .label = "Date Modified", .checked = st.sort == .date, .radio = true, .z = try viewZ(a, by_date) },
+        .{ .label = "Size", .checked = st.sort == .size, .radio = true, .z = try viewZ(a, by_size) },
     });
     return ui.menu(.{ .id = "demo-menu-view-menu", .label = "View", .items = items });
 }
@@ -423,8 +423,8 @@ fn mailZ(a: Allocator, st: Inbox, act: []const u8) Allocator.Error!ui.Z {
 
 fn mailMenu(a: Allocator, st: Inbox) Allocator.Error!ui.Menu {
     const items = try a.dupe(ui.MenuItem, &.{
-        .{ .label = "All Messages", .checked = st.filter == .all, .header = "Show", .z = try mailZ(a, st, "show-all") },
-        .{ .label = "Unread Only", .checked = st.filter == .unread, .z = try mailZ(a, st, "show-unread") },
+        .{ .label = "All Messages", .checked = st.filter == .all, .radio = true, .header = "Show", .z = try mailZ(a, st, "show-all") },
+        .{ .label = "Unread Only", .checked = st.filter == .unread, .radio = true, .z = try mailZ(a, st, "show-unread") },
         .{ .label = "Mark All as Read", .separated = true, .disabled = st.unread == 0, .z = try mailZ(a, st, "mark-read") },
         .{ .label = "Mark All as Unread", .disabled = st.unread == 0b1111, .z = try mailZ(a, st, "mark-unread") },
     });

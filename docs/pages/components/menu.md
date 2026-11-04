@@ -96,12 +96,13 @@ Each item:
 | Field | Type | Default | Notes |
 |---|---|---|---|
 | `label` | string | required | end labels that open more UI with an ellipsis: "Share…" |
-| `z` | `ui.Z` | none | z.js request; the menu closes after it fires. Without `target` the response replaces the item's own content, so use `.swap = .none` or aim it at something |
+| `z` | `ui.Z` | none | z.js request; the menu closes after it fires. Without a `target` or `swap` the response is ignored (`.swap = .none` is filled in), so the item's label is never overwritten; set `target` and `swap` to use the response |
 | `destructive` | bool | `false` | red text, red highlight |
 | `separated` | bool | `false` | a separator above the item |
 | `icon` | string | `""` | inline SVG (trusted, `currentColor`); if any item has one, all labels line up |
 | `shortcut` | string | `""` | hint such as `⌘D`, shown at the end; it does not bind the key |
 | `checked` | `?bool` | `null` | `null` is a normal item; `false`/`true` make a checkable item (`menuitemcheckbox`) with a checkmark when true |
+| `radio` | bool | `false` | with `checked`: an exclusive choice (`menuitemradio`), such as a sort order, so screen readers announce it as one of a set |
 | `disabled` | bool | `false` | greyed out, not focusable |
 | `header` | string | `""` | section header above the item, below the separator if there is one |
 | `href` | string | `""` | renders a link (`<a role="menuitem">`) instead of a button |
@@ -109,8 +110,8 @@ Each item:
 ## Notes
 
 - Destructive actions go last, below a separator.
-- Show a shortcut only if it really works; keep the order modifier keys use on the Mac: ⌃ ⌥ ⇧ ⌘. In these demos the hints are display only.
+- Show a shortcut only if it really works; keep the order modifier keys use on the Mac: ⌃ ⌥ ⇧ ⌘. `shortcut` is display only and the component cannot bind the key; handle it in your own key listener, or leave the hint out.
 - Items are 44px tall on touch screens.
 - Arrow keys, Home and End move between items; disabled items are skipped.
-- A checkable item only shows state. Have its `z` request re-render the menu or the page so the checkmark follows. Exclusive choices, like a sort order, are checkable items where the handler moves the mark.
+- A checkable item only shows state. Have its `z` request re-render the menu or the page so the checkmark follows. Exclusive choices, like a sort order, are checkable items with `radio = true` where the handler moves the mark. The browser does not flip `aria-checked` on click; the server round trip is what changes it.
 - A menu inside a row of a list needs its own `id` per row. Carry the row's key in the item's URL.
