@@ -9,13 +9,13 @@ pub const css =
     \\.zw-tip-text{position:absolute;bottom:calc(100% + 8px);left:50%;z-index:30;width:max-content;max-width:min(240px,calc(100vw - 32px));padding:5px 9px;border-radius:8px;pointer-events:none;
     \\font:var(--callout);color:var(--label);text-align:center;--glass:var(--glass-thick);--px:-50%;--py:0%;--nx:0px;--ny:4px;
     \\opacity:0;translate:calc(var(--px) + var(--nx)) calc(var(--py) + var(--ny));scale:.92;transform-origin:bottom center;
-    \\transition:opacity 120ms ease,translate var(--dur) var(--spring),scale var(--dur-bouncy) var(--spring-bouncy);transition-delay:0s}
-    \\.zw-tip--below>.zw-tip-text{bottom:auto;top:calc(100% + 8px);--ny:-4px;transform-origin:top center}
-    \\.zw-tip--left>.zw-tip-text{bottom:auto;left:auto;top:50%;right:calc(100% + 8px);--px:0%;--py:-50%;--nx:4px;--ny:0px;transform-origin:right center}
-    \\.zw-tip--right>.zw-tip-text{bottom:auto;top:50%;left:calc(100% + 8px);--px:0%;--py:-50%;--nx:-4px;--ny:0px;transform-origin:left center}
-    \\.zw-tip:has(:focus-visible)>.zw-tip-text{opacity:1;--nx:0px;--ny:0px;scale:1;transition-delay:var(--zw-tip-delay,500ms)}
+    \\transition:opacity 120ms ease,translate var(--dur) var(--spring),scale var(--dur-bouncy) var(--spring-bouncy);
+    \\.zw-tip--below>&{bottom:auto;top:calc(100% + 8px);--ny:-4px;transform-origin:top center}
+    \\:is(.zw-tip--left,.zw-tip--right)>&{bottom:auto;top:50%;--px:0%;--py:-50%;--ny:0px}
+    \\.zw-tip--left>&{left:auto;right:calc(100% + 8px);--nx:4px;transform-origin:right center}
+    \\.zw-tip--right>&{left:calc(100% + 8px);--nx:-4px;transform-origin:left center}
+    \\.zw-tip:is(:hover,:has(:focus-visible))>&{opacity:1;--nx:0px;--ny:0px;scale:1;transition-delay:var(--zw-tip-delay,500ms)}}
     \\@media (hover:none){.zw-tip:not(:has(:focus-visible))>.zw-tip-text{display:none}}
-    \\@media (hover:hover){.zw-tip:hover>.zw-tip-text{opacity:1;--nx:0px;--ny:0px;scale:1;transition-delay:var(--zw-tip-delay,500ms)}}
     \\.zw-tip-detail{display:block;margin-top:2px;color:var(--secondary)}
     \\.zw-tip-kbd{margin-left:8px;padding:0 4px;border-radius:4px;background:var(--fill);color:var(--secondary);font-weight:500}
     \\

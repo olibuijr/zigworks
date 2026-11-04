@@ -7,26 +7,25 @@ const zv = @import("../view.zig");
 const Z = @import("z.zig").Z;
 
 pub const css =
-    \\.zw-field{flex:1;min-width:0;display:block}
-    \\.zw-field-box{display:flex;align-items:center;gap:6px;width:100%;height:var(--control-h);padding:0 11px}
-    \\.zw-field-box:focus-within{box-shadow:0 0 0 .5px var(--accent),0 0 0 4px color-mix(in srgb,var(--accent) 40%,transparent)}
-    \\.zw-field input{appearance:none;flex:1;min-width:0;width:100%;height:100%;padding:0;border:0;outline:none;background:transparent;font:inherit;letter-spacing:inherit;color:inherit}
-    \\.zw-field input::placeholder{color:var(--secondary);opacity:.75}
-    \\.zw-field input[type=number]{appearance:textfield}
-    \\.zw-field input::-webkit-inner-spin-button,.zw-field input::-webkit-outer-spin-button{appearance:none;margin:0}
+    \\.zw-field{flex:1;min-width:0;
+    \\& input{appearance:none;flex:1;min-width:0;width:100%;height:100%;padding:0;border:0;outline:none;background:transparent;font:inherit;letter-spacing:inherit;color:inherit;
+    \\&::placeholder{color:var(--secondary);opacity:.75}
+    \\&[type=number]{appearance:textfield}
+    \\&::-webkit-inner-spin-button,&::-webkit-outer-spin-button{appearance:none;margin:0}}}
+    \\.zw-field-box{display:flex;align-items:center;gap:6px;width:100%;height:var(--control-h);padding:0 11px;
+    \\&:focus-within{box-shadow:0 0 0 .5px var(--accent),0 0 0 4px color-mix(in srgb,var(--accent) 40%,transparent)}
+    \\&:has(input:disabled){opacity:.45}
+    \\&:has(input[readonly]){background:var(--fill);box-shadow:none}
+    \\&:has(input:is([aria-invalid=true],:user-invalid)){box-shadow:0 0 0 1px var(--red)}
+    \\&:has(input[aria-invalid=true]):focus-within{box-shadow:0 0 0 .5px var(--red),0 0 0 4px color-mix(in srgb,var(--red) 35%,transparent)}}
     \\.zw-affix{color:var(--secondary);white-space:nowrap;user-select:none}
-    \\.zw-field-box:has(input:disabled){opacity:.45}
-    \\.zw-field-box:has(input[readonly]){background:var(--fill);box-shadow:none}
-    \\.zw-field-box:has(input[aria-invalid=true]){box-shadow:0 0 0 1px var(--red)}
-    \\.zw-field-box:has(input:user-invalid){box-shadow:0 0 0 1px var(--red)}
-    \\.zw-field-box:has(input[aria-invalid=true]):focus-within{box-shadow:0 0 0 .5px var(--red),0 0 0 4px color-mix(in srgb,var(--red) 35%,transparent)}
     \\.zw-help{display:block;margin:4px 11px 0;font:var(--callout);color:var(--secondary)}
     \\.zw-help--error{color:var(--red)}
-    \\.zw-field input::-webkit-search-cancel-button,.zw-search input::-webkit-search-cancel-button{appearance:none;display:block;box-sizing:content-box;width:16px;height:16px;margin:0;border-radius:50%;
+    \\:is(.zw-field,.zw-search) input::-webkit-search-cancel-button{appearance:none;display:block;box-sizing:content-box;width:16px;height:16px;margin:0;border-radius:50%;
     \\background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='8' fill='%23888' fill-opacity='.7'/%3E%3Cpath d='m5.5 5.5 5 5m0-5-5 5' stroke='white' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center/16px no-repeat}
     \\@media (pointer:coarse){.zw-field-box{height:44px}
-    \\.zw-field input::-webkit-search-cancel-button,.zw-search input::-webkit-search-cancel-button{padding:14px;margin:0 -10px 0 0;background-origin:content-box}}
-    \\@media (forced-colors:active){.zw-field-box{border:1px solid ButtonText}.zw-field-box:focus-within{outline:2px solid Highlight}}
+    \\:is(.zw-field,.zw-search) input::-webkit-search-cancel-button{padding:14px;margin:0 -10px 0 0;background-origin:content-box}}
+    \\@media (forced-colors:active){.zw-field-box{border:1px solid ButtonText;&:focus-within{outline:2px solid Highlight}}}
     \\
 ;
 
