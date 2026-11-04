@@ -113,10 +113,12 @@ async function open(url, { dark = false, width = 900, height = 900 } = {}) {
       await page.eval(`document.querySelector(${JSON.stringify(selector)}).focus()`);
       await send('Input.insertText', { text });
     },
-    async key(key) {
-      const vk = { Enter: 13, Escape: 27 }[key] ?? 0;
-      await send('Input.dispatchKeyEvent', { type: 'keyDown', key, code: key, windowsVirtualKeyCode: vk, text: key === 'Enter' ? '\r' : undefined });
-      await send('Input.dispatchKeyEvent', { type: 'keyUp', key, code: key, windowsVirtualKeyCode: vk });
+    /** Press a key; modifiers is the CDP bitmask (2 = Ctrl, 4 = Meta). */
+    async key(key, modifiers = 0) {
+      const vk = { Enter: 13, Escape: 27, ArrowUp: 38, ArrowDown: 40 }[key] ?? key.toUpperCase().charCodeAt(0);
+      const code = key.length === 1 ? `Key${key.toUpperCase()}` : key;
+      await send('Input.dispatchKeyEvent', { type: 'keyDown', key, code, modifiers, windowsVirtualKeyCode: vk, text: key === 'Enter' ? '\r' : undefined });
+      await send('Input.dispatchKeyEvent', { type: 'keyUp', key, code, modifiers, windowsVirtualKeyCode: vk });
     },
     /** Screenshot of one element as base64 PNG (for comparisons). */
     async grab(selector) {
@@ -426,6 +428,67 @@ await test('docs: mobile sidebar and island', async () => {
   await p.waitFor(`document.getElementById('zw-sidebar').matches(':popover-open')`);
   await p.shot('docs-mobile-sidebar');
   await done(p);
+});
+
+await test('docs: slider readout and textarea counter follow input', async () => {
+  const p = await open(`${docs}/components/slider`, { width: 1280 });
+  const volume = `document.querySelector('input[name=volume]')`;
+  const readout = `${volume}.closest('.zw-slider').querySelector('.zw-slider-value').textContent`;
+  eq(await p.eval(readout), '70%', 'initial readout');
+  await p.press('input[name=volume]', -40); // lands well below 70
+  await p.release();
+  await p.waitFor(`${volume}.value !== '70' && ${readout} === ${volume}.value + '%'`);
+  await done(p);
+  const t = await open(`${docs}/components/textarea`, { width: 1280 });
+  const count = `document.querySelector('textarea[name=bio]').closest('.zw-textarea').querySelector('.zw-count[data-count]').textContent`;
+  eq(await t.eval(count), '14 / 140', 'initial count');
+  await t.type('textarea[name=bio]', ' Hi');
+  await t.waitFor(`${count} === '17 / 140'`);
+  await done(t);
+});
+
+await test('docs: stepper wraps, mixed checkbox clears, menu arrow keys', async () => {
+  const p = await open(`${docs}/components/stepper`, { width: 1280 });
+  const hour = `document.querySelector('input[name=hour]').value`;
+  eq(await p.eval(hour), '23', 'starts at max');
+  await p.click('.zw-stepper:has(input[name=hour]) [data-step="1"]');
+  await p.waitFor(`${hour} === '0'`);
+  await p.click('.zw-stepper:has(input[name=hour]) [data-step="-1"]');
+  await p.waitFor(`${hour} === '23'`);
+  await done(p);
+  const c = await open(`${docs}/components/checkbox`, { width: 1280 });
+  const all = `document.querySelector('input[name=all]')`;
+  eq(await c.eval(`${all}.hasAttribute('data-mixed')`), true, 'starts mixed');
+  await c.click('input[name=all]');
+  await c.waitFor(`!${all}.hasAttribute('data-mixed') && !${all}.hasAttribute('aria-checked') && ${all}.checked`);
+  await done(c);
+  const m = await open(`${docs}/components/menu`, { width: 1280 });
+  await m.click('[popovertarget=demo-menu]');
+  await m.waitFor(`document.getElementById('demo-menu').matches(':popover-open')`);
+  const focused = `document.activeElement.closest('#demo-menu [role^=menuitem]')?.textContent`;
+  await m.eval(`document.querySelector('#demo-menu [role^=menuitem]').focus()`);
+  await m.key('ArrowDown');
+  await m.waitFor(`${focused}?.startsWith('Share')`);
+  await m.key('ArrowDown'); // skips the disabled Archive item
+  await m.waitFor(`${focused}?.startsWith('Move to Trash')`);
+  await m.key('ArrowDown'); // wraps around
+  await m.waitFor(`${focused}?.startsWith('Duplicate')`);
+  await done(m);
+});
+
+await test('docs: Ctrl+K search, sheet focuses first field, skip link', async () => {
+  const p = await open(`${docs}/components/search`, { width: 1280 });
+  await p.key('k', 2);
+  await p.waitFor(`document.activeElement.matches('.zw-search [data-shortcut=k]')`);
+  await done(p);
+  const s = await open(`${docs}/components/sheet`, { width: 1280 });
+  eq(await s.eval(`document.querySelector('a.zw-skip')?.getAttribute('href')`), '#zw-main', 'skip link target');
+  eq(await s.eval(`document.getElementById('zw-main')?.tabIndex`), -1, 'skip target focusable');
+  eq(await s.eval(`document.getElementById('demo-sheet').hasAttribute('data-focus-first')`), true, 'sheet focuses first by default');
+  await s.click('[popovertarget=demo-sheet]');
+  await s.waitFor(`document.getElementById('demo-sheet').matches(':popover-open')`);
+  await s.waitFor(`document.activeElement === document.querySelector('#demo-sheet input[name=name]')`);
+  await done(s);
 });
 
 cleanup();
