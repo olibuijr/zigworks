@@ -22,6 +22,8 @@ pub const css =
     \\.demo-layout-fig figcaption{font:var(--callout);color:var(--secondary)}
     \\.demo-layout-frame{display:block;width:100%;height:240px;border:.5px solid var(--separator);border-radius:var(--radius-control);background:var(--window)}
     \\.demo-layout-frame--tall{height:400px}
+.demo-layout-scroll{overflow-x:auto;border-radius:var(--radius-control)}
+.demo-layout-scroll .demo-layout-frame{min-width:840px}
     \\
 ;
 /// Server routes these demos need, e.g. `.{ "POST /demo/layout/x", handler }`.
@@ -39,19 +41,20 @@ const gear = svg ++ "<circle cx='8' cy='8' r='2.2'/><path d='M8 1.8v2M8 12.2v2M1
 const bell = svg ++ "<path d='M4 11V7.5a4 4 0 0 1 8 0V11l1.2 1.5H2.8z'/><path d='M6.5 14h3'/></svg>";
 
 /// One figure: a frame running page `v` and a caption (trusted HTML) that maps it to props.
-fn figure(w: *Writer, v: []const u8, label: []const u8, caption: []const u8, tall: bool) Writer.Error!void {
+/// `wide` frames are 840px wide (scrolling sideways on a phone) so the sidebar shows as a column.
+fn figure(w: *Writer, v: []const u8, label: []const u8, caption: []const u8, wide: bool) Writer.Error!void {
     try zw.view(
-        \\<figure class="demo-layout-fig"><iframe class="demo-layout-frame{#if tall} demo-layout-frame--tall{/if}" src="/demo/layout/frame?v={v}" aria-label="{label}" loading="lazy"></iframe><figcaption>{@html caption}</figcaption></figure>
-    , .{ .v = v, .label = label, .caption = caption, .tall = tall }).render(w);
+        \\<figure class="demo-layout-fig">{#if wide}<div class="demo-layout-scroll" tabindex="0" role="group" aria-label="{label}, scrolls sideways on narrow screens">{/if}<iframe class="demo-layout-frame{#if wide} demo-layout-frame--tall{/if}" src="/demo/layout/frame?v={v}" aria-label="{label}" loading="lazy"></iframe>{#if wide}</div>{/if}<figcaption>{@html caption}</figcaption></figure>
+    , .{ .v = v, .label = label, .caption = caption, .wide = wide }).render(w);
 }
 
 fn hero(w: *Writer) Writer.Error!void {
-    try figure(w, "notes", "A Notes app built with ui.layout", "A <code>ui.layout</code> with a <code>sidebar</code> and a <code>toolbar</code> (badge and button). On a narrow screen the sidebar opens from the title bar button. Scroll the notes: they slide under the soft title bar.", true);
+    try figure(w, "notes", "A Notes app built with ui.layout", "A <code>ui.layout</code> with a <code>sidebar</code> and a <code>toolbar</code> (badge and button). The frame is 840px wide, so the sidebar is a column (below 800px it opens from the title bar button). Scroll the notes: they slide under the soft title bar.", true);
 }
 
 fn titles(w: *Writer) Writer.Error!void {
     try w.writeAll("<div class=\"demo-layout-pair\">");
-    try figure(w, "leading", "A page with a brand and a leading title", "<code>.title_align = .leading</code> (default) with a <code>.brand</code> that links to <code>/</code>, and a <code>.head</code> that adds <code>&lt;base target=\"_top\"&gt;</code>.", false);
+    try figure(w, "leading", "A page with a brand and a leading title", "<code>.title_align = .leading</code> (default) with a <code>.brand</code> and a <code>.brand_href</code> (it defaults to <code>/</code>; here it stays in the frame). Press <kbd>Tab</kbd> for the skip link.", false);
     try figure(w, "center", "A page with a centered title and a sidebar", "<code>.title_align = .center</code> keeps the title between the sidebar button and the <code>.toolbar</code>, like a macOS window.", false);
     try w.writeAll("</div>");
 }
@@ -103,10 +106,8 @@ fn frame(c: *zw.Ctx) !void {
     if (std.mem.eql(u8, v, "leading")) return c.page(ui.layout(.{
         .title = "Atlas",
         .brand = "Atlas",
-        // The brand links to "/": leave the frame instead of loading the docs inside it. A skip link
-        // is a fragment link and base target would send it to the top too, so this page has none.
-        .head = "<base target=\"_top\">",
-        .skip_link = false,
+        // The brand links to "/" by default, which would load the docs inside the frame.
+        .brand_href = "#welcome",
         .toolbar = ui.button(.{ .label = "Share", .size = .small }),
         .body = ui.card(.{ .title = "Welcome back", .subtitle = "Brand on the leading edge", .body = "The title is a link home. The toolbar sits at the trailing edge." }),
     }));

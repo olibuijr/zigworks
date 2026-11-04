@@ -2,7 +2,7 @@
 //! scrolls under a soft blur that fades out, with no hard line, and its controls float as glass.
 //! `head`: extra raw HTML for <head> (import maps, meta, a real favicon). `toolbar`: trailing title-bar
 //! content. `sidebar`: a `ui.sidebar(...)` turns the page into a two-column app with a sidebar.
-//! `brand`: title-bar text linking to "/" (defaults to `title`, which always names the tab).
+//! `brand`: title-bar text linking to `brand_href` (default "/"; without `brand` the title is plain text).
 //! `footer`: content under the page. `title_align`: `.leading` (default) or `.center`. `skip_link`:
 //! a "Skip to content" glass pill that appears on the first Tab. `lang`: the document language.
 const std = @import("std");
@@ -49,7 +49,7 @@ const src =
     \\<link rel="stylesheet" href="/_zw/zw.css"><script src="/_zw/z.js" defer></script>{@html p.head}
     \\</head><body{#if p.sidebar} class="zw-app"{/if}>{#if p.skip_link}<a class="zw-skip zw-glass" href="#zw-main">{p.skip_label}</a>{/if}<header class="zw-bar zw-bar--{p.title_align}">
     \\{#if p.sidebar}<button type="button" class="zw-btn zw-btn--secondary zw-glass zw-press zw-sidebar-toggle" popovertarget="zw-sidebar" aria-controls="zw-sidebar" aria-label="Show sidebar"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.75" y="2.75" width="14.5" height="12.5" rx="2.5"/><path d="M6.5 3v12"/></svg></button>{/if}
-    \\<h1>{#if p.brand}<a href="/">{p.brand}</a>{:else}{p.title}{/if}</h1>{#if centered}<div class="zw-bar-end">{p.toolbar}</div>{:else}{p.toolbar}{/if}</header>
+    \\<h1>{#if p.brand}<a href="{p.brand_href}">{p.brand}</a>{:else}{p.title}{/if}</h1>{#if centered}<div class="zw-bar-end">{p.toolbar}</div>{:else}{p.toolbar}{/if}</header>
     \\{#if p.sidebar}<div class="zw-shell">{p.sidebar}<main class="zw-main" id="zw-main" tabindex="-1">{p.body}</main>{#if p.footer}<footer class="zw-footer">{p.footer}</footer>{/if}</div>{:else}<main class="zw-main" id="zw-main" tabindex="-1">{p.body}</main>{#if p.footer}<footer class="zw-footer">{p.footer}</footer>{/if}{/if}<div class="zw-toasts" id="zw-toasts" aria-live="polite"></div></body></html>
 ;
 
@@ -59,6 +59,7 @@ pub fn PropsWith(comptime Toolbar: type, comptime Sidebar: type, comptime Body: 
     return struct {
         title: []const u8,
         brand: []const u8 = "",
+        brand_href: []const u8 = "/",
         head: []const u8 = "",
         lang: []const u8 = "en",
         title_align: TitleAlign = .leading,
@@ -104,6 +105,15 @@ test "layout defaults keep a flat title bar and add a skip link" {
     try std.testing.expect(std.mem.find(u8, out, "id=\"zw-main\"") != null);
     try std.testing.expect(std.mem.find(u8, out, "zw-bar-end") == null);
     try std.testing.expect(std.mem.find(u8, out, "<footer") == null);
+    try std.testing.expect(std.mem.find(u8, out, "<h1>T</h1>") != null);
+}
+
+test "layout brand links home by default and to brand_href when set" {
+    var buf: [4096]u8 = undefined;
+    var out = try renderToString(&buf, layout(.{ .title = "T", .brand = "Atlas", .body = "b" }));
+    try std.testing.expect(std.mem.find(u8, out, "<h1><a href=\"/\">Atlas</a></h1>") != null);
+    out = try renderToString(&buf, layout(.{ .title = "T", .brand = "Atlas", .brand_href = "/en?x=1&y=2", .body = "b" }));
+    try std.testing.expect(std.mem.find(u8, out, "<a href=\"/en?x=1&amp;y=2\">Atlas</a>") != null);
 }
 
 test "layout footer, centered title, lang and no skip link" {
