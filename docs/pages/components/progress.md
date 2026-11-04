@@ -1,6 +1,6 @@
 # Progress
 
-A progress bar when you know how far along a task is, a ring for compact spots, and a spinner when you don't.
+A progress bar when you know how far along a task is, a ring for compact spots, and a spinner or an indeterminate bar when you don't.
 
 Here it is in a Settings app: a bar for the download, a ring for disk use, a spinner for work of unknown length.
 
@@ -10,7 +10,7 @@ progress
 
 ## Variants and sizes
 
-Every prop has a row. `size` sets the bar thickness and the ring and spinner diameter. `tone` colors the fill. `text` and `show_value` add the caption above a bar, beside a ring or spinner; on a ring, `show_value` writes the percentage in the middle (small rings have no room for it). With `value = null` you get a spinner, which is gray unless you give it a tone.
+Every prop has a row. `size` sets the bar thickness and the ring and spinner diameter. `tone` colors the fill. `text` and `show_value` add the caption above a bar, beside a ring or spinner; on a ring, `show_value` writes the percentage in the middle, or after the caption on a small ring, which has no room for it. With `value = null` you get a spinner, or an indeterminate bar with `bar = true`. Both take the same tones: `.accent` is blue, `.neutral` is the gray of the system spinner.
 
 ```demo
 progress-variants
@@ -26,18 +26,20 @@ progress-states
 
 ## Updating from the server
 
-Drag the slider. It sends the new value with `z-get`, and the response replaces the bar and ring and, out of band, the badge in the card header. The server picks the tone (orange from 75, red from 90) so the markup always matches the number.
+Drag the slider. It sends the new value with `z-get`, and the response replaces the ring, the bar and the badge in the card header, all out of band. The server picks the tone (orange from 75, red from 90) so the markup always matches the number.
 
 ```demo
 progress-live
 ```
 
-`ui.progress` has no `id`, so wrap it in an element you can target and swap its contents:
+Give the progress an `id` and set `oob`, and a z.js response replaces the element with that id wherever it is on the page. The request's target only has to exist, so use `.swap = .none`:
 
 ```zig
 fn storage(c: *zw.Ctx) !void {
     const v = @min(std.fmt.parseInt(u8, c.query("v") orelse "", 10) catch 50, 100);
     try c.page(ui.progress(.{
+        .id = "storage",
+        .oob = true,
         .value = v,
         .label = "Used space",
         .text = "Macintosh HD",
@@ -68,30 +70,37 @@ progress-composition
 ```zig
 ui.progress(.{ .value = 42, .label = "Download" })                 // bar, 42%
 ui.progress(.{ .value = null, .label = "Indexing" })              // spinner
+ui.progress(.{ .value = null, .label = "Preparing", .bar = true }) // indeterminate bar
 ui.progress(.{ .value = 72, .label = "Upload", .text = "Uploading photos", .show_value = true })
 ui.progress(.{ .value = 100, .label = "Backup", .tone = .success, .size = .large })
 ui.progress(.{ .value = 64, .label = "Storage", .ring = true, .show_value = true })
 ui.progress(.{ .value = null, .label = "Syncing", .text = "Syncing…", .size = .small })
 ui.progress(.{ .value = 30, .label = "Upload failed", .text = "Upload failed", .tone = .@"error" })
+ui.progress(.{ .id = "dl", .oob = true, .value = 50, .label = "Download" })  // replaces #dl in a response
 ```
 
 ## Props
 
 | Prop | Type | Default | Notes |
 |---|---|---|---|
-| `value` | `?u8` | required | 0 to 100 (higher values are clamped), or null for an indeterminate spinner |
+| `value` | `?u8` | required | 0 to 100 (higher values are clamped), or null for an indeterminate spinner (or bar, see `bar`) |
 | `label` | string | required | accessible name |
 | `size` | enum | `.regular` | `.small`, `.regular`, `.large`: bar thickness, ring and spinner diameter |
-| `tone` | enum | `.accent` | `.accent`, `.success`, `.warning`, `.@"error"`: fill color; a spinner is gray unless the tone is not `.accent` |
+| `tone` | enum | `.accent` | `.accent` (blue), `.neutral` (gray), `.success`, `.warning`, `.@"error"`: fill color of bars, rings and spinners |
 | `text` | string | `""` | visible caption: above a bar, beside a ring or spinner |
-| `show_value` | bool | `false` | percentage: right-aligned above a bar, inside a ring (hidden on `.small` rings) |
+| `show_value` | bool | `false` | percentage: right-aligned above a bar, inside a ring; after the caption on `.small` rings. Ignored when `value` is null |
 | `ring` | bool | `false` | draw a determinate value as a circular ring instead of a bar |
+| `bar` | bool | `false` | with `value = null`: draw an indeterminate bar instead of a spinner; `text` shows above it |
+| `id` | string | `""` | element id, on the outermost element (the caption wrapper when there is one) |
+| `oob` | bool | `false` | in a z.js response, replace the element with the same `id`; needs `id` |
 
 ## Notes
 
 - Bars and rings are `role="progressbar"` with `aria-valuenow`; spinners are `role="status"`. Always give a `label`, even when `text` is visible.
 - Use `.tone` to say what the number means (green for done, orange for nearly full, red for failed), never as the only signal: pair it with `text`.
 - With Reduce Motion the spinner stops and the bar and ring jump to their new value.
-- A bar has no `id` or `oob` prop. To update one, put it in a wrapper with an id and swap the wrapper's contents with z.js, as the slider demo does.
-- A swap replaces the element, so the new bar appears at its value without animating the width.
-- Progress has no indeterminate bar: `value = null` always draws a spinner.
+- To update a progress from the server, give it an `id` and `oob`, as the slider demo does. The `id` goes on the outermost element, so the caption is replaced with the bar.
+- A swap replaces the element, so the new bar appears at its value without animating the width. To animate, change the value on the same element yourself (set `--v` on a bar, `--n` on a ring).
+- An indeterminate bar (`value = null`, `bar = true`) is `role="progressbar"` without `aria-valuenow`. `show_value` is ignored when there is no value; use `text`. With Reduce Motion it stays still as a faint full bar.
+- A ring shows its caption after the ring; there is no option to put it above or below. Put the ring in your own column layout for that. The percentage is inside the ring, so repeat it in `text` if the caption should carry the value too.
+- z.js has no polling trigger yet (`z-trigger="load"` fires once per mounted element), so drive live progress from user events, or reload the part with your own script.

@@ -61,12 +61,14 @@ fn variants(w: *Writer) Writer.Error!void {
     try zw.view(
         \\<div class="demo-progress-grid">
         \\<span><code>size</code> on a bar</span><div class="demo-progress-col">{bs}{br}{bl}</div>
-        \\<span><code>tone</code></span><div class="demo-progress-col">{ta}{ts}{tw}{te}</div>
+        \\<span><code>tone</code></span><div class="demo-progress-col">{ta}{tn}{ts}{tw}{te}</div>
         \\<span><code>text</code> and <code>show_value</code></span><div class="demo-progress-col">{c0}{c1}{c2}{c3}</div>
         \\<span><code>ring</code> with <code>size</code> and <code>text</code></span><div>{rs}{rr}{rl}</div>
-        \\<span><code>ring</code> with <code>tone</code></span><div>{ra}{rsu}{rw}{re}</div>
+        \\<span><code>ring</code> small with <code>show_value</code></span><div>{rv}</div>
+        \\<span><code>ring</code> with <code>tone</code></span><div>{ra}{rn}{rsu}{rw}{re}</div>
         \\<span><code>value = null</code> with <code>size</code></span><div>{ss}{sr}{sl}</div>
-        \\<span><code>value = null</code> with <code>tone</code></span><div>{sa}{ssu}{sw}{se}</div>
+        \\<span><code>value = null</code> with <code>tone</code></span><div>{sa}{sn}{ssu}{sw}{se}</div>
+        \\<span><code>value = null</code> with <code>bar</code></span><div class="demo-progress-col">{ib}{ibt}</div>
         \\</div>
     , .{
         .bs = ui.progress(.{ .value = 60, .label = "Small bar", .text = ".small", .show_value = true, .size = .small }),
@@ -75,6 +77,7 @@ fn variants(w: *Writer) Writer.Error!void {
         .ta = ui.progress(.{ .value = 70, .label = "Accent bar", .text = ".accent", .show_value = true }),
         .ts = ui.progress(.{ .value = 70, .label = "Success bar", .text = ".success", .show_value = true, .tone = .success }),
         .tw = ui.progress(.{ .value = 70, .label = "Warning bar", .text = ".warning", .show_value = true, .tone = .warning }),
+        .tn = ui.progress(.{ .value = 70, .label = "Neutral bar", .text = ".neutral", .show_value = true, .tone = .neutral }),
         .te = ui.progress(.{ .value = 70, .label = "Error bar", .text = ".@\"error\"", .show_value = true, .tone = .@"error" }),
         .c0 = ui.progress(.{ .value = 45, .label = "Bar without caption" }),
         .c1 = ui.progress(.{ .value = 45, .label = "Bar with text", .text = "Copying photos" }),
@@ -83,17 +86,22 @@ fn variants(w: *Writer) Writer.Error!void {
         .rs = ui.progress(.{ .value = 64, .label = "Small ring", .ring = true, .size = .small, .text = ".small" }),
         .rr = ui.progress(.{ .value = 64, .label = "Regular ring", .ring = true, .show_value = true, .text = ".regular" }),
         .rl = ui.progress(.{ .value = 64, .label = "Large ring", .ring = true, .show_value = true, .size = .large, .text = ".large" }),
+        .rv = ui.progress(.{ .value = 64, .label = "Small ring with value", .ring = true, .size = .small, .show_value = true, .text = "Archive" }),
         .ra = ui.progress(.{ .value = 80, .label = "Accent ring", .ring = true, .show_value = true }),
+        .rn = ui.progress(.{ .value = 80, .label = "Neutral ring", .ring = true, .show_value = true, .tone = .neutral }),
         .rsu = ui.progress(.{ .value = 80, .label = "Success ring", .ring = true, .show_value = true, .tone = .success }),
         .rw = ui.progress(.{ .value = 80, .label = "Warning ring", .ring = true, .show_value = true, .tone = .warning }),
         .re = ui.progress(.{ .value = 80, .label = "Error ring", .ring = true, .show_value = true, .tone = .@"error" }),
         .ss = ui.progress(.{ .value = null, .label = "Small spinner", .size = .small, .text = ".small" }),
         .sr = ui.progress(.{ .value = null, .label = "Regular spinner", .text = ".regular" }),
         .sl = ui.progress(.{ .value = null, .label = "Large spinner", .size = .large, .text = ".large" }),
-        .sa = ui.progress(.{ .value = null, .label = "Gray spinner", .text = ".accent" }),
+        .sa = ui.progress(.{ .value = null, .label = "Blue spinner", .text = ".accent" }),
+        .sn = ui.progress(.{ .value = null, .label = "Gray spinner", .tone = .neutral, .text = ".neutral" }),
         .ssu = ui.progress(.{ .value = null, .label = "Green spinner", .tone = .success, .text = ".success" }),
         .sw = ui.progress(.{ .value = null, .label = "Orange spinner", .tone = .warning, .text = ".warning" }),
         .se = ui.progress(.{ .value = null, .label = "Red spinner", .tone = .@"error", .text = ".@\"error\"" }),
+        .ib = ui.progress(.{ .value = null, .bar = true, .label = "Preparing" }),
+        .ibt = ui.progress(.{ .value = null, .bar = true, .label = "Waiting for the server", .text = "Waiting for the server…", .tone = .success, .size = .large }),
     }).render(w);
 }
 
@@ -106,6 +114,7 @@ fn states(w: *Writer) Writer.Error!void {
         \\<span>Nearly full</span><div class="demo-progress-col">{w0}</div>
         \\<span>Failed</span><div class="demo-progress-col">{f0}{f1}</div>
         \\<span>Unknown length (null)</span><div>{i0}{i1}</div>
+        \\<span>Unknown length, as a bar</span><div class="demo-progress-col">{i2}</div>
         \\<span>Over 100 is clamped</span><div class="demo-progress-col">{o0}</div>
         \\<span>Name only, no caption</span><div class="demo-progress-col">{n0}</div>
         \\</div>
@@ -119,6 +128,7 @@ fn states(w: *Writer) Writer.Error!void {
         .f1 = ui.progress(.{ .value = 30, .label = "Sync failed", .ring = true, .show_value = true, .tone = .@"error", .text = "Sync failed" }),
         .i0 = ui.progress(.{ .value = null, .label = "Indexing", .text = "Indexing…" }),
         .i1 = ui.progress(.{ .value = null, .label = "Searching", .size = .small, .text = "Searching…" }),
+        .i2 = ui.progress(.{ .value = null, .bar = true, .label = "Preparing download", .text = "Preparing download…" }),
         .o0 = ui.progress(.{ .value = 140, .label = "Clamped value", .text = "value = 140", .show_value = true }),
         .n0 = ui.progress(.{ .value = 55, .label = "Importing library" }),
     }).render(w);
@@ -128,8 +138,11 @@ fn states(w: *Writer) Writer.Error!void {
 
 const Meter = zw.View("<div class=\"zw-row\">{ring}<div class=\"zw-grow\">{bar}</div></div>", struct { ring: ui.Progress, bar: ui.Progress });
 
-fn meterPart(v: u8, as_ring: bool) ui.Progress {
+/// The ring and the bar carry an id, so the response can replace each one out of band.
+fn meterPart(v: u8, as_ring: bool, oob: bool) ui.Progress {
     return ui.progress(.{
+        .id = if (as_ring) "demo-progress-ring" else "demo-progress-bar",
+        .oob = oob,
         .value = v,
         .label = "Used space",
         .ring = as_ring,
@@ -141,7 +154,7 @@ fn meterPart(v: u8, as_ring: bool) ui.Progress {
 }
 
 fn meter(v: u8) Meter {
-    return .{ .data = .{ .ring = meterPart(v, true), .bar = meterPart(v, false) } };
+    return .{ .data = .{ .ring = meterPart(v, true, false), .bar = meterPart(v, false, false) } };
 }
 
 fn status(v: u8, oob: bool) ui.Badge {
@@ -160,21 +173,21 @@ fn live(w: *Writer) Writer.Error!void {
             .accessory = status(62, false),
             .body = zw.view("<div id=\"demo-progress-meter\">{m}</div>", .{ .m = meter(62) }),
         }),
-        .slider = ui.setting(.{ .label = "Used space", .description = "Drag to change it; the server redraws the meter.", .control = ui.slider(.{
+        .slider = ui.setting(.{ .label = "Used space", .description = "Drag to change it; the server redraws the ring, the bar and the badge.", .control = ui.slider(.{
             .name = "v",
             .label = "Used space",
             .value = 62,
             .show_value = true,
             .unit = "%",
-            .z = .{ .get = "/demo/progress/storage", .target = "#demo-progress-meter", .swap = .inner, .trigger = "input" },
+            .z = .{ .get = "/demo/progress/storage", .target = "#demo-progress-meter", .swap = .none, .trigger = "input" },
         }) }),
     }).render(w);
 }
 
-/// The new meter replaces the old one; the badge in the card header is swapped out of band.
+/// The ring, the bar and the badge in the card header all replace their old selves out of band.
 fn storageUsed(c: *zw.Ctx) !void {
     const v = @min(std.fmt.parseInt(u8, c.query("v") orelse "", 10) catch 50, 100);
-    try c.html("{meter}{status}", .{ .meter = meter(v), .status = status(v, true) });
+    try c.html("{ring}{bar}{status}", .{ .ring = meterPart(v, true, true), .bar = meterPart(v, false, true), .status = status(v, true) });
 }
 
 // ---- Queue: add files, advance them, remove them ----
