@@ -186,7 +186,15 @@ fn search(w: *Writer) Writer.Error!void {
 }
 
 fn check(w: *Writer) Writer.Error!void {
-    try zw.view("{a}{b}", .{ .a = ui.check(.{ .on = false, .label = "Not done" }), .b = ui.check(.{ .on = true, .label = "Done" }) }).render(w);
+    try zw.view("{a}{b}{c}{d}{e}{f}{g}", .{
+        .a = ui.check(.{ .on = false, .label = "Not done" }),
+        .b = ui.check(.{ .on = true, .label = "Done" }),
+        .c = ui.check(.{ .on = true, .label = "Small", .size = .small }),
+        .d = ui.check(.{ .on = true, .label = "Large", .size = .large }),
+        .e = ui.check(.{ .on = true, .label = "Flagged", .tint = .orange }),
+        .f = ui.check(.{ .on = true, .label = "Urgent", .tint = .red }),
+        .g = ui.check(.{ .on = true, .label = "Locked", .disabled = true }),
+    }).render(w);
 }
 
 fn toggle(w: *Writer) Writer.Error!void {
