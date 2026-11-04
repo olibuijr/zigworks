@@ -122,14 +122,19 @@ pub fn formValue(arena: std.mem.Allocator, data: []const u8, name: []const u8) ?
     var it = std.mem.splitScalar(u8, data, '&');
     while (it.next()) |pair| {
         const k, const v = std.mem.cutScalar(u8, pair, '=') orelse .{ pair, "" };
-        const key = decode(arena, k) catch return null;
-        if (std.mem.eql(u8, key, name)) return decode(arena, v) catch null;
+        const key = formDecode(arena, k) catch return null;
+        if (std.mem.eql(u8, key, name)) return formDecode(arena, v) catch null;
     }
     return null;
 }
 
-/// Percent-decodes into a new slice; `+` becomes a space.
+/// Percent-decodes a path or route param into a new slice; `+` stays literal.
 pub fn decode(arena: std.mem.Allocator, s: []const u8) ![]u8 {
+    return std.Uri.percentDecodeInPlace(try arena.dupe(u8, s));
+}
+
+/// Decodes a form or query value: `+` becomes a space, then percent-decodes.
+fn formDecode(arena: std.mem.Allocator, s: []const u8) ![]u8 {
     const out = try arena.dupe(u8, s);
     std.mem.replaceScalar(u8, out, '+', ' ');
     return std.Uri.percentDecodeInPlace(out);
@@ -142,4 +147,21 @@ test "form decoding" {
     try std.testing.expectEqualStrings("buy milk & eggs", formValue(a, "x=1&title=buy+milk+%26+eggs", "title").?);
     try std.testing.expectEqualStrings("", formValue(a, "empty", "empty").?);
     try std.testing.expect(formValue(a, "a=1", "b") == null);
+}
+
+test "path decoding keeps + literal" {
+    var arena: std.heap.ArenaAllocator = .init(std.testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+    try std.testing.expectEqualStrings("a+b", try decode(a, "a+b"));
+    try std.testing.expectEqualStrings("+", try decode(a, "%2B"));
+    try std.testing.expectEqualStrings("a b", formValue(a, "q=a+b", "q").?);
+    try std.testing.expectEqualStrings("a+b", formValue(a, "q=a%2Bb", "q").?);
+
+    // GET /todos/a+b matched against /todos/:id
+    var c: Ctx = .{ .io = undefined, .arena = a, .method = .GET, .path = "/todos/a+b", .raw_query = "q=a+b", .req = undefined, .head = "" };
+    c.params.items[0] = .{ .name = "id", .value = "a+b" };
+    c.params.len = 1;
+    try std.testing.expectEqualStrings("a+b", c.param("id").?);
+    try std.testing.expectEqualStrings("a b", c.query("q").?);
 }
