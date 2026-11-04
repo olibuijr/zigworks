@@ -275,7 +275,12 @@ fn textarea(w: *Writer) Writer.Error!void {
 }
 
 fn stepper(w: *Writer) Writer.Error!void {
-    try ui.setting(.{ .label = "Copies", .control = ui.stepper(.{ .name = "copies", .label = "Copies", .value = 1, .min = 1, .max = 9, .z = save }) }).render(w);
+    try zw.view("<div class=\"zw-stack\" style=\"width:100%\">{a}{b}{c}{d}</div>", .{
+        .a = ui.setting(.{ .label = "Copies", .control = ui.stepper(.{ .name = "copies", .label = "Copies", .value = 1, .min = 1, .max = 9, .z = save }) }),
+        .b = ui.setting(.{ .label = "Cache size", .control = ui.stepper(.{ .name = "cache-gb", .label = "Cache size", .value = 4, .min = 1, .max = 32, .unit = "GB", .z = save }) }),
+        .c = ui.setting(.{ .label = "Hour", .control = ui.stepper(.{ .name = "hour", .label = "Hour", .value = 23, .min = 0, .max = 23, .wrap = true, .editable = false, .z = save }) }),
+        .d = ui.setting(.{ .label = "Retries", .control = ui.stepper(.{ .name = "retries", .label = "Retries", .value = 3, .min = 0, .max = 5, .disabled = true }) }),
+    }).render(w);
 }
 
 fn checkbox(w: *Writer) Writer.Error!void {
