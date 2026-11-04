@@ -275,10 +275,13 @@ fn stepper(w: *Writer) Writer.Error!void {
 }
 
 fn checkbox(w: *Writer) Writer.Error!void {
-    try zw.view("<div class=\"zw-stack\" style=\"gap:6px\">{a}{b}{c}</div>", .{
+    try zw.view("<div class=\"zw-stack\" style=\"gap:6px\">{a}{b}{c}{d}{e}{f}</div>", .{
         .a = ui.checkbox(.{ .name = "spell", .label = "Check spelling while typing", .on = true, .z = save }),
         .b = ui.checkbox(.{ .name = "grammar", .label = "Check grammar with spelling", .z = save }),
         .c = ui.checkbox(.{ .name = "caps", .label = "Capitalize words automatically", .on = true, .z = save }),
+        .d = ui.checkbox(.{ .name = "all", .label = "Select all", .mixed = true, .description = "2 of 5 selected", .z = save }),
+        .e = ui.checkbox(.{ .name = "beta", .label = "Beta features", .description = "Managed by your administrator", .disabled = true }),
+        .f = ui.checkbox(.{ .name = "terms", .label = "I agree to the terms", .invalid = true, .z = save }),
     }).render(w);
 }
 
