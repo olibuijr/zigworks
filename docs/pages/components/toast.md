@@ -41,6 +41,7 @@ ui.toast(.{
 ## Notes
 
 - Toasts are announced to screen readers: errors immediately (`role="alert"`), everything else politely (`role="status"`). Don't use one for errors people must act on; show those next to the field or in a sheet.
+- Toasts slide up and out when they leave (on their own, when dismissed, or after their action), and the ones below move up to fill the space.
 - A normal toast leaves after four seconds. If it carries an action people may need time to find, make it `sticky`.
 - A sticky toast is closed with its close button, which works without JavaScript.
 - On touch screens the action and close buttons grow to 44px.

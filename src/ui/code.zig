@@ -20,6 +20,7 @@ pub const css =
     \\.zw-code--wrap pre{overflow-x:visible;white-space:pre-wrap;overflow-wrap:anywhere}
     \\.zw-copy{appearance:none;border:0;background:transparent;color:var(--secondary);font:var(--callout);font-weight:500;height:22px;padding:0 8px;border-radius:5px;cursor:default;
     \\  &:hover{background:var(--fill);color:var(--label)}
+    \\  &.zw-copied{color:var(--green)}
     \\  @media (pointer:coarse){height:34px;padding:0 12px}}
     \\.tok-keyword{color:var(--tok-keyword)}
     \\.tok-string{color:var(--tok-string)}

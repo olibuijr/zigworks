@@ -218,6 +218,7 @@ const base =
     \\@media (pointer:coarse){:root{--control-h:34px}input:not([type=checkbox],[type=radio],[type=range]),textarea,select{font-size:max(16px,1em)!important}}
     \\@property --zw-glow{syntax:"<number>";inherits:true;initial-value:0}
     \\@supports not (transition-timing-function:linear(0,1)){:root{--spring:cubic-bezier(.25,1.1,.4,1);--spring-bouncy:cubic-bezier(.3,1.5,.5,1);--spring-snappy:cubic-bezier(.2,1,.3,1)}}
+    \\@media (prefers-reduced-motion:no-preference){@view-transition{navigation:auto}::view-transition-group(root){animation-duration:200ms}}
     \\@media (prefers-reduced-motion:reduce){*,::before,::after{transition:none!important;animation:none!important}}
     \\@media (prefers-contrast:more){:root{--separator:var(--secondary);--glass:var(--content);--glass-thick:var(--content);--glass-rim:inset 0 0 0 1px var(--secondary)}}
     \\@media (prefers-reduced-transparency:reduce){:root{--glass:var(--content);--glass-thick:var(--content);--glass-clear:var(--content);--glass-filter:none;--glass-filter-clear:none;--glass-sheen:none}}

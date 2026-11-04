@@ -40,4 +40,11 @@ try c.html("{row}{count}", .{
 
 ## Motion
 
-Only content added with `beforeend` or `afterbegin` animates in, so motion always means "this is new". Everything respects Reduce Motion.
+Every change has its own motion, so people see what happened:
+
+- Content added with `beforeend` or `afterbegin` springs in ("this is new").
+- Content replaced by `inner` or `outer` fades up from half opacity ("this changed").
+- Removed elements (`delete` swaps, dismissed toasts, removed tags) fade, shrink and collapse along their row or column, and their neighbours glide into the gap.
+- The confirm dialog scales in and out, copy buttons flip to "Copied", and page navigations crossfade (a cross-document view transition).
+
+Everything respects Reduce Motion: removals are instant and nothing else moves.

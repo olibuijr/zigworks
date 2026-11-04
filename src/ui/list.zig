@@ -9,7 +9,6 @@ pub const css =
     \\.zw-list{list-style:none;padding:0;background:var(--content);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;
     \\  &>li{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 8px 6px 12px;position:relative;transition:background-color var(--speed);
     \\    &+li::before{content:"";position:absolute;inset:0 0 auto 44px;border-top:1px solid var(--separator)}
-    \\    &.zw-leave{min-height:0;padding-block:0;overflow:hidden}
     \\    &[aria-selected=true]{background:var(--accent);color:var(--on-accent);
     \\      &::before,&+li::before{opacity:0}}
     \\    &[aria-disabled=true]{opacity:.4;pointer-events:none}}

@@ -44,7 +44,7 @@ Apps listen on every interface (`0.0.0.0`) so they are reachable on your LAN. Se
 ### Use it in your project
 
 ```sh
-zig fetch --save git+https://github.com/olibuijr/zigworks#v0.5.2
+zig fetch --save git+https://github.com/olibuijr/zigworks#v0.6.0
 ```
 
 ```zig
@@ -212,7 +212,7 @@ z-island="/mod.js" data-props='{"a":1}'      import the module, call default(el,
 ```
 
 Requests carry `z-request: 1`. Successful non-GET forms reset unless they carry `z-keep`; popovers close after an action.
-Only content added by `beforeend`/`afterbegin` animates, so motion marks what changed.
+Motion marks what changed: added content springs in, replaced content fades up, removed content (deletes, dismissed toasts, tags) collapses while its neighbours glide into place, and pages crossfade. All of it respects Reduce Motion.
 
 ## Markdown
 

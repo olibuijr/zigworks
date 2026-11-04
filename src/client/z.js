@@ -9,6 +9,7 @@
   const verbs = ['get', 'post', 'put', 'patch', 'delete'];
   const sel = verbs.map((v) => `[z-${v}]`).join();
   const attr = (el, n) => el.getAttribute('z-' + n);
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const ask = (msg) => new Promise((done) => {
     const d = document.createElement('dialog');
@@ -16,7 +17,7 @@
     d.innerHTML = '<p></p><div class="zw-row"><button class="zw-btn zw-btn--secondary zw-glass zw-press" value="">Cancel</button><button class="zw-btn zw-btn--primary zw-glass zw-press" value="1">OK</button></div>';
     d.querySelector('p').textContent = msg;
     d.onclick = (e) => { if (e.target.tagName === 'BUTTON') { done(!!e.target.value); d.close(); } };
-    d.onclose = () => { done(false); d.remove(); };
+    d.onclose = () => { done(false); setTimeout(() => d.remove(), reduced() ? 0 : 260); };
     document.body.append(d);
     d.showModal();
   });
@@ -79,13 +80,19 @@
     }
   }
 
-  // Removed elements collapse and fade before they leave (instantly with Reduce Motion).
+  // Removed elements fade and collapse along their flow axis (inline ones shrink sideways), eating
+  // the parent's gap too so neighbours glide into place. Instant with Reduce Motion.
   function leave(el) {
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return el.remove();
-    if (el.matches('.zw-toast')) { el.classList.add('zw-leave'); return setTimeout(() => el.remove(), 280); }
-    el.style.height = el.offsetHeight + 'px';
+    if (el.classList.contains('zw-leave')) return;
+    if (reduced()) return el.remove();
+    let p = el.parentElement;
+    if (getComputedStyle(p).display === 'contents') p = p.parentElement;
+    const ps = getComputedStyle(p), d = ps.display, row = d.includes('flex') ? !ps.flexDirection.startsWith('column') : !d.includes('grid') && getComputedStyle(el).display.startsWith('inline');
+    const [dim, min, pad, edge, gap] = row ? ['width', 'minWidth', 'paddingInline', 'marginInlineEnd', ps.columnGap] : ['height', 'minHeight', 'paddingBlock', 'marginBlockEnd', ps.rowGap];
+    el.style[dim] = el[row ? 'offsetWidth' : 'offsetHeight'] + 'px';
+    el.style[min] = '0';
     el.classList.add('zw-leave');
-    requestAnimationFrame(() => requestAnimationFrame(() => { el.style.height = '0px'; }));
+    requestAnimationFrame(() => requestAnimationFrame(() => Object.assign(el.style, { [dim]: '0px', [pad]: '0px', [edge]: -(parseFloat(gap) || 0) + 'px' })));
     setTimeout(() => el.remove(), 420);
   }
 
@@ -137,6 +144,7 @@
     const t = e.target, picker = t.closest?.('.zw-picker');
     if (t.hasAttribute?.('data-mixed')) { t.removeAttribute('data-mixed'); t.removeAttribute('aria-checked'); }
     if (t.closest?.('.zw-stepper')) clampStep(t);
+    if (t.matches?.('.zw-toast-x')) leave(t.closest('.zw-toast'));
     if (picker) { picker.querySelector('.zw-picker-value').textContent = t.parentElement.textContent; picker.querySelector('[popover]').hidePopover(); }
   });
   // Sheets focus their first field when they open.
@@ -170,11 +178,14 @@
       i.dispatchEvent(new Event('change', { bubbles: true }));
       clampStep(i);
     }
+    const a = e.target.closest('.zw-toast-action');
+    if (a) setTimeout(() => leave(a.closest('.zw-toast')));
     const c = e.target.closest('[data-copy]');
     if (!c) return;
-    try { await navigator.clipboard.writeText(c.closest('figure').querySelector('code').textContent); c.textContent = 'Copied'; }
-    catch { c.textContent = 'Copy failed'; }
-    setTimeout(() => (c.textContent = 'Copy'), 1500);
+    const say = (text, ok) => { c.textContent = text; c.classList.toggle('zw-copied', ok); c.classList.remove('zw-flip'); void c.offsetWidth; c.classList.add('zw-flip'); };
+    try { await navigator.clipboard.writeText(c.closest('figure').querySelector('code').textContent); say('Copied', true); }
+    catch { say('Copy failed', false); }
+    clearTimeout(c.zwT); c.zwT = setTimeout(() => say('Copy', false), 1500);
   });
 
   for (const type of ['click', 'submit', 'change', 'input']) {

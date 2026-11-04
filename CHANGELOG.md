@@ -5,6 +5,21 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 **Releasing:** bump the version in `build.zig.zon`, `src/zigworks.zig` (`version`) and the README
 install snippet (`#vX.Y.Z`), rename `[Unreleased]` to the version and date, then tag `vX.Y.Z`.
 
+## [0.6.0] - 2026-11-04
+
+Motion for every action.
+
+### Added
+- Dismissing a sticky toast (×) animates it out instead of hiding it at once; pressing a toast's action button dismisses it the same way.
+- Replaced content (`inner`/`outer` swaps) fades up from half opacity, so updates are visible.
+- The `z-confirm` dialog animates out when it closes.
+- Copy buttons flip to "Copied" (in green) with a small spring.
+- Page navigations crossfade with a cross-document view transition (skipped with Reduce Motion).
+- e2e test for the toast and dialog exit animations.
+
+### Changed
+- Removals collapse smoothly along their flow axis: toasts close up their stack, tags in a row shrink sideways, list rows fold away, and the parent's gap closes with them instead of jumping at the end.
+
 ## [0.5.2] - 2026-11-04
 
 ### Changed

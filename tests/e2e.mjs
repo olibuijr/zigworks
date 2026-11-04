@@ -430,6 +430,28 @@ await test('docs: mobile sidebar and island', async () => {
   await done(p);
 });
 
+await test('docs: toasts and the confirm dialog animate out before they leave', async () => {
+  const p = await open(`${docs}/components/toast`, { width: 1280 });
+  const undo = `[...document.querySelectorAll('button')].find((b) => b.textContent.includes('Undo'))`;
+  await p.eval(`${undo}.click()`);
+  await p.waitFor(`document.querySelectorAll('#zw-toasts .zw-toast').length === 1`);
+  await p.eval(`${undo}.click()`);
+  await p.waitFor(`document.querySelectorAll('#zw-toasts .zw-toast').length === 2`);
+  await p.click('#zw-toasts .zw-toast-x');
+  eq(await p.eval(`document.querySelector('#zw-toasts .zw-toast').classList.contains('zw-leave')`), true, 'closed toast is leaving');
+  eq(await p.eval(`getComputedStyle(document.querySelector('#zw-toasts .zw-toast')).display !== 'none'`), true, 'still visible while it animates');
+  await p.waitFor(`document.querySelectorAll('#zw-toasts .zw-toast').length === 1`, 2000);
+  await done(p);
+  // z-confirm's dialog: Cancel closes it with an exit animation, then it is removed
+  const d = await open(`${docs}/components/button`, { width: 1280 });
+  await d.eval(`document.body.insertAdjacentHTML('beforeend', '<button id=cf z-post="/nowhere" z-confirm="Sure?">x</button>'); document.querySelector('#cf').click()`);
+  await d.waitFor(`!!document.querySelector('.zw-dialog[open]')`);
+  await d.eval(`document.querySelector('.zw-dialog button').click()`);
+  eq(await d.eval(`!!document.querySelector('.zw-dialog')`), true, 'dialog stays to animate out');
+  await d.waitFor(`!document.querySelector('.zw-dialog')`, 2000);
+  await done(d);
+});
+
 await test('docs: slider readout and textarea counter follow input', async () => {
   const p = await open(`${docs}/components/slider`, { width: 1280 });
   const volume = `document.querySelector('input[name=volume]')`;
