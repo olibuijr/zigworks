@@ -4,30 +4,42 @@ const std = @import("std");
 const zv = @import("../view.zig");
 
 pub const css =
-    \\.zw-progress{--c:var(--accent);--h:6px;display:block;width:100%;height:var(--h);border-radius:calc(var(--h) / 2);background:var(--fill-strong);box-shadow:inset 0 .5px 1px rgba(0,0,0,.1);overflow:hidden}
-    \\.zw-progress--small{--h:4px}.zw-progress--large{--h:10px}
-    \\.zw-progress>span{display:block;height:100%;width:var(--v);border-radius:inherit;background:linear-gradient(color-mix(in srgb,var(--c) 75%,#fff),var(--c));
-    \\box-shadow:inset 0 .5px 0 rgba(255,255,255,.45);transition:width var(--dur) var(--spring)}
-    \\.zw-tone-success{--c:var(--green)}.zw-tone-warning{--c:var(--orange)}.zw-tone-error{--c:var(--red)}
+    \\.zw-progress{--c:var(--accent);--h:6px;display:block;width:100%;height:var(--h);border-radius:calc(var(--h)/2);background:var(--fill-strong);box-shadow:inset 0 .5px 1px rgba(0,0,0,.1);overflow:hidden;
+    \\  &>span{display:block;height:100%;width:var(--v);border-radius:inherit;background:linear-gradient(color-mix(in srgb,var(--c) 75%,#fff),var(--c));box-shadow:inset 0 .5px 0 rgba(255,255,255,.45);transition:width var(--dur) var(--spring)}
+    \\}
+    \\.zw-progress--small{--h:4px}
+    \\.zw-progress--large{--h:10px}
+    \\.zw-tone-success{--c:var(--green)}
+    \\.zw-tone-warning{--c:var(--orange)}
+    \\.zw-tone-error{--c:var(--red)}
     \\.zw-meter{display:flex;flex-direction:column;gap:6px;width:100%}
-    \\.zw-meter-head{display:flex;justify-content:space-between;gap:12px;font:var(--callout);color:var(--secondary)}
-    \\.zw-meter-head:empty{display:none}
+    \\.zw-meter-head{display:flex;justify-content:space-between;gap:12px;font:var(--callout);color:var(--secondary);
+    \\  &:empty{display:none}
+    \\}
     \\.zw-meter-pct{margin-left:auto;font-variant-numeric:tabular-nums}
     \\.zw-inline{display:inline-flex;align-items:center;gap:8px;font:var(--callout);color:var(--secondary)}
-    \\.zw-ring{--c:var(--accent);--d:44px;--sw:4;position:relative;display:inline-grid;place-items:center;flex:none;width:var(--d);height:var(--d);vertical-align:middle}
-    \\.zw-ring--small{--d:24px;--sw:5}.zw-ring--large{--d:72px;--sw:3.5}
-    \\.zw-ring svg{position:absolute;inset:0;width:100%;height:100%;rotate:-90deg;overflow:visible}
-    \\.zw-ring circle{fill:none;stroke-width:var(--sw)}
+    \\.zw-ring{--c:var(--accent);--d:44px;--sw:4;position:relative;display:inline-grid;place-items:center;flex:none;width:var(--d);height:var(--d);vertical-align:middle;
+    \\  & svg{position:absolute;inset:0;width:100%;height:100%;rotate:-90deg;overflow:visible}
+    \\  & circle{fill:none;stroke-width:var(--sw)}
+    \\}
+    \\.zw-ring--small{--d:24px;--sw:5}
+    \\.zw-ring--large{--d:72px;--sw:3.5}
     \\.zw-ring-track{stroke:var(--fill-strong)}
     \\.zw-ring-bar{stroke:var(--c);stroke-dasharray:var(--n) 100;transition:stroke-dasharray var(--dur) var(--spring),opacity var(--speed)}
     \\.zw-ring--zero .zw-ring-bar{opacity:0}
-    \\.zw-ring-v{position:relative;font:600 calc(var(--d) * .27)/1 var(--font);font-variant-numeric:tabular-nums;color:var(--label)}
+    \\.zw-ring-v{position:relative;font:600 calc(var(--d)*.27)/1 var(--font);font-variant-numeric:tabular-nums;color:var(--label)}
     \\.zw-ring--small .zw-ring-v{display:none}
     \\.zw-spinner{--d:16px;--t:2px;display:inline-block;flex:none;width:var(--d);height:var(--d);border-radius:50%;vertical-align:middle;animation:zw-spin .9s linear infinite;
-    \\background:conic-gradient(from 0deg,transparent 10%,var(--c,var(--secondary)));mask:radial-gradient(farthest-side,transparent calc(100% - var(--t) - .5px),#000 calc(100% - var(--t)))}
-    \\.zw-spinner--small{--d:12px;--t:1.5px}.zw-spinner--large{--d:28px;--t:3px}
+    \\  background:conic-gradient(transparent 10%,var(--c,var(--secondary)));
+    \\  mask:radial-gradient(farthest-side,transparent calc(100% - var(--t) - .5px),#000 calc(100% - var(--t)))}
+    \\.zw-spinner--small{--d:12px;--t:1.5px}
+    \\.zw-spinner--large{--d:28px;--t:3px}
     \\@keyframes zw-spin{to{rotate:360deg}}
-    \\@media (forced-colors:active){.zw-progress{forced-color-adjust:none;background:Canvas;box-shadow:inset 0 0 0 1px CanvasText}.zw-progress>span{background:Highlight}.zw-ring-track{stroke:GrayText}.zw-ring-bar{stroke:Highlight}}
+    \\@media (forced-colors:active){
+    \\  .zw-progress{forced-color-adjust:none;background:Canvas;box-shadow:inset 0 0 0 1px CanvasText;&>span{background:Highlight}}
+    \\  .zw-ring-track{stroke:GrayText}
+    \\  .zw-ring-bar{stroke:Highlight}
+    \\}
     \\
 ;
 
